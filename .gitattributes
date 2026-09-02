@@ -1,5 +1,12 @@
 * text=auto
 
+.env.example text eol=lf
+.env.*.example text eol=lf
+.githooks/* text eol=lf
+.node-version text eol=lf
+.python-version text eol=lf
+uv.lock text eol=lf
+
 *.py text eol=lf
 *.pyi text eol=lf
 *.sh text eol=lf
@@ -18,6 +25,7 @@
 *.ps1 text eol=lf
 *.cmd text eol=crlf
 *.bat text eol=crlf
+*.psd1 text eol=lf
 
 *.png binary
 *.jpg binary

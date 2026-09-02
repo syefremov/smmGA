@@ -107,6 +107,7 @@
 ## Verification
 
 - Add or update tests with every behavior change.
+- Phase 1 workstation commands are `pnpm doctor` for read-only environment diagnostics and `pnpm check` for fast repository checks. The `dev`, `test`, `build`, and `db:migrate` commands are reserved and intentionally fail until phase 2 implements the executable monorepo.
 - Cover authorization, workspace isolation, valid and invalid state transitions, approval invalidation, idempotency, retry behavior, and secret redaction.
 - For retrieval changes, cover cross-workspace leakage, visibility and freshness filters, prompt-injection content, citations, deterministic keyword cases, semantic relevance, and re-index rollback.
 - For AI workflow changes, cover profile capability isolation, artifact provenance, knowledge gaps, review findings, human approval separation, task dependency cycles, stale inputs, memory proposal review, and orchestrator gate bypass attempts.

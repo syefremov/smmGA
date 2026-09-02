@@ -4,7 +4,7 @@
 
 ## Статус проекта
 
-Проект находится на стадии проектирования и прототипирования. В репозитории уже есть экспериментальные медиа-материалы в `assets/` и `output/`; они не определяют архитектуру будущей системы и пока сохраняются без изменений.
+Проект перешёл от проектирования к реализации фазы 1. Добавлены воспроизводимые версии локальных runtime, bootstrap/doctor, lockfiles и repository-owned Git hook; исполняемый серверный каркас появится в фазе 2. Экспериментальные материалы в `output/` не определяют архитектуру будущей системы и сохраняются без изменений.
 
 Целевая модель системы зафиксирована в этом документе. При изменении продуктовых или технических решений документ необходимо обновлять вместе с кодом.
 
@@ -217,7 +217,7 @@ refresh_credentials()
 - pytest, Ruff и статическая проверка типов — контроль качества Python;
 - Vitest, Testing Library, Playwright и автоматические accessibility-проверки — контроль качества веб-панели.
 
-Конкретные версии зависимостей фиксируются при создании исполняемого каркаса и обновляются осознанно.
+База локальных runtime зафиксирована в `.python-version`, `.node-version`, `package.json` и `scripts/tool-versions.psd1`; Python- и Node-зависимости воспроизводятся через `uv.lock` и `pnpm-lock.yaml`. Обновления выполняются отдельной проверяемой dependency-итерацией.
 
 ## Предлагаемая структура репозитория
 
@@ -225,12 +225,19 @@ refresh_credentials()
 SMM GPT/
 ├── AGENTS.md
 ├── README.md
+├── .python-version
+├── .node-version
 ├── .env.example
 ├── .gitignore
 ├── .gitattributes
+├── .githooks/
+│   └── pre-commit
 ├── .github/
 │   └── pull_request_template.md
 ├── pyproject.toml
+├── uv.lock
+├── package.json
+├── pnpm-lock.yaml
 ├── docker-compose.yml
 ├── src/
 │   └── smm_gpt/
@@ -276,6 +283,11 @@ SMM GPT/
 │           └── references/
 ├── migrations/
 ├── scripts/
+│   ├── bootstrap-dev.ps1
+│   ├── doctor.ps1
+│   ├── check-fast.ps1
+│   ├── project-command.ps1
+│   ├── tool-versions.psd1
 │   ├── install-smm.ps1
 │   ├── uninstall-smm.ps1
 │   ├── deploy.sh
@@ -289,6 +301,8 @@ SMM GPT/
 │   ├── deployment.md
 │   ├── operations.md
 │   ├── data-model.md
+│   ├── local-development.md
+│   ├── phase-1-audit.md
 │   ├── knowledge-rag.md
 │   ├── web-app.md
 │   ├── git-workflow.md
@@ -784,6 +798,8 @@ Embeddings создаются через внутренний интерфейс
 | 10 | Security, monitoring, backup/restore, rollback и UAT | Production-ready пилот |
 
 В каждой фазе определены работы, артефакты, проверки и обязательный exit gate. Фаза не считается завершённой только потому, что код написан: должны пройти воспроизводимый запуск, тесты, проверка секретов и сценарий восстановления. Полный план, включая точные зависимости локальной машины и сервера, находится в [`docs/roadmap.md`](docs/roadmap.md).
+
+Текущий статус: фаза 1 выполняется. Инструкции подготовки Windows-машины и команды `bootstrap`, `doctor` и `check` находятся в [`docs/local-development.md`](docs/local-development.md). Команды `dev`, `test`, `build` и `db:migrate` зарезервированы и намеренно завершаются ошибкой до реализации исполняемого каркаса в фазе 2.
 
 Отдельная векторная БД, reranker или дополнительный поисковый сервис добавляются только тогда, когда измерения покажут, что PostgreSQL не обеспечивает требуемые объём, задержку или качество. Orchestrator включается последним, после стабильной работы специализированных профилей и их quality gates.
 
