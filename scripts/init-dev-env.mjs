@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { chmod, writeFile } from "node:fs/promises";
+import { appendFile, chmod, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,7 +8,16 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const envPath = resolve(projectRoot, ".env");
 
 if (existsSync(envPath)) {
-  console.log("Локальный .env уже существует; файл не изменён.");
+  const existing = await readFile(envPath, "utf8");
+  const missing = ["SMM_APP_PASSWORD", "SMM_WORKER_PASSWORD"].filter(
+    (name) => !new RegExp(`^${name}=`, "m").test(existing),
+  );
+  if (missing.length) {
+    await appendFile(envPath, "\n" + missing.map(
+      (name) => `${name}=${randomBytes(32).toString("hex")}`,
+    ).join("\n") + "\n");
+  }
+  console.log(".env сохранён; недостающие runtime credentials добавлены без вывода значений.");
   process.exit(0);
 }
 
@@ -26,6 +35,8 @@ const lines = [
   "SMM_POSTGRES_DB=smm_gpt",
   "SMM_POSTGRES_USER=smm_gpt",
   `SMM_POSTGRES_PASSWORD=${databasePassword}`,
+  `SMM_APP_PASSWORD=${randomBytes(32).toString("hex")}`,
+  `SMM_WORKER_PASSWORD=${randomBytes(32).toString("hex")}`,
   "SMM_POSTGRES_PORT=5432",
   "SMM_REDIS_PORT=6379",
   `SMM_DATABASE_URL=${databaseUrl}`,

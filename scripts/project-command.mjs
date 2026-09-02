@@ -50,6 +50,7 @@ const commands = new Map([
         "--port",
         "8000",
         "--reload",
+        "--no-access-log",
       ],
     ],
   ],

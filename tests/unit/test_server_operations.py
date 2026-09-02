@@ -13,7 +13,15 @@ from scripts import server
 
 
 def valid_environment() -> str:
-    return "SMM_POSTGRES_USER=smm\nSMM_POSTGRES_DB=smm\nSMM_POSTGRES_PASSWORD=" + "a" * 64 + "\n"
+    return (
+        "SMM_POSTGRES_USER=smm\nSMM_POSTGRES_DB=smm\nSMM_POSTGRES_PASSWORD="
+        + "a" * 64
+        + "\nSMM_APP_PASSWORD="
+        + "b" * 64
+        + "\nSMM_WORKER_PASSWORD="
+        + "c" * 64
+        + "\n"
+    )
 
 
 @pytest.mark.parametrize(

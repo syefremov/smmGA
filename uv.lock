@@ -1201,8 +1201,10 @@ dependencies = [
     { name = "asyncpg" },
     { name = "celery", extra = ["redis"] },
     { name = "fastapi", extra = ["standard"] },
+    { name = "httpx" },
     { name = "mcp" },
     { name = "pydantic-settings" },
+    { name = "pyjwt", extra = ["crypto"] },
     { name = "redis" },
     { name = "sqlalchemy" },
 ]
@@ -1223,8 +1225,10 @@ requires-dist = [
     { name = "asyncpg", specifier = "==0.31.0" },
     { name = "celery", extras = ["redis"], specifier = "==5.6.3" },
     { name = "fastapi", extras = ["standard"], specifier = "==0.141.1" },
+    { name = "httpx", specifier = "==0.28.1" },
     { name = "mcp", specifier = "==2.1.1" },
     { name = "pydantic-settings", specifier = "==2.15.0" },
+    { name = "pyjwt", extras = ["crypto"], specifier = "==2.13.0" },
     { name = "redis", specifier = "==6.4.0" },
     { name = "sqlalchemy", specifier = "==2.0.52" },
 ]

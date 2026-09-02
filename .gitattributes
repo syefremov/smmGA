@@ -2,6 +2,7 @@
 
 .env.example text eol=lf
 .env.*.example text eol=lf
+*.env.example text eol=lf
 .githooks/* text eol=lf
 .node-version text eol=lf
 .python-version text eol=lf

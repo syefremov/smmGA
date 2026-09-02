@@ -1,0 +1,52 @@
+{
+  "kind": "operator-review-template-not-an-importable-blueprint",
+  "deployment_gate": "Verify the pinned authentik release and private HTTPS before enabling SMM_AUTH_ENABLED",
+  "web": {
+    "slug": "smm-web",
+    "client_type": "confidential",
+    "client_id": "smm-web",
+    "client_secret": "<server-secret-store-only>",
+    "issuer_mode": "per_provider",
+    "sub_mode": "user_uuid",
+    "signing_algorithm": "RS256",
+    "redirect_uris": ["https://<private-smm-host>/api/v1/auth/callback"],
+    "grant_types": ["authorization_code"],
+    "scopes": ["openid"],
+    "pkce_required": "S256",
+    "token_endpoint_auth_method": "client_secret_basic"
+  },
+  "mcp": {
+    "slug": "smm-mcp",
+    "client_type": "public",
+    "client_id": "https://<private-smm-host>/mcp/",
+    "issuer_mode": "per_provider",
+    "sub_mode": "user_uuid",
+    "signing_algorithm": "RS256",
+    "redirect_uris": ["<exact-callback-shown-by-the-selected-Codex-client>"],
+    "grant_types": ["authorization_code", "refresh_token"],
+    "scopes": ["openid", "smm:access", "offline_access"],
+    "pkce_required": "S256",
+    "token_endpoint_auth_method": "none",
+    "access_token_audience": "https://<private-smm-host>/mcp/",
+    "access_token_lifetime_seconds": 300,
+    "federated_introspection_provider": "smm-web",
+    "registration": "predefined-client-only",
+    "resource_validation": "Require the canonical resource at authorization and token endpoints; prove with negative integration tests on the selected release"
+  },
+  "authentication_flow": {
+    "mfa": "Required for all pilot identities, including Owner, Administrator and Publisher",
+    "authenticator_validation_not_configured_action": "deny",
+    "enrollment": "Separate operator-reviewed enrollment flow",
+    "signed_amr": "Must attest actual MFA, never set a constant mfa claim",
+    "identity_linking": "Explicit issuer+subject; never auto-link by email or JWT groups"
+  },
+  "release_acceptance": [
+    "Discovery issuer matches exactly; S256 advertised and enforced",
+    "Wrong redirect, code replay, wrong verifier and wrong resource are rejected",
+    "JWT aud, azp, scope and amr satisfy the application contract",
+    "Web provider can introspect MCP tokens via the configured federation only",
+    "A revoked access token returns active=false",
+    "No CIMD or RFC9207 support is advertised unless demonstrated",
+    "MFA bypass without an enrolled device is impossible"
+  ]
+}

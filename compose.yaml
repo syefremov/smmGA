@@ -4,7 +4,7 @@ x-app-environment: &app-environment
   SMM_ENV: development
   SMM_LOG_LEVEL: ${SMM_LOG_LEVEL:-INFO}
   SMM_TIMEZONE: ${SMM_TIMEZONE:-Europe/Moscow}
-  SMM_DATABASE_URL: postgresql+asyncpg://${SMM_POSTGRES_USER}:${SMM_POSTGRES_PASSWORD}@postgres:5432/${SMM_POSTGRES_DB}
+  SMM_DATABASE_URL: postgresql+asyncpg://smm_api_login:${SMM_APP_PASSWORD:?Run pnpm env:init}@postgres:5432/${SMM_POSTGRES_DB}
   SMM_REDIS_URL: redis://redis:6379/0
   SMM_MEDIA_ROOT: /app/.data/media
   SMM_WEB_ORIGIN: http://127.0.0.1:8080
@@ -14,8 +14,6 @@ x-app-service: &app-service
     context: .
     dockerfile: Dockerfile
   image: smm-gpt-app:dev
-  env_file:
-    - .env
   environment: *app-environment
   init: true
   restart: unless-stopped
@@ -59,7 +57,12 @@ services:
 
   migrate:
     <<: *app-service
-    command: ["alembic", "upgrade", "head"]
+    command: [python, -m, smm_gpt.cli, --apply, migrate]
+    environment:
+      <<: *app-environment
+      SMM_DATABASE_URL: postgresql+asyncpg://${SMM_POSTGRES_USER}:${SMM_POSTGRES_PASSWORD}@postgres:5432/${SMM_POSTGRES_DB}
+      SMM_APP_PASSWORD: ${SMM_APP_PASSWORD}
+      SMM_WORKER_PASSWORD: ${SMM_WORKER_PASSWORD:?Run pnpm env:init}
     depends_on:
       postgres:
         condition: service_healthy
@@ -95,6 +98,9 @@ services:
 
   worker:
     <<: *app-service
+    environment:
+      <<: *app-environment
+      SMM_DATABASE_URL: postgresql+asyncpg://smm_worker_login:${SMM_WORKER_PASSWORD}@postgres:5432/${SMM_POSTGRES_DB}
     command:
       [
         "celery",
@@ -122,6 +128,9 @@ services:
 
   scheduler:
     <<: *app-service
+    environment:
+      <<: *app-environment
+      SMM_DATABASE_URL: postgresql+asyncpg://smm_worker_login:${SMM_WORKER_PASSWORD}@postgres:5432/${SMM_POSTGRES_DB}
     command:
       [
         "celery",

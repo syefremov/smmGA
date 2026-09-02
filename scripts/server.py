@@ -32,8 +32,14 @@ SHA = re.compile(r"[0-9a-f]{40}")
 BACKUP_ID = re.compile(r"\d{8}T\d{6}Z-[0-9a-f]{8}")
 MANAGED = "# Managed by SMM GPT\n"
 WRITERS = ["web", "scheduler", "worker", "app"]
-ENV_KEYS = {"SMM_POSTGRES_USER", "SMM_POSTGRES_DB", "SMM_POSTGRES_PASSWORD"}
-SCHEMA = "0001_phase_two"
+ENV_KEYS = {
+    "SMM_POSTGRES_USER",
+    "SMM_POSTGRES_DB",
+    "SMM_POSTGRES_PASSWORD",
+    "SMM_APP_PASSWORD",
+    "SMM_WORKER_PASSWORD",
+}
+SCHEMA = "0002_identity"
 
 
 class OperationError(Exception):
@@ -178,6 +184,8 @@ def initialize(layout: Layout = LAYOUT) -> None:
             (
                 "SMM_POSTGRES_USER=smm\nSMM_POSTGRES_DB=smm\n"
                 f"SMM_POSTGRES_PASSWORD={secrets.token_hex(32)}\n"
+                f"SMM_APP_PASSWORD={secrets.token_hex(32)}\n"
+                f"SMM_WORKER_PASSWORD={secrets.token_hex(32)}\n"
             ).encode(),
         )
     configuration(layout)
@@ -605,6 +613,20 @@ def restore(name: str, layout: Layout = LAYOUT) -> None:
                 if attempt == 59:
                     raise
                 time.sleep(1)
+        # pg_dump retains ACLs/functions/policies, but cluster roles are not in the dump.
+        run(
+            [
+                "docker",
+                "exec",
+                "-i",
+                container,
+                "sh",
+                "-c",
+                'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"',
+            ],
+            data=b"CREATE ROLE smm_app NOLOGIN NOSUPERUSER NOBYPASSRLS;"
+            b"CREATE ROLE smm_worker NOLOGIN NOSUPERUSER NOBYPASSRLS;",
+        )
         run(
             [
                 "docker",

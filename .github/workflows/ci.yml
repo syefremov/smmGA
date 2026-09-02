@@ -16,6 +16,17 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      identity-postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_USER: smm_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 127.0.0.1:55439:5432
+        options: >-
+          --health-cmd "pg_isready -U smm_test" --health-interval 5s
+          --health-timeout 3s --health-retries 10
     steps:
       - uses: actions/checkout@v6
 
@@ -44,6 +55,11 @@ jobs:
 
       - name: Run unit and component tests
         run: pnpm test
+
+      - name: Verify identity on disposable PostgreSQL databases
+        env:
+          SMM_TEST_DATABASE_URL: postgresql+asyncpg://smm_test@127.0.0.1:55439/postgres
+        run: uv run pytest tests/database -m integration
 
       - name: Build frontend
         run: pnpm build:web
