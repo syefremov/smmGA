@@ -1,6 +1,7 @@
 """The two real HTTP transports exercise the same PostgreSQL transactions and policies."""
 
 import asyncio
+from datetime import timedelta
 from urllib.parse import parse_qs, urlsplit
 from uuid import uuid4
 
@@ -9,6 +10,7 @@ import pytest
 from sqlalchemy import func, select, update
 
 from smm_gpt.application import create_app
+from smm_gpt.domain import content as content_dto
 from smm_gpt.domain.access import AccessDenied
 from smm_gpt.domain.operations import (
     CatalogKind,
@@ -17,12 +19,13 @@ from smm_gpt.domain.operations import (
     TransitionWorkItem,
     WorkState,
 )
-from smm_gpt.infrastructure.models import AuditEvent, Brand, Membership, WorkItem
+from smm_gpt.infrastructure.models import AuditEvent, Brand, Membership, WorkItem, utcnow
 from smm_gpt.services.operations import Operations
 from smm_gpt.services.sessions import SessionService
 
 from ..identity_fakes import FakeIssuer
 from .conftest import TenantFixture
+from .test_content import pilot
 
 pytestmark = pytest.mark.integration
 
@@ -205,6 +208,83 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(tenants: TenantFix
             },
         )
         assert "contents" in resource.json()["result"]
+        content = await pilot(t)
+        post = await content.post()
+        revision = post.revisions[0]
+        commands: list[content_dto.ContentCommand] = [
+            content_dto.SaveRevision(
+                post_id=post.id,
+                expected_version=2,
+                body=content.body("Cross transport"),
+                idempotency_key=uuid4().hex,
+            ),
+        ]
+
+        # Exact same command through both transports must execute once.
+        async def both(command: content_dto.ContentCommand) -> dict[str, object]:
+            payload = command.model_dump(mode="json")
+            mcp = await call("content_execute", {"workspace_id": wid, "command": payload})
+            assert not mcp.get("isError"), mcp
+            response = await browser.post(
+                f"/api/v1/workspaces/{wid}/content/commands", json=payload
+            )
+            assert response.status_code == 200, response.text
+            result: dict[str, object] = response.json()
+            assert mcp["structuredContent"] == result
+            return result
+
+        for c in commands:
+            await both(c)
+        await both(
+            content_dto.RequestReview(
+                post_id=post.id, expected_version=3, idempotency_key=uuid4().hex
+            )
+        )
+        post = await content.post()
+        revision = post.revisions[0]
+        await both(
+            content_dto.DecidePost(
+                post_id=post.id,
+                expected_version=4,
+                revision_id=revision.id,
+                content_hash=revision.content_hash,
+                decision="approve",
+                human_confirmed=True,
+                claims_reviewed=True,
+                reason="Synthetic human",
+                idempotency_key=uuid4().hex,
+            )
+        )
+        package = await both(
+            content_dto.PreparePackage(
+                post_id=post.id,
+                expected_version=5,
+                revision_id=revision.id,
+                content_hash=revision.content_hash,
+                scheduled_at=utcnow() + timedelta(days=1),
+                human_confirmed=True,
+                idempotency_key=uuid4().hex,
+            )
+        )
+        content_rest = await browser.get(f"/api/v1/workspaces/{wid}/content/posts/{post.id}")
+        assert (await call("content_post_read", {"workspace_id": wid, "post_id": str(post.id)}))[
+            "structuredContent"
+        ] == content_rest.json()
+        package_rest = await browser.get(
+            f"/api/v1/workspaces/{wid}/content/packages/{package['entity_id']}"
+        )
+        assert (
+            await call(
+                "content_package_read", {"workspace_id": wid, "package_id": package["entity_id"]}
+            )
+        )["structuredContent"] == package_rest.json()
+        assert package_rest.json()["manifest"]["external_dispatch"] is False
+        assert (
+            await browser.post(
+                f"/api/v1/workspaces/{wid}/content/commands",
+                json={"action": "post_decide", "reason": "do-not-echo"},
+            )
+        ).status_code == 422
         async with t.admin.transaction() as s:
             await s.execute(
                 update(Membership)

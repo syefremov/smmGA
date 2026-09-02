@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { ApiError } from "../api/client";
+import { ContentWorkspace } from "./content/ContentWorkspace";
 import {
   createWork,
   listAudit,
@@ -54,6 +55,14 @@ export function WorkspaceContent({
   section: string;
   offline: boolean;
 }) {
+  if (["content", "calendar", "materials"].includes(section))
+    return (
+      <ContentWorkspace
+        workspace={workspace}
+        section={section}
+        offline={offline}
+      />
+    );
   if (!titles[section])
     return (
       <main id="work-main" className="work-main">

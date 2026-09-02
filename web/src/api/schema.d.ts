@@ -160,6 +160,193 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/content/commands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Execute */
+        post: operations["execute_api_v1_workspaces__workspace_id__content_commands_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Packages */
+        get: operations["packages_api_v1_workspaces__workspace_id__content_packages_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/packages/{package_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Package */
+        get: operations["package_api_v1_workspaces__workspace_id__content_packages__package_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Posts */
+        get: operations["posts_api_v1_workspaces__workspace_id__content_posts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/posts/{post_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Post */
+        get: operations["post_api_v1_workspaces__workspace_id__content_posts__post_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/posts/{post_id}/history/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history_api_v1_workspaces__workspace_id__content_posts__post_id__history__kind__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/posts/{post_id}/preflight": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preflight */
+        get: operations["preflight_api_v1_workspaces__workspace_id__content_posts__post_id__preflight_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/posts/{post_id}/working-copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Working Copy */
+        get: operations["working_copy_api_v1_workspaces__workspace_id__content_posts__post_id__working_copy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Records */
+        get: operations["records_api_v1_workspaces__workspace_id__content_records_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/records/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Record */
+        get: operations["record_api_v1_workspaces__workspace_id__content_records__record_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/content/tasks/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Task */
+        get: operations["task_api_v1_workspaces__workspace_id__content_tasks__item_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/diagnostic-jobs": {
         parameters: {
             query?: never;
@@ -278,6 +465,73 @@ export interface components {
             /** Detail */
             detail: string;
         };
+        /** AddComment */
+        AddComment: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "comment_add";
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /** Text */
+            text: string;
+        };
+        Artifact: components["schemas"]["SourceItem"] | components["schemas"]["BrandProfile"] | components["schemas"]["ProductVersion"] | components["schemas"]["ProductFact"] | components["schemas"]["ClaimPolicy"] | components["schemas"]["Research"] | components["schemas"]["Campaign"] | components["schemas"]["ContentPlan"] | components["schemas"]["Brief"] | components["schemas"]["Idea"];
+        /** AssignTask */
+        AssignTask: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "task_assign";
+            /**
+             * Assignee Id
+             * Format: uuid
+             */
+            assignee_id: string;
+            /** Campaign Id */
+            campaign_id?: string | null;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+        };
+        /** Attachment */
+        Attachment: {
+            /** Alt */
+            alt: string;
+            /**
+             * File Id
+             * Format: uuid
+             */
+            file_id: string;
+            /**
+             * Rights Confirmed
+             * @constant
+             */
+            rights_confirmed: true;
+        };
         /** AuditView */
         AuditView: {
             /** Action */
@@ -302,6 +556,106 @@ export interface components {
             /** Target Id */
             target_id: string | null;
         };
+        /** BrandProfile */
+        BrandProfile: {
+            /** Audience */
+            audience: string;
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "brand_profile";
+            /** Name */
+            name: string;
+            /**
+             * Source Item Id
+             * Format: uuid
+             */
+            source_item_id: string;
+            /** Tone */
+            tone: string;
+        };
+        /** Brief */
+        Brief: {
+            /** Audience */
+            audience: string;
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Campaign Id */
+            campaign_id?: string | null;
+            /** Goal */
+            goal: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "brief";
+            /** Name */
+            name: string;
+            /** Product Id */
+            product_id?: string | null;
+            /** Research Id */
+            research_id?: string | null;
+        };
+        /** Campaign */
+        Campaign: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Goal */
+            goal: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "campaign";
+            /** Kpi */
+            kpi: string;
+            /** Name */
+            name: string;
+            /**
+             * Owner Id
+             * Format: uuid
+             */
+            owner_id: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+        };
+        /** CancelPackage */
+        CancelPackage: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "package_cancel";
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Package Id
+             * Format: uuid
+             */
+            package_id: string;
+        };
         /**
          * CatalogKind
          * @enum {string}
@@ -317,6 +671,106 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** ClaimPolicy */
+        ClaimPolicy: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Jurisdiction */
+            jurisdiction: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "claim_policy";
+            /** Name */
+            name: string;
+            /** Required Disclaimers */
+            required_disclaimers?: string[];
+            /** Rules */
+            rules?: components["schemas"]["ClaimRule"][];
+            /**
+             * Source Item Id
+             * Format: uuid
+             */
+            source_item_id: string;
+        };
+        /** ClaimRule */
+        ClaimRule: {
+            /**
+             * Alternative
+             * @default
+             */
+            alternative: string;
+            /** Phrase */
+            phrase: string;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "blocker" | "warning";
+        };
+        /** CommandResult */
+        CommandResult: {
+            /** Action */
+            action: string;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Version */
+            version: number;
+        };
+        /** CommentView */
+        CommentView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /** Text */
+            text: string;
+        };
+        /** ConfirmRecord */
+        ConfirmRecord: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "record_confirm";
+            /**
+             * Confirmed
+             * @constant
+             */
+            confirmed: true;
+            /** Content Hash */
+            content_hash: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Record Id
+             * Format: uuid
+             */
+            record_id: string;
+        };
         /** ConnectorStatus */
         ConnectorStatus: {
             /** Can Publish */
@@ -326,6 +780,82 @@ export interface components {
             /** Name */
             name: string;
             state: components["schemas"]["ServiceState"];
+        };
+        /** ContentPlan */
+        ContentPlan: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Campaign Id
+             * Format: uuid
+             */
+            campaign_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "content_plan";
+            /** Name */
+            name: string;
+            /** Slots */
+            slots: components["schemas"]["Slot"][];
+        };
+        /** CreateCatalog */
+        CreateCatalog: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "catalog_create";
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "brands" | "products" | "sources";
+            /** Name */
+            name: string;
+        };
+        /** CreatePost */
+        CreatePost: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "post_create";
+            /**
+             * Brief Id
+             * Format: uuid
+             */
+            brief_id: string;
+            /** Idea Id */
+            idea_id?: string | null;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Title */
+            title: string;
+        };
+        /** CreateRecord */
+        CreateRecord: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "record_create";
+            body: components["schemas"]["Artifact"];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Replaces Id */
+            replaces_id?: string | null;
         };
         /** CreateWorkItem */
         CreateWorkItem: {
@@ -338,6 +868,106 @@ export interface components {
             idempotency_key: string;
             /** Title */
             title: string;
+        };
+        /** DecidePost */
+        DecidePost: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "post_decide";
+            /**
+             * Claims Reviewed
+             * @constant
+             */
+            claims_reviewed: true;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "reject";
+            /** Expected Version */
+            expected_version: number;
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+        };
+        /** DecisionView */
+        DecisionView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "reject";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+        };
+        /** DependTask */
+        DependTask: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "task_depend";
+            /**
+             * Depends On
+             * Format: uuid
+             */
+            depends_on: string;
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /**
+             * Remove
+             * @default false
+             */
+            remove: boolean;
         };
         /** DependencyStatus */
         DependencyStatus: {
@@ -368,6 +998,62 @@ export interface components {
             detail: string;
             error: components["schemas"]["ErrorInfo"];
         };
+        /** Finding */
+        Finding: {
+            /** Code */
+            code: string;
+            /** Location */
+            location: string;
+            /** Record Id */
+            record_id?: string | null;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "blocker" | "warning";
+        };
+        /** HistoryEntry */
+        HistoryEntry: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["HistoryKind"];
+        };
+        /** @enum {string} */
+        HistoryKind: "revisions" | "decisions" | "comments" | "reviews";
+        /** Idea */
+        Idea: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Brief Id
+             * Format: uuid
+             */
+            brief_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "idea";
+            /** Name */
+            name: string;
+            /** Rationale */
+            rationale: string;
+        };
         /** LiveResponse */
         LiveResponse: {
             /**
@@ -376,6 +1062,96 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** PackageSummary */
+        PackageSummary: {
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Mode
+             * @default manual
+             * @constant
+             */
+            mode: "manual";
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "cancelled" | "stale" | "expired";
+            /** Timezone */
+            timezone: string;
+        };
+        /** PackageView */
+        PackageView: {
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Manifest */
+            manifest: {
+                [key: string]: unknown;
+            };
+            /**
+             * Mode
+             * @default manual
+             * @constant
+             */
+            mode: "manual";
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "cancelled" | "stale" | "expired";
+            /** Timezone */
+            timezone: string;
         };
         /** Page[AuditView] */
         Page_AuditView_: {
@@ -391,6 +1167,34 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /** Page[HistoryEntry] */
+        Page_HistoryEntry_: {
+            /** Items */
+            items: components["schemas"]["HistoryEntry"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[PackageSummary] */
+        Page_PackageSummary_: {
+            /** Items */
+            items: components["schemas"]["PackageSummary"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[PostSummary] */
+        Page_PostSummary_: {
+            /** Items */
+            items: components["schemas"]["PostSummary"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[RecordView] */
+        Page_RecordView_: {
+            /** Items */
+            items: components["schemas"]["RecordView"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** Page[WorkItemView] */
         Page_WorkItemView_: {
             /** Items */
@@ -402,7 +1206,328 @@ export interface components {
          * Permission
          * @enum {string}
          */
-        Permission: "workspace.read" | "members.manage" | "content.plan" | "content.edit" | "content.approve" | "content.publish" | "analytics.read" | "audit.read" | "system.job.run" | "work_item.write";
+        Permission: "workspace.read" | "members.manage" | "content.plan" | "content.edit" | "content.approve" | "content.publish" | "analytics.read" | "audit.read" | "system.job.run" | "work_item.write" | "content.comment";
+        /** @enum {string} */
+        PostState: "draft" | "in_review" | "rejected" | "approved" | "package_ready";
+        /** PostSummary */
+        PostSummary: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Current Revision Id */
+            current_revision_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            state: components["schemas"]["PostState"];
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+        };
+        /** PostView */
+        PostView: {
+            /** Active Approval Id */
+            active_approval_id: string | null;
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Brief Id
+             * Format: uuid
+             */
+            brief_id: string;
+            /** Comments */
+            comments: components["schemas"]["CommentView"][];
+            /** Current Revision Id */
+            current_revision_id: string | null;
+            /** Decisions */
+            decisions: components["schemas"]["DecisionView"][];
+            /** History Truncated */
+            history_truncated: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Idea Id */
+            idea_id: string | null;
+            /** Revisions */
+            revisions: components["schemas"]["RevisionView"][];
+            state: components["schemas"]["PostState"];
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+        };
+        /** Preflight */
+        Preflight: {
+            /**
+             * Ai Review
+             * @default not_run
+             * @constant
+             */
+            ai_review: "not_run";
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /** Checked Record Ids */
+            checked_record_ids: string[];
+            /** Content Hash */
+            content_hash: string;
+            /** Findings */
+            findings: components["schemas"]["Finding"][];
+            /** Passed */
+            passed: boolean;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+        };
+        /** PreparePackage */
+        PreparePackage: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "package_prepare";
+            /** Content Hash */
+            content_hash: string;
+            /** Expected Version */
+            expected_version: number;
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+        };
+        /** ProductFact */
+        ProductFact: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "product_fact";
+            /** Name */
+            name: string;
+            /**
+             * Product Version Id
+             * Format: uuid
+             */
+            product_version_id: string;
+            /**
+             * Source Item Id
+             * Format: uuid
+             */
+            source_item_id: string;
+            /** Statement */
+            statement: string;
+        };
+        /** ProductVersion */
+        ProductVersion: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Description */
+            description: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "product_version";
+            /** Name */
+            name: string;
+            /**
+             * Product Id
+             * Format: uuid
+             */
+            product_id: string;
+            /**
+             * Source Item Id
+             * Format: uuid
+             */
+            source_item_id: string;
+        };
+        /** @enum {string} */
+        RecordKind: "source_item" | "brand_profile" | "product_version" | "product_fact" | "claim_policy" | "research" | "campaign" | "content_plan" | "brief" | "idea";
+        /** RecordView */
+        RecordView: {
+            body: components["schemas"]["Artifact"];
+            /** Confirmed By */
+            confirmed_by: string | null;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Family Id
+             * Format: uuid
+             */
+            family_id: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: number;
+        };
+        /** RequestReview */
+        RequestReview: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "review_request";
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+        };
+        /** Research */
+        Research: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Hypotheses
+             * @default
+             */
+            hypotheses: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "research";
+            /** Name */
+            name: string;
+            /** Observations */
+            observations: string;
+            /** Source Item Ids */
+            source_item_ids: string[];
+        };
+        /** RevisionBody */
+        RevisionBody: {
+            /** Fact Ids */
+            fact_ids?: string[];
+            /** Knowledge Gaps */
+            knowledge_gaps?: string[];
+            /** Variants */
+            variants: components["schemas"]["Variant"][];
+        };
+        /** RevisionView */
+        RevisionView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            body: components["schemas"]["RevisionBody"];
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Media Manifest */
+            media_manifest: {
+                [key: string]: unknown;
+            }[];
+            /** Number */
+            number: number;
+        };
+        /** SaveRevision */
+        SaveRevision: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "revision_save";
+            body: components["schemas"]["RevisionBody"];
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+        };
+        /** SaveWorkingCopy */
+        SaveWorkingCopy: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "working_copy_save";
+            /** Base Version */
+            base_version: number;
+            body: components["schemas"]["RevisionBody"];
+            /** Expected Copy Version */
+            expected_copy_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+        };
         /**
          * ServiceState
          * @enum {string}
@@ -424,6 +1549,52 @@ export interface components {
             /** Workspaces */
             workspaces: components["schemas"]["WorkspaceView"][];
         };
+        /** Slot */
+        Slot: {
+            /** Destination */
+            destination: string;
+            /**
+             * Planned At
+             * Format: date-time
+             */
+            planned_at: string;
+            /** Topic */
+            topic: string;
+        };
+        /** SourceItem */
+        SourceItem: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Evidence Kind
+             * @enum {string}
+             */
+            evidence_kind: "observation" | "hypothesis" | "owner_input";
+            /** Excerpt */
+            excerpt: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "source_item";
+            /** Locator */
+            locator: string;
+            /** Name */
+            name: string;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+        };
         /**
          * SystemState
          * @enum {string}
@@ -443,11 +1614,44 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** TaskContext */
+        TaskContext: {
+            /** Assignee Id */
+            assignee_id: string | null;
+            /** Campaign Id */
+            campaign_id: string | null;
+            /** Dependencies */
+            dependencies: string[];
+            /** Due At */
+            due_at: string | null;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /** Version */
+            version: number;
+        };
         /** TransitionWorkItem */
         TransitionWorkItem: {
             /** Expected Version */
             expected_version: number;
             state: components["schemas"]["WorkState"];
+        };
+        /** Variant */
+        Variant: {
+            /** Destination */
+            destination: string;
+            /** Media */
+            media?: components["schemas"]["Attachment"][];
+            /**
+             * Platform
+             * @default vk
+             * @constant
+             */
+            platform: "vk";
+            /** Text */
+            text: string;
         };
         /** WorkItemView */
         WorkItemView: {
@@ -481,6 +1685,24 @@ export interface components {
          * @enum {string}
          */
         WorkState: "open" | "in_progress" | "done" | "cancelled";
+        /** WorkingCopyView */
+        WorkingCopyView: {
+            /** Base Version */
+            base_version: number;
+            body: components["schemas"]["RevisionBody"];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /** Version */
+            version: number;
+        };
         /** WorkspaceView */
         WorkspaceView: {
             /**
@@ -1029,6 +2251,868 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_CatalogView_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    execute_api_v1_workspaces__workspace_id__content_commands_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCatalog"] | components["schemas"]["CreateRecord"] | components["schemas"]["ConfirmRecord"] | components["schemas"]["CreatePost"] | components["schemas"]["SaveRevision"] | components["schemas"]["SaveWorkingCopy"] | components["schemas"]["RequestReview"] | components["schemas"]["DecidePost"] | components["schemas"]["AddComment"] | components["schemas"]["PreparePackage"] | components["schemas"]["CancelPackage"] | components["schemas"]["AssignTask"] | components["schemas"]["DependTask"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommandResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    packages_api_v1_workspaces__workspace_id__content_packages_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_PackageSummary_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    package_api_v1_workspaces__workspace_id__content_packages__package_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                package_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    posts_api_v1_workspaces__workspace_id__content_posts_get: {
+        parameters: {
+            query?: {
+                state?: components["schemas"]["PostState"] | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_PostSummary_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_v1_workspaces__workspace_id__content_posts__post_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    history_api_v1_workspaces__workspace_id__content_posts__post_id__history__kind__get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+                post_id: string;
+                kind: "revisions" | "decisions" | "comments" | "reviews";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_HistoryEntry_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preflight_api_v1_workspaces__workspace_id__content_posts__post_id__preflight_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Preflight"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    working_copy_api_v1_workspaces__workspace_id__content_posts__post_id__working_copy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkingCopyView"] | null;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    records_api_v1_workspaces__workspace_id__content_records_get: {
+        parameters: {
+            query?: {
+                kind?: components["schemas"]["RecordKind"] | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RecordView_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    record_api_v1_workspaces__workspace_id__content_records__record_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    task_api_v1_workspaces__workspace_id__content_tasks__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskContext"];
                 };
             };
             /** @description Unauthorized */

@@ -19,6 +19,7 @@ from smm_gpt.domain.operations import (
     WorkspaceView,
     WorkState,
 )
+from smm_gpt.infrastructure.content_models import WorkDependency
 from smm_gpt.infrastructure.models import (
     AuditEvent,
     Brand,
@@ -29,6 +30,7 @@ from smm_gpt.infrastructure.models import (
     WorkItem,
 )
 from smm_gpt.services.access import AccessService, audit, digest
+from smm_gpt.services.content_records import workspace_lock
 
 
 class Operations:
@@ -186,6 +188,7 @@ class Operations:
         self, actor: Principal, wid: UUID, item_id: UUID, command: TransitionWorkItem, request: UUID
     ) -> WorkItemView:
         async with self.access.authorized(actor, wid, Permission.WORK_ITEM, request) as s:
+            await workspace_lock(s, wid)
             row = await s.scalar(
                 select(WorkItem)
                 .where(WorkItem.workspace_id == wid, WorkItem.id == item_id)
@@ -197,6 +200,18 @@ class Operations:
                 raise OperationError("version_conflict")
             if command.state not in TRANSITIONS[WorkState(row.state)]:
                 raise OperationError("invalid_transition")
+            if command.state in {"in_progress", "done"} and await s.scalar(
+                select(WorkDependency.id)
+                .join(WorkItem, WorkDependency.depends_on == WorkItem.id)
+                .where(
+                    WorkDependency.workspace_id == wid,
+                    WorkDependency.item_id == item_id,
+                    WorkDependency.active.is_(True),
+                    WorkItem.state != "done",
+                )
+                .limit(1)
+            ):
+                raise OperationError("dependencies_not_done", 422)
             row.state = command.state
             row.version += 1
             audit(

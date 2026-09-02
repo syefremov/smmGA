@@ -186,6 +186,9 @@ function Shell({ session }: { session: Session }) {
           {(
             [
               ["work", "Задачи"],
+              ["content", "Контент"],
+              ["materials", "Материалы"],
+              ["calendar", "Календарь"],
               ["brands", "Бренды"],
               ["products", "Продукты"],
               ["sources", "Источники"],
@@ -204,7 +207,7 @@ function Shell({ session }: { session: Session }) {
         <div className="rail-bottom">
           <p>{session.display_name}</p>
           <button onClick={() => void logout()}>Выйти</button>
-          <p className="muted">Личный доступ · фаза 5</p>
+          <p className="muted">Личный доступ · ручной пилот</p>
         </div>
       </aside>
       <div className="work-area">

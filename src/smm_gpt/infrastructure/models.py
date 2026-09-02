@@ -161,6 +161,7 @@ class OutboxEvent(Record, Base):
 class WorkItem(Record, Base):
     __tablename__ = "work_items"
     __table_args__ = (
+        UniqueConstraint("workspace_id", "id"),
         UniqueConstraint("workspace_id", "actor_id", "key_hash"),
         CheckConstraint(
             "state IN ('open','in_progress','done','cancelled')", name="work_item_state"
@@ -186,11 +187,14 @@ class CatalogRecord(Record):
 
 class Brand(CatalogRecord, Base):
     __tablename__ = "brands"
+    __table_args__ = (UniqueConstraint("workspace_id", "id"),)
 
 
 class Product(CatalogRecord, Base):
     __tablename__ = "products"
+    __table_args__ = (UniqueConstraint("workspace_id", "id"),)
 
 
 class Source(CatalogRecord, Base):
     __tablename__ = "sources"
+    __table_args__ = (UniqueConstraint("workspace_id", "id"),)

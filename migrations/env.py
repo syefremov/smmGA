@@ -8,7 +8,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from smm_gpt.core.config import get_settings
-from smm_gpt.infrastructure import models  # noqa: F401
+from smm_gpt.infrastructure import content_models, models  # noqa: F401
 from smm_gpt.infrastructure.database import Base
 
 config = context.config

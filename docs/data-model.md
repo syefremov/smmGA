@@ -1,5 +1,10 @@
 # Центральная модель данных — фаза 4
 
+Дополнение фазы 6: `0004_content` добавляет typed immutable `content_records`/`content_links`,
+posts/revisions, review/decisions/comments, личные working copies, manual packages/cancellations,
+idempotency receipts и task assignments/dependencies. Полная физическая модель, RLS, права,
+ограничения и откат — [phase-6-implementation.md](phase-6-implementation.md).
+
 Дополнение фазы 5: `0003_operations` добавляет tenant-таблицы `work_items`, `brands`,
 `products`, `sources` и ограниченную функцию `smm_my_workspaces()` для собственных membership.
 Права, state/version/idempotency и ограничения каталогов описаны в
