@@ -122,4 +122,7 @@ jobs:
 
       - name: Show container health without secrets
         if: failure()
-        run: docker ps --all --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+        run: |
+          docker ps --all --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+          docker inspect --format '{{.State.Error}}' smm-gpt-staging-web-1 || true
+          docker logs --tail=30 smm-gpt-staging-web-1 || true

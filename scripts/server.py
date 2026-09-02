@@ -39,6 +39,11 @@ SCHEMA = "0001_phase_two"
 class OperationError(Exception):
     """A safe, operator-facing error that never contains captured credentials."""
 
+    def __init__(self, message: str, *, captured_output: bytes = b"") -> None:
+        super().__init__(message)
+        # Kept in memory for the synthetic CI harness only; never part of str(exc).
+        self.captured_output = captured_output
+
 
 @dataclass(frozen=True)
 class Layout:
@@ -71,7 +76,10 @@ def run(
         raise OperationError(f"Step could not finish: {Path(args[0]).name}") from exc
     if result.returncode:
         # Apt, Docker and database errors can echo environment/connection strings.
-        raise OperationError(f"Step failed: {Path(args[0]).name}; exit={result.returncode}")
+        raise OperationError(
+            f"Step failed: {Path(args[0]).name}; exit={result.returncode}",
+            captured_output=result.stdout + result.stderr,
+        )
     return result.stdout
 
 

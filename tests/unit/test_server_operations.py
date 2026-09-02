@@ -82,6 +82,7 @@ def test_subprocess_failure_never_echoes_captured_output(monkeypatch: pytest.Mon
     with pytest.raises(server.OperationError, match="exit=1") as error:
         server.run(["docker", "compose"])
     assert "secret" not in str(error.value)
+    assert error.value.captured_output == b"secretsecret"
 
 
 def archive_with(name: str, kind: bytes = tarfile.REGTYPE) -> tarfile.TarFile:

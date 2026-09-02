@@ -104,4 +104,15 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except server.OperationError as exc:
+        if os.environ.get("GITHUB_ACTIONS") == "true" and os.geteuid() == 0:
+            diagnostic = exc.captured_output.decode(errors="replace")
+            config = server.LAYOUT.config / "server.env"
+            if config.exists():
+                for value in server.parse_env(config.read_text()).values():
+                    if len(value) >= 12:
+                        diagnostic = diagnostic.replace(value, "[REDACTED]")
+            server.emit("synthetic_ci_failure", detail=diagnostic[-12000:])
+        raise
