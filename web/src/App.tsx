@@ -189,6 +189,7 @@ function Shell({ session }: { session: Session }) {
               ["content", "Контент"],
               ["materials", "Материалы"],
               ["calendar", "Календарь"],
+              ["knowledge", "База знаний"],
               ["brands", "Бренды"],
               ["products", "Продукты"],
               ["sources", "Источники"],

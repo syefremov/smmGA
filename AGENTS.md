@@ -142,6 +142,19 @@
 
 ## Documentation and completion
 
+- Phase 7 is partial. Follow `docs/phase-7-implementation.md`: text-only FTS, per-document
+  owner activation, testing-only reference assessments. Do not label this a completed hybrid RAG
+  or eight runnable specialists; the next iteration continues phase 7.
+- Knowledge text is not a verified product fact. No binary files or source URL fetching are
+  supported yet; regex checks are not malware scanning/DLP. Never bypass missing parser gates.
+- Knowledge worker may prepare chunks, never activate an index. Preserve ready indexes and
+  immutable versions. Recheck actor/identity/visibility and lease fencing before completion.
+- AI gateway has no tools or content-service principal. Paid testing requires explicit owner
+  authorization plus server provider/model/workspace allowlist; defaults remain disabled.
+  Unknown/interrupted runs are not blindly retried. Memory curation is not permanent authority.
+- Use real corpus evaluations before adding pgvector or activating specialist profiles.
+  Synthetic fixture scores and exact citation IDs do not establish semantic truth or readiness.
+
 - Update `README.md` when changing architecture, workflows, roles, tool contracts, deployment assumptions, or MVP scope.
 - Phase 5 contracts and remaining rollout gates live in `docs/phase-5-implementation.md`; employee onboarding is in `docs/employee-setup.md`. Keep the plugin source unconfigured until export with an issued HTTPS endpoint. Never distribute Codex auth stores, shared bearer tokens or DB credentials. Work items are internal tasks, not publication approvals. Default staging remains gated; the authenticated Caddy template requires explicit commissioning.
 - Put detailed operational procedures in `docs/`; keep this file focused on durable rules.

@@ -50,10 +50,16 @@ python -m smm_gpt.cli --apply bootstrap-owner --issuer <web-issuer> --subject <v
 |---|---|
 | Owner | Все разрешения, включая одобрение точной редакции |
 | Administrator | Просмотр, управление участниками, аудит; без одобрения/публикации |
-| Strategist | Просмотр, планирование, внутренние задачи, комментарии, диагностические jobs |
-| Editor | Просмотр, редактирование, внутренние задачи, комментарии, диагностические jobs |
+| Strategist | Просмотр, планирование, внутренние задачи, комментарии, диагностические jobs, текстовые знания |
+| Editor | Просмотр, редактирование, внутренние задачи, комментарии, диагностические jobs, текстовые знания |
 | Publisher | Просмотр, комментарии, подготовка/отмена ручного пакета уже одобренной редакции |
 | Analyst | Просмотр, аналитика, диагностические jobs |
 | Viewer | Только просмотр workspace |
+
+Срез фазы 7 добавляет `knowledge.write` для Owner/Strategist/Editor: подача workspace text,
+reindex и просмотр индексируемого кандидата. Owner-only документы, activation/archive,
+gaps/memory review и AI testing доступны только Owner + MFA. AI profiles не являются ролями,
+не получают Principal/approval tools. Runs и artifacts actor-private; источники повторно
+проверяются при чтении. Details: [phase-7-implementation.md](phase-7-implementation.md).
 
 В фазе 6 реализованы внутренние задачи и ручной контентный цикл, но не внешняя публикация и не управление ролями через веб. `content.publish` пока означает ручную подготовку/отмену, не вызов VK. Только Owner подтверждает факты/правила и одобряет редакции; `content.comment` не даёт approval. Одна роль на membership; deny-by-default. Расширение/совмещение ролей и право назначить Owner потребуют отдельного дизайна, migration и тестов. Повышенные роли без подтверждённого MFA не получают даже workspace read. Подробности и граница человеческого подтверждения — [phase-6-implementation.md](phase-6-implementation.md).

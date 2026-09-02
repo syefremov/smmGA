@@ -27,6 +27,7 @@ class Permission(StrEnum):
     RUN_JOB = "system.job.run"
     WORK_ITEM = "work_item.write"
     COMMENT = "content.comment"
+    KNOWLEDGE = "knowledge.write"
 
 
 GRANTS: dict[Role, frozenset[Permission]] = {
@@ -39,6 +40,7 @@ GRANTS: dict[Role, frozenset[Permission]] = {
             Permission.RUN_JOB,
             Permission.WORK_ITEM,
             Permission.COMMENT,
+            Permission.KNOWLEDGE,
         }
     ),
     Role.EDITOR: frozenset(
@@ -48,6 +50,7 @@ GRANTS: dict[Role, frozenset[Permission]] = {
             Permission.RUN_JOB,
             Permission.WORK_ITEM,
             Permission.COMMENT,
+            Permission.KNOWLEDGE,
         }
     ),
     Role.PUBLISHER: frozenset({Permission.READ, Permission.PUBLISH, Permission.COMMENT}),

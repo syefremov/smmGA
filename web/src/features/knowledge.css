@@ -1,0 +1,115 @@
+.knowledge-workspace {
+  max-width: 1160px;
+}
+.knowledge-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+  border-bottom: 1px solid var(--line, #d9e1dc);
+  padding-bottom: 1rem;
+}
+.knowledge-tabs button[aria-current] {
+  background: #dcece3;
+  color: #123f2d;
+}
+.knowledge-tabs button,
+.knowledge-list button {
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.knowledge-search {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.knowledge-search label {
+  flex: 1;
+  min-width: 180px;
+}
+.knowledge-search label:nth-child(2) {
+  flex: 2;
+}
+.knowledge-search input,
+.knowledge-search select {
+  width: 100%;
+  display: block;
+  margin-top: 0.4rem;
+}
+.knowledge-list,
+.knowledge-sources {
+  list-style: none;
+  padding: 0;
+}
+.knowledge-list > li {
+  padding: 1rem 0;
+  border-bottom: 1px solid #d9e1dc;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+.knowledge-list > li > span {
+  font-size: 0.85rem;
+  color: #47574e;
+}
+.knowledge-list p {
+  margin: 0.3rem 0;
+}
+.knowledge-sources > li {
+  padding: 1.3rem 0;
+  border-bottom: 1px solid #d9e1dc;
+}
+.knowledge-excerpt {
+  white-space: pre-wrap;
+  line-height: 1.65;
+}
+.knowledge-workspace dd,
+.knowledge-workspace small,
+.knowledge-workspace pre,
+.knowledge-workspace p {
+  overflow-wrap: anywhere;
+}
+.knowledge-workspace pre {
+  white-space: pre-wrap;
+}
+.knowledge-detail {
+  border-top: 2px solid #285c43;
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+.knowledge-workspace summary {
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+.knowledge-workspace details[open] {
+  animation: knowledge-reveal 150ms ease;
+}
+@keyframes knowledge-reveal {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 600px) {
+  .knowledge-search {
+    display: grid;
+  }
+  .knowledge-list > li {
+    display: block;
+  }
+  .knowledge-list > li > span {
+    display: block;
+    margin-top: 0.5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .knowledge-workspace * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

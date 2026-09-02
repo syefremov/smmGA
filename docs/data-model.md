@@ -1,5 +1,12 @@
 # Центральная модель данных — фаза 4
 
+Дополнение первого среза фазы 7: `0005_knowledge` добавляет документы/immutable versions,
+queue/indexes/chunks/activations, retrieval traces, private receipts, owner notes/reviews,
+actor-private AI runs и immutable artifacts. Text originals входят в PostgreSQL backup.
+Composite tenant/document foreign keys, FORCE RLS, отдельные worker grants и terminal triggers
+описаны в [`phase-7-implementation.md`](phase-7-implementation.md). Это FTS-only foundation,
+не полный registry/hybrid RAG; старые published migrations не меняются.
+
 Дополнение фазы 6: `0004_content` добавляет typed immutable `content_records`/`content_links`,
 posts/revisions, review/decisions/comments, личные working copies, manual packages/cancellations,
 idempotency receipts и task assignments/dependencies. Полная физическая модель, RLS, права,

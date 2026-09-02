@@ -364,6 +364,160 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/commands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Execute */
+        post: operations["execute_api_v1_workspaces__workspace_id__knowledge_commands_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Documents */
+        get: operations["documents_api_v1_workspaces__workspace_id__knowledge_documents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Document */
+        get: operations["document_api_v1_workspaces__workspace_id__knowledge_documents__document_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/documents/{document_id}/indexes/{index_id}/chunks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview */
+        get: operations["preview_api_v1_workspaces__workspace_id__knowledge_documents__document_id__indexes__index_id__chunks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Notes */
+        get: operations["notes_api_v1_workspaces__workspace_id__knowledge_notes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profiles */
+        get: operations["profiles_api_v1_workspaces__workspace_id__knowledge_profiles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Runs */
+        get: operations["runs_api_v1_workspaces__workspace_id__knowledge_runs_get"];
+        put?: never;
+        /** Run */
+        post: operations["run_api_v1_workspaces__workspace_id__knowledge_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Run */
+        get: operations["read_run_api_v1_workspaces__workspace_id__knowledge_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search */
+        post: operations["search_api_v1_workspaces__workspace_id__knowledge_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/work-items": {
         parameters: {
             query?: never;
@@ -460,10 +614,78 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AIRunView */
+        AIRunView: {
+            assessment?: components["schemas"]["ReferenceAssessment"] | null;
+            /** Citations */
+            citations?: components["schemas"]["Citation"][];
+            /** Error Code */
+            error_code: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Model */
+            model: string;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Profile Version */
+            profile_version: string;
+            /** Provider */
+            provider: string;
+            /** Retrieval Run Id */
+            retrieval_run_id: string | null;
+            /** State */
+            state: string;
+            /** Usage */
+            usage: {
+                [key: string]: number | string | null;
+            };
+            /**
+             * Warning
+             * @default Тестовый кандидат, не подтверждённый факт и не одобрение публикации.
+             */
+            warning: string;
+        };
         /** APIError */
         APIError: {
             /** Detail */
             detail: string;
+        };
+        /** ActivateIndex */
+        ActivateIndex: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "index_activate";
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Expected Queries */
+            expected_queries: string[];
+            /** Expected Version */
+            expected_version: number;
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Index Id
+             * Format: uuid
+             */
+            index_id: string;
         };
         /** AddComment */
         AddComment: {
@@ -486,6 +708,23 @@ export interface components {
             revision_id: string;
             /** Text */
             text: string;
+        };
+        /** ArchiveDocument */
+        ArchiveDocument: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "document_archive";
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
         };
         Artifact: components["schemas"]["SourceItem"] | components["schemas"]["BrandProfile"] | components["schemas"]["ProductVersion"] | components["schemas"]["ProductFact"] | components["schemas"]["ClaimPolicy"] | components["schemas"]["Research"] | components["schemas"]["Campaign"] | components["schemas"]["ContentPlan"] | components["schemas"]["Brief"] | components["schemas"]["Idea"];
         /** AssignTask */
@@ -670,6 +909,55 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+        };
+        /** Citation */
+        Citation: {
+            /**
+             * Authority
+             * @default owner_reviewed_reference
+             * @enum {string}
+             */
+            authority: "owner_reviewed_reference" | "unreviewed_reference";
+            /**
+             * Chunk Id
+             * Format: uuid
+             */
+            chunk_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /**
+             * Document Version Id
+             * Format: uuid
+             */
+            document_version_id: string;
+            /**
+             * Effective To
+             * Format: date-time
+             */
+            effective_to: string;
+            /**
+             * Index Id
+             * Format: uuid
+             */
+            index_id: string;
+            /** Section */
+            section: string;
+            /**
+             * Source Date
+             * Format: date-time
+             */
+            source_date: string;
+            /** Source Uri */
+            source_uri: string;
+            /** Text */
+            text: string;
+            /** Title */
+            title: string;
         };
         /** ClaimPolicy */
         ClaimPolicy: {
@@ -982,6 +1270,82 @@ export interface components {
             /** Idempotency Key */
             idempotency_key: string;
         };
+        /** DocumentDetail */
+        DocumentDetail: {
+            /** Active Index Id */
+            active_index_id: string | null;
+            /** Archived */
+            archived: boolean;
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Document Type
+             * @enum {string}
+             */
+            document_type: "brand_policy" | "product" | "faq" | "research" | "approved_post" | "analytics_finding" | "reference";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Indexes */
+            indexes: components["schemas"]["IndexView"][];
+            /** Indexes Truncated */
+            indexes_truncated: boolean;
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "workspace" | "owner";
+        };
+        /** DocumentView */
+        DocumentView: {
+            /** Active Index Id */
+            active_index_id: string | null;
+            /** Archived */
+            archived: boolean;
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Document Type
+             * @enum {string}
+             */
+            document_type: "brand_policy" | "product" | "faq" | "research" | "approved_post" | "analytics_finding" | "reference";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "workspace" | "owner";
+        };
         /** ErrorInfo */
         ErrorInfo: {
             /** Code */
@@ -1054,6 +1418,48 @@ export interface components {
             /** Rationale */
             rationale: string;
         };
+        /** IndexView */
+        IndexView: {
+            /** Attempts */
+            attempts: number;
+            /** Chunking Version */
+            chunking_version: string;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Document Version Id
+             * Format: uuid
+             */
+            document_version_id: string;
+            /** Error Code */
+            error_code: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Parser Version */
+            parser_version: string;
+            /** State */
+            state: string;
+        };
+        /** KnowledgeResult */
+        KnowledgeResult: {
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Index Id */
+            index_id?: string | null;
+            /** Version */
+            version: number;
+        };
         /** LiveResponse */
         LiveResponse: {
             /**
@@ -1062,6 +1468,36 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** NoteView */
+        NoteView: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Decision */
+            decision?: string | null;
+            /**
+             * Effective To
+             * Format: date-time
+             */
+            effective_to: string;
+            /** Evidence Ids */
+            evidence_ids: string[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Purpose */
+            purpose: string;
+            /** Safe Alternative */
+            safe_alternative: string;
+            /** Text */
+            text: string;
         };
         /** PackageSummary */
         PackageSummary: {
@@ -1153,6 +1589,13 @@ export interface components {
             /** Timezone */
             timezone: string;
         };
+        /** Page[AIRunView] */
+        Page_AIRunView_: {
+            /** Items */
+            items: components["schemas"]["AIRunView"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** Page[AuditView] */
         Page_AuditView_: {
             /** Items */
@@ -1167,10 +1610,31 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /** Page[Citation] */
+        Page_Citation_: {
+            /** Items */
+            items: components["schemas"]["Citation"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[DocumentView] */
+        Page_DocumentView_: {
+            /** Items */
+            items: components["schemas"]["DocumentView"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** Page[HistoryEntry] */
         Page_HistoryEntry_: {
             /** Items */
             items: components["schemas"]["HistoryEntry"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[NoteView] */
+        Page_NoteView_: {
+            /** Items */
+            items: components["schemas"]["NoteView"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -1206,7 +1670,7 @@ export interface components {
          * Permission
          * @enum {string}
          */
-        Permission: "workspace.read" | "members.manage" | "content.plan" | "content.edit" | "content.approve" | "content.publish" | "analytics.read" | "audit.read" | "system.job.run" | "work_item.write" | "content.comment";
+        Permission: "workspace.read" | "members.manage" | "content.plan" | "content.edit" | "content.approve" | "content.publish" | "analytics.read" | "audit.read" | "system.job.run" | "work_item.write" | "content.comment" | "knowledge.write";
         /** @enum {string} */
         PostState: "draft" | "in_review" | "rejected" | "approved" | "package_ready";
         /** PostSummary */
@@ -1381,6 +1845,80 @@ export interface components {
              */
             source_item_id: string;
         };
+        /** Profile */
+        Profile: {
+            /** Accepted Inputs */
+            accepted_inputs: string[];
+            /** Allowed Capabilities */
+            allowed_capabilities?: string[];
+            /** Blocked Reason */
+            blocked_reason?: string | null;
+            /** Denied Capabilities */
+            denied_capabilities?: string[];
+            /**
+             * Escalation
+             * @default Недостающие сведения — пробел знаний; решение принимает владелец.
+             */
+            escalation: string;
+            /**
+             * Name
+             * @enum {string}
+             */
+            name: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /**
+             * Output Schema
+             * @default ReferenceAssessment
+             */
+            output_schema: string;
+            /** Purpose */
+            purpose: string;
+            /** Quality Gates */
+            quality_gates?: string[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "testing" | "blocked";
+            /**
+             * Version
+             * @default reference-assessment-v1
+             * @constant
+             */
+            version: "reference-assessment-v1";
+        };
+        /** ProposeNote */
+        ProposeNote: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "note_propose";
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Effective To
+             * Format: date-time
+             */
+            effective_to: string;
+            /** Evidence Ids */
+            evidence_ids?: string[];
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "gap" | "memory";
+            /** Purpose */
+            purpose: string;
+            /** Safe Alternative */
+            safe_alternative: string;
+            /** Text */
+            text: string;
+        };
         /** @enum {string} */
         RecordKind: "source_item" | "brand_profile" | "product_version" | "product_fact" | "claim_policy" | "research" | "campaign" | "content_plan" | "brief" | "idea";
         /** RecordView */
@@ -1412,6 +1950,37 @@ export interface components {
             id: string;
             /** Number */
             number: number;
+        };
+        /** ReferenceAssessment */
+        ReferenceAssessment: {
+            /** Hypotheses */
+            hypotheses: string[];
+            /** Knowledge Gaps */
+            knowledge_gaps: string[];
+            /** Statements */
+            statements: components["schemas"]["SourcedStatement"][];
+        };
+        /** ReindexDocument */
+        ReindexDocument: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "document_reindex";
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /**
+             * Document Version Id
+             * Format: uuid
+             */
+            document_version_id: string;
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
         };
         /** RequestReview */
         RequestReview: {
@@ -1454,6 +2023,35 @@ export interface components {
             /** Source Item Ids */
             source_item_ids: string[];
         };
+        /** ReviewNote */
+        ReviewNote: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "note_review";
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "reject" | "accept_for_curation" | "resolve";
+            /** Evidence Ids */
+            evidence_ids: string[];
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Note Id
+             * Format: uuid
+             */
+            note_id: string;
+            /** Reason */
+            reason: string;
+        };
         /** RevisionBody */
         RevisionBody: {
             /** Fact Ids */
@@ -1489,6 +2087,28 @@ export interface components {
             }[];
             /** Number */
             number: number;
+        };
+        /** RunAssessment */
+        RunAssessment: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Question */
+            question: string;
+            /**
+             * Testing Only
+             * @constant
+             */
+            testing_only: true;
         };
         /** SaveRevision */
         SaveRevision: {
@@ -1527,6 +2147,48 @@ export interface components {
              * Format: uuid
              */
             post_id: string;
+        };
+        /** SearchRequest */
+        SearchRequest: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /**
+             * Limit
+             * @default 5
+             */
+            limit: number;
+            /** Query */
+            query: string;
+        };
+        /** SearchResult */
+        SearchResult: {
+            /**
+             * Algorithm
+             * @default ru-simple-v1
+             * @constant
+             */
+            algorithm: "ru-simple-v1";
+            /** Citations */
+            citations: components["schemas"]["Citation"][];
+            /**
+             * Mode
+             * @default fts
+             * @constant
+             */
+            mode: "fts";
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /**
+             * Warning
+             * @default Sources are untrusted reference data, not confirmed SQL product facts.
+             */
+            warning: string;
         };
         /**
          * ServiceState
@@ -1594,6 +2256,82 @@ export interface components {
              * Format: uuid
              */
             source_id: string;
+        };
+        /** SourcedStatement */
+        SourcedStatement: {
+            /** Citation Ids */
+            citation_ids: string[];
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "source_observation" | "conflicting";
+            /** Text */
+            text: string;
+        };
+        /** SubmitDocument */
+        SubmitDocument: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "document_submit";
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Document Id */
+            document_id?: string | null;
+            /**
+             * Document Type
+             * @default reference
+             * @enum {string}
+             */
+            document_type: "brand_policy" | "product" | "faq" | "research" | "approved_post" | "analytics_finding" | "reference";
+            /**
+             * Effective From
+             * Format: date-time
+             */
+            effective_from: string;
+            /**
+             * Effective To
+             * Format: date-time
+             */
+            effective_to: string;
+            /**
+             * Expected Version
+             * @default 0
+             */
+            expected_version: number;
+            /**
+             * Format
+             * @default markdown
+             * @enum {string}
+             */
+            format: "markdown" | "html" | "csv";
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Source Date
+             * Format: date-time
+             */
+            source_date: string;
+            /**
+             * Source Uri
+             * @default owner-input
+             */
+            source_uri: string;
+            /** Text */
+            text: string;
+            /** Title */
+            title: string;
+            /**
+             * Visibility
+             * @default workspace
+             * @enum {string}
+             */
+            visibility: "workspace" | "owner";
         };
         /**
          * SystemState
@@ -3240,6 +3978,884 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    execute_api_v1_workspaces__workspace_id__knowledge_commands_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitDocument"] | components["schemas"]["ActivateIndex"] | components["schemas"]["ArchiveDocument"] | components["schemas"]["ReindexDocument"] | components["schemas"]["ProposeNote"] | components["schemas"]["ReviewNote"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    documents_api_v1_workspaces__workspace_id__knowledge_documents_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_DocumentView_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    document_api_v1_workspaces__workspace_id__knowledge_documents__document_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_api_v1_workspaces__workspace_id__knowledge_documents__document_id__indexes__index_id__chunks_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+                document_id: string;
+                index_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_Citation_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    notes_api_v1_workspaces__workspace_id__knowledge_notes_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_NoteView_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    profiles_api_v1_workspaces__workspace_id__knowledge_profiles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Profile"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    runs_api_v1_workspaces__workspace_id__knowledge_runs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_AIRunView_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    run_api_v1_workspaces__workspace_id__knowledge_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunAssessment"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_run_api_v1_workspaces__workspace_id__knowledge_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    search_api_v1_workspaces__workspace_id__knowledge_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

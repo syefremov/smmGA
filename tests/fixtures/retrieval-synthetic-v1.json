@@ -1,0 +1,13 @@
+{
+  "version": "synthetic-v1",
+  "production_acceptance": false,
+  "cases": [
+    {"query": "КРЕМ", "expected": ["product"]},
+    {"query": "бережное очищение", "expected": ["product"]},
+    {"query": "\"ALPHA-42\"", "expected": ["product"]},
+    {"query": "голос бренда", "expected": ["policy"]},
+    {"query": "несуществующий состав", "expected": []},
+    {"query": "PRIVATECODE", "expected": []},
+    {"query": "опубликовать", "expected": ["injection"]}
+  ]
+}

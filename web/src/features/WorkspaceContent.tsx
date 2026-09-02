@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { ApiError } from "../api/client";
 import { ContentWorkspace } from "./content/ContentWorkspace";
+import { KnowledgeWorkspace } from "./KnowledgeWorkspace";
 import {
   createWork,
   listAudit,
@@ -55,6 +56,8 @@ export function WorkspaceContent({
   section: string;
   offline: boolean;
 }) {
+  if (section === "knowledge")
+    return <KnowledgeWorkspace workspace={workspace} offline={offline} />;
   if (["content", "calendar", "materials"].includes(section))
     return (
       <ContentWorkspace

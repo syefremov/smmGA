@@ -3,6 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 from urllib.parse import urlsplit
+from uuid import UUID
 
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -30,6 +31,23 @@ class Settings(BaseSettings):
     dependency_timeout_seconds: float = 2.0
     media_root: str = ".data/media"
     auth_enabled: bool = False
+    knowledge_worker_enabled: bool = False
+    ai_provider: Literal["disabled", "openai"] = "disabled"
+    ai_model: str = ""
+    ai_api_key: SecretStr = SecretStr("")
+    ai_allowed_workspaces: tuple[UUID, ...] = ()
+    ai_daily_run_limit: int = 5
+
+    @model_validator(mode="after")
+    def validate_ai(self) -> "Settings":
+        if not 1 <= self.ai_daily_run_limit <= 100 or len(self.ai_model) > 120:
+            raise ValueError("Invalid AI limits")
+        if self.ai_provider != "disabled" and not (
+            self.ai_model and self.ai_api_key.get_secret_value() and self.ai_allowed_workspaces
+        ):
+            raise ValueError("AI requires an explicit model, server key and workspace allowlist")
+        return self
+
     oidc_issuer_url: str = ""
     oidc_client_id: str = ""
     oidc_client_secret: SecretStr = SecretStr("")

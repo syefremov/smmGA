@@ -12,7 +12,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 from sqlalchemy.exc import SQLAlchemyError
 
 from smm_gpt import __version__
-from smm_gpt.api.routes import content, health, identity, operations, system
+from smm_gpt.api.routes import content, health, identity, knowledge, operations, system
 from smm_gpt.core.config import Settings, get_settings
 from smm_gpt.core.request_context import request_context, request_id
 from smm_gpt.domain.access import AccessDenied, Conflict
@@ -89,6 +89,7 @@ def create_app(
     app.include_router(identity.router, prefix="/api/v1")
     app.include_router(operations.router, prefix="/api/v1")
     app.include_router(content.router, prefix="/api/v1")
+    app.include_router(knowledge.router, prefix="/api/v1")
 
     @app.middleware("http")
     async def privacy_headers(

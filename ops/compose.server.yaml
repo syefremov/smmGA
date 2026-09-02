@@ -97,6 +97,7 @@ services:
     <<: *app
     environment:
       <<: *environment
+      SMM_KNOWLEDGE_WORKER_ENABLED: ${SMM_KNOWLEDGE_WORKER_ENABLED:-false}
       SMM_DATABASE_URL: postgresql+asyncpg://smm_worker_login:${SMM_WORKER_PASSWORD}@postgres:5432/${SMM_POSTGRES_DB}
     command: [celery, -A, "smm_gpt.workers.celery_app:celery_app", worker, --loglevel=INFO, --concurrency=2]
     depends_on:

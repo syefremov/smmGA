@@ -26,8 +26,11 @@ from smm_gpt.domain.operations import (
 )
 from smm_gpt.mcp.auth import MCPVerifier
 from smm_gpt.mcp.content import register_content_tools
+from smm_gpt.mcp.knowledge import register_knowledge_tools
 from smm_gpt.mcp.privacy import PrivateMCPServer
+from smm_gpt.services.ai import AIService
 from smm_gpt.services.content import ContentService
+from smm_gpt.services.knowledge import KnowledgeService
 from smm_gpt.services.operations import Operations
 from smm_gpt.services.system_status import SystemStatusService
 
@@ -39,6 +42,9 @@ SERVER_INSTRUCTIONS = (
     "Content commands support immutable drafts, review, exact owner decisions and manual packages. "
     "Human confirmation is required for approval; automated review never grants it. A manual "
     "schedule/package is not an external publication. No social-network writes are available. "
+    "Knowledge tools support text-only FTS, source versions and exact owner activation. "
+    "AI profiles are testing/blocked, never human roles. Paid assessment needs explicit human "
+    "authorization and configured server provider. Do not retry unknown outcomes with new keys. "
     "Return concise status and surface unavailable services."
 )
 
@@ -124,6 +130,12 @@ def create_mcp_server(
 
         core = Operations(verifier.access)
         register_content_tools(server, ContentService(verifier.access), current_principal)
+        register_knowledge_tools(
+            server,
+            KnowledgeService(verifier.access),
+            AIService(verifier.access, verifier.oidc.settings),
+            current_principal,
+        )
         read_hint = ToolAnnotations(
             readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False
         )

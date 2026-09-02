@@ -11,6 +11,7 @@ from sqlalchemy import func, select, update
 
 from smm_gpt.application import create_app
 from smm_gpt.domain import content as content_dto
+from smm_gpt.domain import knowledge as knowledge_dto
 from smm_gpt.domain.access import AccessDenied
 from smm_gpt.domain.operations import (
     CatalogKind,
@@ -209,6 +210,35 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(tenants: TenantFix
         )
         assert "contents" in resource.json()["result"]
         content = await pilot(t)
+        knowledge_command = knowledge_dto.SubmitDocument(
+            idempotency_key=uuid4().hex,
+            brand_id=content.brand,
+            title="Transport evidence",
+            text="Synthetic knowledge evidence",
+            source_date=utcnow(),
+            effective_from=utcnow() - timedelta(days=1),
+            effective_to=utcnow() + timedelta(days=1),
+        ).model_dump(mode="json")
+        knowledge_mcp = await call(
+            "knowledge_execute", {"workspace_id": wid, "command": knowledge_command}
+        )
+        assert not knowledge_mcp.get("isError"), knowledge_mcp
+        knowledge_rest = await browser.post(
+            f"/api/v1/workspaces/{wid}/knowledge/commands", json=knowledge_command
+        )
+        assert knowledge_rest.status_code == 200, knowledge_rest.text
+        assert knowledge_mcp["structuredContent"] == knowledge_rest.json()
+        read_knowledge = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/documents")
+        assert (await call("knowledge_documents", {"workspace_id": wid}))[
+            "structuredContent"
+        ] == read_knowledge.json()
+        profiles_rest = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/profiles")
+        assert profiles_rest.status_code == 200 and len(profiles_rest.json()) == 8
+        invalid_knowledge = await browser.post(
+            f"/api/v1/workspaces/{wid}/knowledge/commands",
+            json={**knowledge_command, "format": "pdf", "text": "never-echo-knowledge-input"},
+        )
+        assert invalid_knowledge.status_code == 422 and "never-echo" not in invalid_knowledge.text
         post = await content.post()
         revision = post.revisions[0]
         commands: list[content_dto.ContentCommand] = [

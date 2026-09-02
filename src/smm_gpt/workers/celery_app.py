@@ -14,7 +14,8 @@ celery_app.conf.update(
         "phase-two-heartbeat": {
             "task": "smm_gpt.system.ping",
             "schedule": 300.0,
-        }
+        },
+        "knowledge-queue": {"task": "smm_gpt.knowledge.poll", "schedule": 30.0},
     },
     enable_utc=True,
     imports=("smm_gpt.workers.tasks",),
