@@ -1,0 +1,1 @@
+"""Compose integration test package."""
