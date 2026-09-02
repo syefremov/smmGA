@@ -69,6 +69,7 @@ def main() -> None:
         second = server.run(["git", "-C", str(source), "rev-parse", "HEAD"]).decode().strip()
         server.SOURCE = source
         server.deploy(first)
+        assert server.compose(first, ["exec", "-T", "web", "getcap", "/usr/bin/caddy"]) == b""
         server.deploy(first)
         server.run(["bash", str(source / "ops" / "smm-docker-firewall.sh")])
         server.run(["bash", str(source / "ops" / "smm-docker-firewall.sh")])

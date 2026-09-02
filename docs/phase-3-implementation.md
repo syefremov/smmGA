@@ -18,6 +18,8 @@
 
 Локально проверяются Python formatting/lint/types, unit/component tests, shell syntax, Compose interpolation, frontend build и generated contracts. Результат Linux server lifecycle CI фиксируется после push. Проверка на CI — доказательство работы скриптов с синтетическими данными, а не настройка реального сервера.
 
+Первый Linux-прогон обнаружил incompatibility upstream Caddy binary с `cap_drop: ALL`: у бинарника была file capability для low ports, вызывавшая `operation not permitted`. В нашем image она снимается на этапе сборки, поскольку proxy слушает 8080. Защитные ограничения контейнера сохранены; CI дополнительно проверяет отсутствие file capabilities.
+
 Не выполнены:
 
 - фактический bootstrap/изменения удалённого сервера — SSH banner exchange завершился timeout;

@@ -14,7 +14,10 @@ ENV XDG_CONFIG_HOME=/config \
 RUN addgroup -S -g 10001 smm \
     && adduser -S -D -H -u 10001 -G smm smm \
     && mkdir -p /config /data /srv \
-    && chown -R smm:smm /config /data /srv
+    && chown -R smm:smm /config /data /srv \
+    # This image listens on 8080. Upstream's bind-service file capability is
+    # unnecessary and prevents exec when the server drops all capabilities.
+    && setcap -r /usr/bin/caddy
 COPY --chown=smm:smm Caddyfile /etc/caddy/Caddyfile
 COPY --from=builder --chown=smm:smm /app/web/dist /srv
 USER smm
