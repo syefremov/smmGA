@@ -16,9 +16,7 @@ DocumentType = Literal[
 ]
 
 
-class SubmitDocument(DTO):
-    action: Literal["document_submit"] = "document_submit"
-    idempotency_key: IdempotencyToken
+class DocumentSpec(DTO):
     document_id: UUID | None = None
     expected_version: Annotated[int, Field(ge=0)] = 0
     brand_id: UUID
@@ -26,8 +24,6 @@ class SubmitDocument(DTO):
     document_type: DocumentType = "reference"
     visibility: Visibility = "workspace"
     source_uri: Annotated[str, Field(max_length=1000)] = "owner-input"
-    format: Literal["markdown", "html", "csv"] = "markdown"
-    text: Annotated[str, Field(min_length=1, max_length=100_000)]
     source_date: AwareDatetime
     effective_from: AwareDatetime
     effective_to: AwareDatetime
@@ -51,10 +47,25 @@ class SubmitDocument(DTO):
         return value
 
     @model_validator(mode="after")
-    def dates(self) -> "SubmitDocument":
+    def dates(self) -> "DocumentSpec":
         if self.effective_to <= self.effective_from:
             raise ValueError("invalid_effective_period")
         return self
+
+
+class SubmitDocument(DocumentSpec):
+    action: Literal["document_submit"] = "document_submit"
+    idempotency_key: IdempotencyToken
+    format: Literal["markdown", "html", "csv"] = "markdown"
+    text: Annotated[str, Field(min_length=1, max_length=100_000)]
+
+
+class ImportFile(DocumentSpec):
+    action: Literal["file_import"] = "file_import"
+    idempotency_key: IdempotencyToken
+    file_id: UUID
+    text_hash: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+    human_confirmed: Literal[True]
 
 
 class ActivateIndex(DTO):
@@ -107,7 +118,13 @@ class ReviewNote(DTO):
 
 
 KnowledgeCommand = Annotated[
-    SubmitDocument | ActivateIndex | ArchiveDocument | ReindexDocument | ProposeNote | ReviewNote,
+    SubmitDocument
+    | ImportFile
+    | ActivateIndex
+    | ArchiveDocument
+    | ReindexDocument
+    | ProposeNote
+    | ReviewNote,
     Field(discriminator="action"),
 ]
 
@@ -165,6 +182,7 @@ class Citation(DTO):
     source_uri: str
     source_date: datetime
     effective_to: datetime
+    source_file_id: UUID | None = None
     authority: Literal["owner_reviewed_reference", "unreviewed_reference"] = (
         "owner_reviewed_reference"
     )

@@ -349,7 +349,10 @@ review, stale detection и owner web reports: [`retrieval-evaluations.md`](retri
 Версии/очередь/chunks/owner activation, shared REST/MCP, тестовый text gateway,
 каталог профилей и web knowledge workspace описаны в
 [`phase-7-implementation.md`](phase-7-implementation.md).
-Binary ingestion, pgvector/hybrid, полные specialist workflows и реальные corpus/provider/server
+Третий срез: [`knowledge-files.md`](knowledge-files.md) — private PDF/DOCX originals,
+scan/sandbox jobs, preview, exact Owner import, provenance и retry/rescan. Default disabled;
+реальное включение антивируса/ресурсный smoke ещё требуется.
+Binary commissioning, pgvector/hybrid, полные specialist workflows и реальные corpus/provider/server
 gates ещё не закрыты. Следующая итерация продолжает фазу 7, не начинает фазу 8 автоматически.
 
 ### Цель

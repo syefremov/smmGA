@@ -4,6 +4,11 @@
 
 ## Правила операций
 
+Для optional PDF/DOCX workflow см. [`knowledge-files.md`](knowledge-files.md): следить за
+ClamAV/signature freshness, failed jobs, RAM/диском и orphan originals; backup включает
+PostgreSQL **и media volume**. Не удалять quarantine вручную и не обходить scanner/sandbox
+ради успешного импорта. Реальный scanner smoke остаётся отдельным commissioning gate.
+
 - Команды выполняются администратором с проверенного commit через `sudo`, не сотрудниками и не AI-профилями.
 - По умолчанию `bootstrap/deploy/rollback/backup/restore` ничего не меняют; `--apply` означает отдельное явное действие.
 - Одновременные операции блокируются `flock` на `/run/lock/smm-gpt-operations.lock`.

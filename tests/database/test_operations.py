@@ -2,6 +2,7 @@
 
 import asyncio
 from datetime import timedelta
+from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 from uuid import uuid4
 
@@ -27,6 +28,7 @@ from smm_gpt.services.sessions import SessionService
 from ..identity_fakes import FakeIssuer
 from .conftest import TenantFixture
 from .test_content import pilot
+from .test_knowledge_files import command as file_command
 
 pytestmark = pytest.mark.integration
 
@@ -110,9 +112,13 @@ async def test_session_catalog_pagination_and_membership_revocation(tenants: Ten
         await core.catalog(t.owner, t.workspace, CatalogKind.BRANDS, uuid4())
 
 
-async def test_rest_mcp_parity_resources_and_secret_redaction(tenants: TenantFixture) -> None:
+async def test_rest_mcp_parity_resources_and_secret_redaction(
+    tenants: TenantFixture, tmp_path: Path
+) -> None:
     t = tenants
     issuer = FakeIssuer()
+    issuer.settings.media_root = str(tmp_path)
+    issuer.settings.knowledge_files_enabled = True
     sessions = SessionService(issuer.settings, t.access, issuer.client())
     app = create_app(settings=issuer.settings, sessions=sessions)
     async with (
@@ -210,6 +216,24 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(tenants: TenantFix
         )
         assert "contents" in resource.json()["result"]
         content = await pilot(t)
+        upload = file_command(content.brand).model_dump(mode="json")
+        file_prefix = f"/api/v1/workspaces/{wid}/knowledge/files"
+        uploaded_mcp = await call("knowledge_file_submit", {"workspace_id": wid, "command": upload})
+        uploaded_rest = await browser.post(file_prefix, json=upload)
+        assert uploaded_rest.status_code == 200, uploaded_rest.text
+        assert uploaded_mcp["structuredContent"] == uploaded_rest.json(), uploaded_mcp
+        file_id = uploaded_rest.json()["file_id"]
+        assert (await call("knowledge_files", {"workspace_id": wid}))["structuredContent"] == (
+            await browser.get(file_prefix)
+        ).json()
+        assert (await call("knowledge_file_read", {"workspace_id": wid, "file_id": file_id}))[
+            "structuredContent"
+        ] == (await browser.get(file_prefix + "/" + file_id)).json()
+        assert (await browser.get(file_prefix + "/" + file_id + "/original")).status_code == 409
+        malformed_file = await browser.post(
+            file_prefix, json={**upload, "content_base64": "never-echo-file-input"}
+        )
+        assert malformed_file.status_code == 422 and "never-echo" not in malformed_file.text
         knowledge_command = knowledge_dto.SubmitDocument(
             idempotency_key=uuid4().hex,
             brand_id=content.brand,

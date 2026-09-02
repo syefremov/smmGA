@@ -12,6 +12,7 @@ from smm_gpt.infrastructure import (  # noqa: F401
     ai_models,
     content_models,
     evaluation_models,
+    file_models,
     knowledge_models,
     models,
 )

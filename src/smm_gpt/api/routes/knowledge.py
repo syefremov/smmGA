@@ -12,6 +12,7 @@ from smm_gpt.domain import ai as a
 from smm_gpt.domain import evaluation as e
 from smm_gpt.domain import knowledge as d
 from smm_gpt.domain.operations import ErrorResponse, Page, PageSize
+from smm_gpt.infrastructure.file_storage import VolumeFileStore
 from smm_gpt.services.ai import AIService
 from smm_gpt.services.evaluation import EvaluationService
 from smm_gpt.services.knowledge import KnowledgeService
@@ -23,7 +24,8 @@ router = APIRouter(
 
 
 def core(request: Request) -> KnowledgeService:
-    return KnowledgeService(service(request).access)
+    session = service(request)
+    return KnowledgeService(session.access, VolumeFileStore(session.settings.media_root))
 
 
 def ai_core(request: Request) -> AIService:

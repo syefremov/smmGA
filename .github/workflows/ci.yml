@@ -107,6 +107,7 @@ jobs:
         run: |
           pnpm worker:smoke
           pnpm test:integration
+          uv run python -m scripts.parser_smoke
 
       - name: Install pinned Playwright browser
         run: pnpm --dir web exec playwright install --with-deps chromium

@@ -8,11 +8,13 @@ dependencies = [
     "alembic==1.19.1",
     "asyncpg==0.31.0",
     "celery[redis]==5.6.3",
+    "defusedxml==0.7.1",
     "fastapi[standard]==0.141.1",
     "httpx==0.28.1",
     "mcp==2.1.1",
     "pydantic-settings==2.15.0",
     "pyjwt[crypto]==2.13.0",
+    "pypdf==6.16.2",
     "redis==6.4.0",
     "sqlalchemy==2.0.52",
 ]
@@ -58,6 +60,10 @@ plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 module = ["celery", "celery.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["defusedxml", "defusedxml.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

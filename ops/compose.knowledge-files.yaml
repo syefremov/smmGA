@@ -1,0 +1,20 @@
+# Optional overlay, not enabled by deployment scripts. See docs/knowledge-files.md.
+services:
+  clamav:
+    image: clamav/clamav:1.4.3@sha256:75fb5fd95fcbe1d7e6d240c369c1572b686ee2c95949d1042b5148de8eddebb4
+    environment:
+      TZ: UTC
+    volumes:
+      - clamav-signatures:/var/lib/clamav
+    networks: [backend]
+    mem_limit: 1536m
+    pids_limit: 128
+    restart: unless-stopped
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  clamav-signatures:

@@ -145,8 +145,11 @@
 - Phase 7 is partial. Follow `docs/phase-7-implementation.md`: text-only FTS, per-document
   owner activation, testing-only reference assessments. Do not label this a completed hybrid RAG
   or eight runnable specialists; the next iteration continues phase 7.
-- Knowledge text is not a verified product fact. No binary files or source URL fetching are
-  supported yet; regex checks are not malware scanning/DLP. Never bypass missing parser gates.
+- Knowledge text is not a verified product fact. Follow `docs/knowledge-files.md` for optional
+  PDF/DOCX ingestion: private immutable volume originals, fresh ClamAV scan, Linux default-deny
+  seccomp/resource-isolated parser, then exact Owner file_import and separate index activation.
+  Defaults remain disabled. Never use an in-process production fallback or bypass scanner gates.
+  No OCR or source URL fetching; regex checks are not malware scanning or full DLP.
 - Knowledge worker may prepare chunks, never activate an index. Preserve ready indexes and
   immutable versions. Recheck actor/identity/visibility and lease fencing before completion.
 - AI gateway has no tools or content-service principal. Paid testing requires explicit owner

@@ -11,7 +11,10 @@ PostgreSQL FTS, подтверждение владельца, source citations,
 точное решение владельца и обнаружение устаревшего отчёта. Управление — MCP/REST, просмотр —
 «База знаний → Качество поиска». Контракт и примеры чата —
 [`docs/retrieval-evaluations.md`](docs/retrieval-evaluations.md).
-**Фаза 7 пока не завершена:** PDF/DOCX upload, hybrid/pgvector, полный набор AI workflows,
+Третий срез добавляет закрытую загрузку PDF/DOCX, очередь сканирования ClamAV, изолированный
+Linux-парсер и отдельный импорт извлечённого текста владельцем. По умолчанию выключен;
+контракт, лимиты и условия включения — [`docs/knowledge-files.md`](docs/knowledge-files.md).
+**Фаза 7 пока не завершена:** ввод binary ingestion в эксплуатацию, hybrid/pgvector, полный набор AI workflows,
 реальный утверждённый корпус/evals и server gates ещё впереди. Точная граница —
 [`docs/phase-7-implementation.md`](docs/phase-7-implementation.md).
 

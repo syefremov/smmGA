@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     media_root: str = ".data/media"
     auth_enabled: bool = False
     knowledge_worker_enabled: bool = False
+    knowledge_files_enabled: bool = False
+    clamav_host: str = "clamav"
+    clamav_port: int = 3310
     ai_provider: Literal["disabled", "openai"] = "disabled"
     ai_model: str = ""
     ai_api_key: SecretStr = SecretStr("")

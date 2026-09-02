@@ -54,11 +54,17 @@ class KnowledgeVersion(Tenant, Base):
     __tablename__ = "knowledge_document_versions"
     __table_args__ = (
         *tenant_args(document_id="knowledge_documents"),
+        ForeignKeyConstraint(
+            ["workspace_id", "source_file_id"],
+            ["knowledge_files.workspace_id", "knowledge_files.id"],
+            name="fk_knowledge_source_file",
+        ),
         UniqueConstraint("workspace_id", "document_id", "id"),
         UniqueConstraint("workspace_id", "document_id", "fingerprint"),
     )
     document_id: Mapped[UUID]
     actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    source_file_id: Mapped[UUID | None]
     original: Mapped[str] = mapped_column(Text)
     format: Mapped[str] = mapped_column(String(24))
     fingerprint: Mapped[str] = mapped_column(String(64))

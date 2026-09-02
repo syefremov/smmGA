@@ -1,5 +1,6 @@
 """One knowledge workflow for REST and MCP. Worker never activates an index."""
 
+import asyncio
 from datetime import datetime
 from typing import cast
 from uuid import UUID, uuid4
@@ -7,10 +8,12 @@ from uuid import UUID, uuid4
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from smm_gpt.core.config import get_settings
 from smm_gpt.domain import knowledge as d
 from smm_gpt.domain.access import Permission, Principal
 from smm_gpt.domain.content import canonical_hash
 from smm_gpt.domain.operations import OperationError, Page
+from smm_gpt.infrastructure.file_storage import FileStore, VolumeFileStore
 from smm_gpt.infrastructure.knowledge_models import (
     KnowledgeActivation,
     KnowledgeChunk,
@@ -70,6 +73,7 @@ def citation(c: KnowledgeChunk, doc: KnowledgeDocument, v: KnowledgeVersion) -> 
         source_uri=v.source_uri,
         source_date=v.source_date,
         effective_to=v.effective_to,
+        source_file_id=v.source_file_id,
     )
 
 
@@ -135,8 +139,9 @@ async def retrieve(
 
 
 class KnowledgeService:
-    def __init__(self, access: AccessService):
+    def __init__(self, access: AccessService, file_store: FileStore | None = None):
         self.access = access
+        self.file_store = file_store or VolumeFileStore(get_settings().media_root)
 
     async def execute(
         self, actor: Principal, wid: UUID, command: d.KnowledgeCommand, request: UUID
@@ -144,7 +149,8 @@ class KnowledgeService:
         permission = (
             Permission.APPROVE
             if isinstance(
-                command, (d.ActivateIndex, d.ArchiveDocument, d.ReviewNote, d.ProposeNote)
+                command,
+                (d.ActivateIndex, d.ArchiveDocument, d.ReviewNote, d.ProposeNote, d.ImportFile),
             )
             else Permission.KNOWLEDGE
         )
@@ -188,9 +194,28 @@ class KnowledgeService:
             return result
 
     async def _execute(
-        self, s: AsyncSession, actor: Principal, wid: UUID, c: d.KnowledgeCommand
+        self,
+        s: AsyncSession,
+        actor: Principal,
+        wid: UUID,
+        c: d.KnowledgeCommand,
+        source_file_id: UUID | None = None,
     ) -> d.KnowledgeResult:
         note: KnowledgeNote | None
+        if isinstance(c, d.ImportFile):
+            # Local import avoids the shared text/file service module initialization cycle.
+            from smm_gpt.services.knowledge_files import file_row, importable
+
+            extracted = await importable(s, wid, c.file_id, c.brand_id)
+            original = await file_row(s, wid, c.file_id)
+            if extracted.text_hash != c.text_hash:
+                raise OperationError("extraction_hash_mismatch")
+            await asyncio.to_thread(self.file_store.get, original.id, original.content_hash)
+            submitted = d.SubmitDocument(
+                **c.model_dump(exclude={"action", "file_id", "text_hash", "human_confirmed"}),
+                text=extracted.text,
+            )
+            return await self._execute(s, actor, wid, submitted, source_file_id=c.file_id)
         if isinstance(c, d.SubmitDocument):
             safe_text(c.text)
             safe_text(c.title)
@@ -221,12 +246,13 @@ class KnowledgeService:
                 )
                 s.add(doc)
                 await s.flush()
-            fingerprint = canonical_hash(
-                c.model_dump(
-                    mode="json",
-                    exclude={"action", "idempotency_key", "document_id", "expected_version"},
-                )
+            version_payload = c.model_dump(
+                mode="json",
+                exclude={"action", "idempotency_key", "document_id", "expected_version"},
             )
+            if source_file_id:
+                version_payload["source_file_id"] = str(source_file_id)
+            fingerprint = canonical_hash(version_payload)
             version = await s.scalar(
                 select(KnowledgeVersion).where(
                     KnowledgeVersion.workspace_id == wid,
@@ -254,6 +280,7 @@ class KnowledgeService:
                 workspace_id=wid,
                 document_id=doc.id,
                 actor_id=actor.user_id,
+                source_file_id=source_file_id,
                 original=c.text,
                 format=c.format,
                 fingerprint=fingerprint,

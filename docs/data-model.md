@@ -1,5 +1,13 @@
 # Центральная модель данных — фаза 4
 
+Третий срез фазы 7: `0007_knowledge_files` добавляет `knowledge_files` (метаданные/очередь),
+immutable `knowledge_extractions` (текст/hash/parser/scan evidence) и retry receipts.
+FORCE RLS: uploader либо Owner, не другие сотрудники; composite workspace/file/brand FKs.
+Worker может claim/finalize, но не импортировать/активировать знания. Ready originals/extractions
+не переписываются. Nullable `knowledge_document_versions.source_file_id` сохраняет provenance.
+Бинарные оригиналы — **private media volume**, не PostgreSQL; backup должен включать оба.
+Хранение, state machine, квоты и rollback — [`knowledge-files.md`](knowledge-files.md).
+
 Второй срез фазы 7: `0006_retrieval_eval` добавляет append-only datasets/runs/reviews/receipts.
 Owner-only FORCE RLS, INSERT actor=current, composite brand/family/hash FKs, без worker grants.
 Versions, corpus snapshots, metrics, exact human review и stale semantics —

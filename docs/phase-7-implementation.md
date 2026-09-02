@@ -13,6 +13,11 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Третий срез:** optional PDF/DOCX binary workflow — [`knowledge-files.md`](knowledge-files.md).
+Оригиналы в private media volume, ClamAV → sandbox → extraction → Owner import → обычный
+текстовый pipeline ниже. Это не OCR и не автоматическая активация. Реальный scanner rollout
+не выполнен, по умолчанию выключено.
+
 REST и MCP используют один сервис: текст → immutable version → durable queue → chunks →
 просмотр кандидата → контрольные запросы → точное подтверждение владельца → поиск.
 
@@ -140,8 +145,10 @@ Selector показывает первые 25 брендов; остальные
 
 ## Запуск и обновление
 
-Новых dependencies нет. `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge` и `0006_retrieval_eval` требуют privileged migration role,
+Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
+defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
+`pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
+Миграции `0005_knowledge`, `0006_retrieval_eval`, `0007_knowledge_files` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -158,8 +165,9 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
 
 ## Остаток фазы 7
 
-1. Binary upload/storage, ClamAV fail-closed, sandbox/resource-isolated PDF/DOCX parsers,
-   authorized original download, zip-bomb/memory/timeout tests. Regex — не антивирус и не полноценный DLP.
+1. Binary workflow реализован в третьем срезе, но нужны реальный ClamAV smoke/signature updates,
+   проверка RAM/диска/backup/recovery на разрешённом сервере и удобный attachment client.
+   Windows production fallback, OCR и полноценный DLP не реализованы.
 2. Реальный owner-approved GreenAurum корпус и eval questions/expected sources/conflicts.
    Инструмент сохранения наборов/прогонов/review реализован во втором срезе; наполнение и
    человеческая проверка реальных ожиданий ещё нужны. Принятый FTS benchmark не закрывает exit gate.

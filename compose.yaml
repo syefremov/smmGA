@@ -7,6 +7,7 @@ x-app-environment: &app-environment
   SMM_DATABASE_URL: postgresql+asyncpg://smm_api_login:${SMM_APP_PASSWORD:?Run pnpm env:init}@postgres:5432/${SMM_POSTGRES_DB}
   SMM_REDIS_URL: redis://redis:6379/0
   SMM_MEDIA_ROOT: /app/.data/media
+  SMM_KNOWLEDGE_FILES_ENABLED: ${SMM_KNOWLEDGE_FILES_ENABLED:-false}
   SMM_WEB_ORIGIN: http://127.0.0.1:8080
 
 x-app-service: &app-service
@@ -98,6 +99,8 @@ services:
 
   worker:
     <<: *app-service
+    volumes:
+      - media-data:/app/.data/media:ro
     environment:
       <<: *app-environment
       SMM_KNOWLEDGE_WORKER_ENABLED: ${SMM_KNOWLEDGE_WORKER_ENABLED:-false}
