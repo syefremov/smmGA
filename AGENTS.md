@@ -4,6 +4,7 @@
 
 - Build a chat-first SMM system controlled from Codex, with an optional internal web application for visual and administrative workflows. Do not turn it into a public marketing site or make the web UI a separate source of business logic.
 - Treat `README.md` as the product and architecture source of truth. Read the relevant sections before making architectural changes.
+- Apply the pilot defaults in `docs/decisions.md` without reopening settled questions. Ask the owner only for the external access, real data, irreversible action, or authority explicitly listed there.
 - Keep the system easy to install for an employee while keeping shared data and secrets on the central server.
 
 ## Architectural invariants
@@ -14,6 +15,7 @@
 - Use SQL for exact business facts and state. RAG may supply textual context, but must never determine authorization, approval, scheduling, publication status, prices, or metrics.
 - Use a modular Python monolith for the initial implementation. Keep domain logic independent from MCP handlers, workers, and transport code.
 - Run background collection, scheduling, publishing, and metrics in server-side workers. They must not depend on an employee computer or an open chat.
+- Use GreenAurum as the pilot workspace, VK as the first social connector, manual Wildberries imports initially, and Tailscale-only private access until the documented decision changes.
 - Put each social platform behind an adapter. Prefer official APIs and represent unavailable capabilities honestly.
 - Do not introduce microservices, Kubernetes, or a web frontend without an evidenced need and explicit user agreement.
 
