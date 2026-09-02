@@ -104,3 +104,22 @@ jobs:
       - name: Stop the stack
         if: always()
         run: docker compose down --volumes --remove-orphans
+
+  server-integration:
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate shell entry points
+        run: |
+          for script in scripts/*.sh ops/*.sh; do bash -n "$script"; done
+          shellcheck scripts/*.sh ops/*.sh
+
+      - name: Exercise server lifecycle on synthetic data
+        run: sudo --preserve-env=GITHUB_ACTIONS python3 -m scripts.server_integration
+
+      - name: Show container health without secrets
+        if: failure()
+        run: docker ps --all --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'

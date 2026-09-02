@@ -109,6 +109,9 @@
 - Add or update tests with every behavior change.
 - Workstation diagnostics use `pnpm run doctor` (`pnpm doctor` is a different built-in pnpm command). Repository verification uses `pnpm check`, unit/component tests use `pnpm test`, frontend compilation uses `pnpm build:web`, and the full local stack uses `pnpm dev`.
 - Compose-dependent checks use `pnpm worker:smoke`, `pnpm test:integration`, and `pnpm test:e2e` after the stack is healthy. `pnpm build` builds container images; `pnpm db:migrate` applies Alembic migrations to the configured local database.
+- Server operations follow `docs/deployment.md` and `docs/operations.md`. Use only `ops/compose.server.yaml` for staging; do not merge development port mappings into it. Server mutation entry points default to a plan and require explicit `--apply`; SSH hardening also requires a verified recovery console and independent key/sudo session.
+- Phase 3 remote MCP and non-status REST routes must remain blocked until server authentication is implemented. Tailscale membership is not a replacement for application authorization.
+- `scripts/restore.sh` performs an isolated drill only and must never replace active data. `scripts/server_integration.py` is exclusively for a fresh disposable Linux CI runner; never run it on the owner's server. Do not represent a CI container restart as a real host reboot/SSH/Tailscale verification.
 - `pnpm generated:check` must prove that `openapi.json` and `web/src/api/schema.d.ts` match the current FastAPI contract.
 - Cover authorization, workspace isolation, valid and invalid state transitions, approval invalidation, idempotency, retry behavior, and secret redaction.
 - For retrieval changes, cover cross-workspace leakage, visibility and freshness filters, prompt-injection content, citations, deterministic keyword cases, semantic relevance, and re-index rollback.

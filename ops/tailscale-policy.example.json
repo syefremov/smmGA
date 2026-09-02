@@ -1,0 +1,22 @@
+{
+  "groups": {
+    "group:smm-operators": ["replace-owner@example.invalid"]
+  },
+  "tagOwners": {
+    "tag:smm-staging": ["group:smm-operators"]
+  },
+  "grants": [
+    {
+      "src": ["group:smm-operators"],
+      "dst": ["tag:smm-staging"],
+      "ip": ["tcp:22", "tcp:443"]
+    }
+  ],
+  "tests": [
+    {
+      "src": "replace-owner@example.invalid",
+      "accept": ["tag:smm-staging:22", "tag:smm-staging:443"],
+      "deny": ["tag:smm-staging:5432", "tag:smm-staging:6379", "tag:smm-staging:8000", "tag:smm-staging:8080"]
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+name: smm-gpt-staging
+
+x-environment: &environment
+  SMM_ENV: staging
+  SMM_LOG_LEVEL: INFO
+  SMM_TIMEZONE: UTC
+  SMM_DATABASE_URL: postgresql+asyncpg://${SMM_POSTGRES_USER}:${SMM_POSTGRES_PASSWORD}@postgres:5432/${SMM_POSTGRES_DB}
+  SMM_REDIS_URL: redis://redis:6379/0
+  SMM_MEDIA_ROOT: /app/.data/media
+  SMM_WEB_ORIGIN: http://127.0.0.1:8080
+
+x-app: &app
+  image: smm-gpt-app:${SMM_RELEASE:?Run the deployment script}
+  environment: *environment
+  user: "10001:10001"
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp:uid=10001,gid=10001,mode=1770
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: unless-stopped
+  networks: [backend]
+  logging:
+    driver: local
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    user: "70:70"
+    environment:
+      POSTGRES_DB: ${SMM_POSTGRES_DB:?Missing server configuration}
+      POSTGRES_USER: ${SMM_POSTGRES_USER:?Missing server configuration}
+      POSTGRES_PASSWORD: ${SMM_POSTGRES_PASSWORD:?Missing server configuration}
+    volumes:
+      - /var/lib/smm-gpt/postgres:/var/lib/postgresql/data
+    tmpfs:
+      - /var/run/postgresql:uid=70,gid=70,mode=0770
+      - /tmp:uid=70,gid=70,mode=1770
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [backend]
+    logging: {driver: local}
+
+  redis:
+    image: redis:7.4.5-alpine
+    user: "999:999"
+    command: [redis-server, --save, "", --appendonly, "no"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    networks: [backend]
+    logging: {driver: local}
+
+  migrate:
+    <<: *app
+    command: [alembic, upgrade, head]
+    restart: "no"
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  app:
+    <<: *app
+    volumes:
+      - /var/lib/smm-gpt/media:/app/.data/media
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  worker:
+    <<: *app
+    command: [celery, -A, "smm_gpt.workers.celery_app:celery_app", worker, --loglevel=INFO, --concurrency=2]
+    depends_on:
+      app: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, 'celery -A smm_gpt.workers.celery_app:celery_app inspect ping --destination celery@$$HOSTNAME --timeout 5']
+      interval: 20s
+      timeout: 10s
+      retries: 5
+
+  scheduler:
+    <<: *app
+    command: [celery, -A, "smm_gpt.workers.celery_app:celery_app", beat, --loglevel=INFO, --pidfile=/tmp/celerybeat.pid, --schedule=/tmp/celerybeat-schedule]
+    depends_on:
+      app: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, 'test -s /tmp/celerybeat.pid && kill -0 $$(cat /tmp/celerybeat.pid)']
+      interval: 20s
+      timeout: 5s
+      retries: 5
+
+  web:
+    image: smm-gpt-web:${SMM_RELEASE:?Run the deployment script}
+    user: "10001:10001"
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./Caddyfile.staging:/etc/caddy/Caddyfile:ro
+    read_only: true
+    tmpfs:
+      - /config:uid=10001,gid=10001,mode=0700
+      - /data:uid=10001,gid=10001,mode=0700
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      app: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, wget, --spider, --quiet, "http://127.0.0.1:8080/health/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [backend]
+    logging: {driver: local}
+
+networks:
+  backend:
+    driver: bridge
+    enable_ipv6: false
+    driver_opts:
+      com.docker.network.bridge.name: smmbr0

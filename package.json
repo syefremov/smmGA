@@ -13,7 +13,7 @@
     "doctor": "pwsh -NoLogo -NoProfile -File ./scripts/doctor.ps1",
     "env:init": "node ./scripts/init-dev-env.mjs",
     "check:fast": "node ./scripts/check-fast.mjs",
-    "check:python": "uv run ruff format --check src tests migrations scripts && uv run ruff check src tests migrations scripts && uv run mypy src tests scripts/export-openapi.py",
+    "check:python": "uv run ruff format --check src tests migrations scripts && uv run ruff check src tests migrations scripts && uv run mypy --platform linux src tests scripts",
     "check:web": "pnpm --dir web typecheck && pnpm --dir web lint && pnpm --dir web format:check",
     "check": "pnpm check:fast && pnpm check:python && pnpm check:web && pnpm generated:check",
     "test:python": "uv run pytest -m \"not integration\"",

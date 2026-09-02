@@ -1,0 +1,13 @@
+[Unit]
+Description=SMM staging bridge ingress guard
+Requires=docker.service
+After=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/smm-docker-firewall
+
+[Install]
+WantedBy=docker.service

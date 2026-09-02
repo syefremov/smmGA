@@ -28,6 +28,7 @@ uv.lock text eol=lf
 *.cmd text eol=crlf
 *.bat text eol=crlf
 *.psd1 text eol=lf
+*.service text eol=lf
 
 *.png binary
 *.jpg binary
@@ -50,5 +51,5 @@ uv.lock text eol=lf
 *.woff2 binary
 
 Dockerfile* text eol=lf
-Caddyfile text eol=lf
+Caddyfile* text eol=lf
 .dockerignore text eol=lf

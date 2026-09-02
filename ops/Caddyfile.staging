@@ -1,0 +1,30 @@
+{
+    auto_https off
+    admin off
+}
+
+:8080 {
+    encode zstd gzip
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        Content-Security-Policy "default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+        -Server
+    }
+    # Phase 3 exposes only synthetic status. Authenticated MCP/API arrive in phase 4.
+    @status path /health/live /health/ready /api/v1/system/status
+    handle @status {
+        reverse_proxy app:8000
+    }
+    @protected path /mcp* /api/* /docs* /redoc* /openapi.json
+    handle @protected {
+        respond "Authentication is not configured; remote operations are disabled." 403
+    }
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
+}
