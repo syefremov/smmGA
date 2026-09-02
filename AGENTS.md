@@ -4,6 +4,7 @@
 
 - Build a chat-first SMM system controlled from Codex, with an optional internal web application for visual and administrative workflows. Do not turn it into a public marketing site or make the web UI a separate source of business logic.
 - Treat `README.md` as the product and architecture source of truth. Read the relevant sections before making architectural changes.
+- Follow `docs/roadmap.md` as the implementation order and phase-gate source of truth. Do not mark or operate a later phase as complete until the prior phase exit gate is verified; a phase may be split into multiple atomic iterations.
 - Apply the pilot defaults in `docs/decisions.md` without reopening settled questions. Ask the owner only for the external access, real data, irreversible action, or authority explicitly listed there.
 - Keep the system easy to install for an employee while keeping shared data and secrets on the central server.
 
