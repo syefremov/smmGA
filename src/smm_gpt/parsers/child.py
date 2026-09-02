@@ -14,6 +14,7 @@ for encoding in (
     "utf-16",
     "latin-1",
     "cp1252",
+    "cp437",  # ZIP member names use this even when every filename is ASCII.
     "ascii",
     "unicode-escape",
 ):

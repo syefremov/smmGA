@@ -75,6 +75,29 @@ def test_xml_entities_never_resolve() -> None:
         extract(data, "docx")
 
 
+@pytest.mark.parametrize(
+    "format,data,expected",
+    [("docx", docx(), "Крем"), ("pdf", pdf(), "ALPHA-42")],
+    ids=["docx", "pdf"],
+)
+def test_preloaded_parsers_need_no_file_opens(format: str, data: bytes, expected: str) -> None:
+    # Portable regression for lazy stdlib codecs/imports, in addition to real Linux seccomp.
+    code = """
+import json, sys
+from smm_gpt.parsers import child
+def deny_open(event, args):
+    if event == 'open':
+        raise PermissionError('Unexpected file open after parser preload')
+sys.addaudithook(deny_open)
+print(json.dumps({'text': child.extract(sys.stdin.buffer.read(), sys.argv[1])}))
+"""
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", code, format], input=data, capture_output=True, timeout=15
+    )
+    assert result.returncode == 0, result.stderr.decode(errors="replace")
+    assert expected in json.loads(result.stdout)["text"]
+
+
 def test_volume_write_once_and_integrity(tmp_path: Path) -> None:
     store, fid, value = VolumeFileStore(tmp_path), uuid4(), docx()
     checksum = hashlib.sha256(value).hexdigest()
