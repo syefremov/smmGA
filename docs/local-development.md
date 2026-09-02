@@ -84,7 +84,7 @@ pwsh -NoLogo -NoProfile -File .\scripts\doctor.ps1 -RequireTailscaleLogin
 Обычная команда:
 
 ```powershell
-pnpm doctor
+pnpm run doctor
 ```
 
 Doctor не читает `.env`, токены, SSH private keys или содержимое пользовательских документов. Он показывает только:
@@ -100,27 +100,33 @@ Doctor не читает `.env`, токены, SSH private keys или соде�
 
 ## Команды проекта
 
-| Команда | Состояние после фазы 1 |
-|---|---|
-| `pnpm bootstrap` | Устанавливает project runtimes, синхронизирует зависимости и Git hook |
-| `pnpm doctor` | Выполняет read-only диагностику рабочей станции |
-| `pnpm check` | Проверяет staged diff, секреты, JSON и Python lockfile |
-| `pnpm dev` | Зарезервирована; появится в фазе 2 |
-| `pnpm test` | Зарезервирована; появится в фазе 2 |
-| `pnpm build` | Зарезервирована; появится в фазе 2 |
-| `pnpm db:migrate` | Зарезервирована; появится в фазе 2 |
+Команды ниже одинаковы в Windows, Linux и CI, кроме Windows-специфичных `bootstrap` и `doctor`:
 
-Зарезервированные команды намеренно завершаются кодом `2`, чтобы отсутствие реализации нельзя было принять за успешную проверку.
+| Команда | Назначение |
+|---|---|
+| `pnpm bootstrap` | Устанавливает Windows runtimes, синхронизирует зависимости и Git hook |
+| `pnpm run doctor` | Выполняет read-only диагностику Windows-станции; без `run` вызывается встроенный pnpm doctor |
+| `pnpm env:init` | Один раз создаёт локальный `.env` со случайными значениями |
+| `pnpm check` | Проверяет locks, Python, frontend и актуальность generated OpenAPI client |
+| `pnpm test` | Запускает Python unit и React component tests без внешних сервисов |
+| `pnpm build:web` | Выполняет TypeScript check и production-сборку SPA |
+| `pnpm infra:up` | Запускает только локальные PostgreSQL и Redis |
+| `pnpm api:dev` | Запускает FastAPI с reload вне контейнера после `infra:up` |
+| `pnpm dev` | Собирает и запускает полный Compose stack в foreground |
+| `pnpm dev:down` | Останавливает Compose stack без удаления постоянных volumes |
+| `pnpm build` | Собирает application и web container images |
+| `pnpm db:migrate` | Применяет Alembic migrations к настроенной локальной PostgreSQL |
+| `pnpm worker:smoke` | Отправляет безопасную задачу и ждёт ответ worker |
+| `pnpm test:integration` | Проверяет health API и MCP через reverse proxy |
+| `pnpm test:e2e` | Проверяет status UI установленным Playwright browser |
+
+`pnpm dev` автоматически вызывает безопасный initializer `.env`. После запуска откройте `http://127.0.0.1:8080`. Для проверки полного gate последовательно выполните `pnpm worker:smoke`, `pnpm test:integration` и `pnpm test:e2e`.
 
 ## Локальная конфигурация и секреты
 
-В репозитории хранится только `.env.example` с placeholders. Когда в фазе 2 появится runtime configuration, локальный файл создаётся так:
+В репозитории хранится только `.env.example` с placeholders. Локальный файл создаётся командой `pnpm env:init`: генератор использует криптографически случайные значения, не печатает их и не перезаписывает существующий `.env`. Файл уже исключён из Git.
 
-```powershell
-Copy-Item .env.example .env
-```
-
-После копирования placeholders заменяются локальными значениями. `.env` уже исключён из Git. Реальные server secrets, OAuth credentials, ключи моделей и VK-токены никогда не копируются на компьютер сотрудника и не передаются через Git.
+Локальный `.env` предназначен только для development Compose. Реальные server secrets, OAuth credentials, ключи моделей и VK-токены никогда не копируются на компьютер сотрудника и не передаются через Git. Server environment будет создаваться отдельно в фазе 3.
 
 ## Частые проблемы
 
@@ -140,7 +146,7 @@ wsl --update --web-download
 
 ### Docker CLI есть, но daemon не отвечает
 
-Запустите Docker Desktop, дождитесь состояния Engine running и повторите `pnpm doctor`. Виртуализация должна быть включена в BIOS/UEFI.
+Запустите Docker Desktop, дождитесь состояния Engine running и повторите `pnpm run doctor`. Виртуализация должна быть включена в BIOS/UEFI.
 
 Если обновляется legacy Docker Desktop 3.x и новый установщик сообщает `Path contains symlink` внутри `C:\ProgramData\DockerDesktop\version-bin`, не удаляйте `docker-desktop-data` и VHDX вслепую. Сначала проверьте наличие старых volumes/images и экспортируйте WSL-диск на другой носитель. Штатный uninstall может удалить локальные Docker-данные; текущий результат аудита описан в [`phase-1-audit.md`](phase-1-audit.md).
 
@@ -153,7 +159,7 @@ Doctor блокирует работу ниже 10 GB и предупрежда�
 Фаза закрывается, когда:
 
 - bootstrap повторяем и завершается успешно;
-- `pnpm doctor` не показывает обязательных ошибок;
+- `pnpm run doctor` не показывает обязательных ошибок;
 - существуют `uv.lock` и `pnpm-lock.yaml`;
 - `pnpm check` проходит;
 - Git hook использует `.githooks`;

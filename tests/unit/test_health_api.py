@@ -6,6 +6,7 @@ from smm_gpt.core.config import Settings
 from smm_gpt.integrations.base import ConnectorRegistry
 from smm_gpt.integrations.fake import FakeSocialConnector
 from smm_gpt.services.system_status import SystemStatusService
+
 from ..fakes import FakeProbe
 
 

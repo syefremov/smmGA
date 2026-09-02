@@ -16,12 +16,14 @@ uv.lock text eol=lf
 *.yaml text eol=lf
 *.json text eol=lf
 *.js text eol=lf
+*.mjs text eol=lf
 *.jsx text eol=lf
 *.ts text eol=lf
 *.tsx text eol=lf
 *.css text eol=lf
 *.html text eol=lf
 *.sql text eol=lf
+*.ini text eol=lf
 *.ps1 text eol=lf
 *.cmd text eol=crlf
 *.bat text eol=crlf
@@ -46,3 +48,7 @@ uv.lock text eol=lf
 *.zip binary
 *.woff binary
 *.woff2 binary
+
+Dockerfile* text eol=lf
+Caddyfile text eol=lf
+.dockerignore text eol=lf

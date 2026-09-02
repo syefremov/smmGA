@@ -531,6 +531,8 @@ Roadmap описывает зависимости и ворота качеств
 
 ## Текущее состояние и следующий шаг
 
-Фаза 1 находится в работе. Уже добавлены pin-версии Python/Node/pnpm, `uv.lock`, `pnpm-lock.yaml`, bootstrap, read-only doctor, быстрый pre-commit check и инструкция локальной разработки. Фаза будет закрыта только после успешной системной проверки WSL/Docker и повторного запуска bootstrap; исполняемый каркас и сервер по-прежнему относятся к следующим фазам.
+Фаза 1 формально остаётся `in progress`: runtime и отдельный Compose установлены, но legacy Docker Engine не запускается. Удаление старой Docker Desktop и её VHDX не выполнялось, чтобы не потерять потенциальные пользовательские volumes/images.
 
-Следующая проверка фазы 1 — завершить обновление WSL и Docker Desktop, выполнить `pnpm doctor`, затем подтвердить воспроизводимость повторным `pnpm bootstrap`. Установка или изменение серверных служб начинается только в фазе 3 и только после восстановления надёжного SSH/recovery-доступа.
+Репозиторная реализация фазы 2 создана: Python package, FastAPI health/API, MCP Streamable HTTP, Celery worker/scheduler, fake connector, React status shell, generated OpenAPI client, Dockerfiles, Compose, тесты и CI. Все доступные без daemon проверки проходят, а Compose model валиден. Фаза 2 не отмечается завершённой до сборки образов из пустого cache, healthy stack, queue/MCP/integration/Playwright smoke и зелёного CI. Текущее доказательство и точный remaining gate описаны в [`phase-2-implementation.md`](phase-2-implementation.md).
+
+Следующий технический шаг — безопасно решить судьбу старых Docker-данных 2021 года, восстановить Docker Engine, затем выполнить полный gate фаз 1–2. Установка серверных служб начинается только в фазе 3 и после восстановления надёжного SSH/recovery-доступа.

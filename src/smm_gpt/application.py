@@ -37,9 +37,11 @@ def create_app(status_service: SystemStatusService | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-        async with mcp_server.session_manager.run():
-            yield
-        await service.close()
+        try:
+            async with mcp_server.session_manager.run():
+                yield
+        finally:
+            await service.close()
 
     app = FastAPI(
         title="SMM GPT API",

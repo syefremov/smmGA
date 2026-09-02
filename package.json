@@ -11,10 +11,28 @@
   "scripts": {
     "bootstrap": "pwsh -NoLogo -NoProfile -File ./scripts/bootstrap-dev.ps1",
     "doctor": "pwsh -NoLogo -NoProfile -File ./scripts/doctor.ps1",
-    "check": "pwsh -NoLogo -NoProfile -File ./scripts/check-fast.ps1",
-    "dev": "pwsh -NoLogo -NoProfile -File ./scripts/project-command.ps1 -CommandName dev",
-    "test": "pwsh -NoLogo -NoProfile -File ./scripts/project-command.ps1 -CommandName test",
-    "build": "pwsh -NoLogo -NoProfile -File ./scripts/project-command.ps1 -CommandName build",
-    "db:migrate": "pwsh -NoLogo -NoProfile -File ./scripts/project-command.ps1 -CommandName db:migrate"
+    "env:init": "node ./scripts/init-dev-env.mjs",
+    "check:fast": "node ./scripts/check-fast.mjs",
+    "check:python": "uv run ruff format --check src tests migrations scripts && uv run ruff check src tests migrations scripts && uv run mypy src tests scripts/export-openapi.py",
+    "check:web": "pnpm --dir web typecheck && pnpm --dir web lint && pnpm --dir web format:check",
+    "check": "pnpm check:fast && pnpm check:python && pnpm check:web && pnpm generated:check",
+    "test:python": "uv run pytest -m \"not integration\"",
+    "test:web": "pnpm --dir web test",
+    "test:unit": "pnpm test:python && pnpm test:web",
+    "test:integration": "uv run pytest -m integration",
+    "test:e2e": "pnpm --dir web test:e2e",
+    "test": "pnpm test:unit",
+    "generate": "uv run python scripts/export-openapi.py && pnpm --dir web exec openapi-typescript ../openapi.json -o src/api/schema.d.ts",
+    "generated:check": "pnpm generate && git diff --exit-code -- openapi.json web/src/api/schema.d.ts",
+    "dev": "node ./scripts/project-command.mjs dev",
+    "dev:down": "node ./scripts/project-command.mjs down",
+    "infra:up": "node ./scripts/project-command.mjs infra-up",
+    "api:dev": "node ./scripts/project-command.mjs api-dev",
+    "worker:dev": "node ./scripts/project-command.mjs worker-dev",
+    "scheduler:dev": "node ./scripts/project-command.mjs scheduler-dev",
+    "worker:smoke": "node ./scripts/project-command.mjs worker-smoke",
+    "build:web": "pnpm --dir web build",
+    "build": "node ./scripts/project-command.mjs build",
+    "db:migrate": "node ./scripts/project-command.mjs db-migrate"
   }
 }

@@ -151,7 +151,7 @@ finally {
 Write-Host ''
 Write-Host 'Bootstrap завершён. Tailscale login намеренно не автоматизирован.'
 Write-Host 'Для персонального входа выполните: tailscale up'
-Write-Host 'Затем запустите: pnpm doctor'
+Write-Host 'Затем запустите: pnpm run doctor'
 
 & (Join-Path $PSScriptRoot 'doctor.ps1')
 exit $LASTEXITCODE

@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1.7
+FROM node:24.19.0-alpine AS builder
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@11.19.0 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY web/package.json ./web/package.json
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
+COPY web ./web
+RUN pnpm --dir web build
+
+FROM caddy:2.10.2-alpine AS runtime
+ENV XDG_CONFIG_HOME=/config \
+    XDG_DATA_HOME=/data
+RUN addgroup -S -g 10001 smm \
+    && adduser -S -D -H -u 10001 -G smm smm \
+    && mkdir -p /config /data /srv \
+    && chown -R smm:smm /config /data /srv
+COPY --chown=smm:smm Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder --chown=smm:smm /app/web/dist /srv
+USER smm
+EXPOSE 8080
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 \
+    CMD ["wget", "--spider", "--quiet", "http://127.0.0.1:8080/health/live"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

@@ -6,7 +6,7 @@
 
 Репозиторная и runtime-часть фазы 1 готова. Системная часть завершена не полностью из-за legacy Docker Desktop 3.2.1. Удаление старой Docker-инсталляции не выполнялось, потому что обнаружен отдельный WSL-диск, который может содержать пользовательские images/volumes.
 
-Фаза 1 остаётся в статусе `in progress` до восстановления рабочего Docker Engine/Compose и повторной успешной диагностики.
+Фаза 1 остаётся в статусе `in progress` до восстановления рабочего Docker Engine и повторной успешной диагностики. Отдельный официальный Docker Compose 5.5.0 установлен в пользовательский профиль и уже валидирует `compose.yaml`, но не заменяет Docker daemon.
 
 ## Проверенные компоненты
 
@@ -29,6 +29,7 @@
 | Git hooks | `core.hooksPath=.githooks` | Пройдено |
 | Python/Node lockfiles | `uv.lock`, `pnpm-lock.yaml` | Пройдено |
 | Docker Desktop | Legacy 3.2.1, CLI 20.10.5, daemon недоступен | Блокирует завершение фазы |
+| Docker Compose | Standalone 5.5.0, config validation проходит | Не может запускать контейнеры без daemon |
 
 ## Что было изменено на машине
 
@@ -69,7 +70,7 @@ Path contains symlink: C:\ProgramData\DockerDesktop\version-bin\docker
 3. Если данные могут быть нужны, экспортировать `docker-desktop-data` на другой диск или внешний носитель и проверить, что backup читается.
 4. После backup удалить legacy Docker Desktop штатным uninstall, не удаляя backup.
 5. Установить Docker Desktop 4.89.0 с WSL2 backend.
-6. Запустить Docker Desktop и проверить Engine/Compose через `pnpm doctor`.
+6. Запустить Docker Desktop и проверить Engine/Compose через `pnpm run doctor`.
 7. Выполнить повторный `pnpm bootstrap` и `pnpm check`.
 
 До решения пункта 2 репозиторная работа может продолжаться, но фаза 2 не должна считаться закрытой и локальные Docker integration tests запускать нельзя.

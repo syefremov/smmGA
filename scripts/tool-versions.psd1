@@ -25,6 +25,7 @@
         PowerShell = 'Microsoft.PowerShell'
         Git        = 'Git.Git'
         Docker     = 'Docker.DockerDesktop'
+        Compose    = 'Docker.DockerCompose'
         Tailscale  = 'Tailscale.Tailscale'
         Uv         = 'astral-sh.uv'
         Node       = 'OpenJS.NodeJS.LTS'

@@ -4,9 +4,30 @@
 
 ## Статус проекта
 
-Проект перешёл от проектирования к реализации фазы 1. Добавлены воспроизводимые версии локальных runtime, bootstrap/doctor, lockfiles и repository-owned Git hook; исполняемый серверный каркас появится в фазе 2. Экспериментальные материалы в `output/` не определяют архитектуру будущей системы и сохраняются без изменений.
+Исполняемый каркас фазы 2 реализован: FastAPI и Streamable HTTP MCP используют общий сервис состояния, Celery имеет безопасную диагностическую задачу, React-панель получает типы из OpenAPI, а Compose и CI связывают PostgreSQL, Redis, worker, scheduler и reverse proxy. Локальные проверки исходников проходят. Exit gate фаз 1–2 пока не закрыт: legacy Docker Engine на текущей Windows-машине не запускается, поэтому образы и полный стек должны быть подтверждены после безопасного обновления Docker Desktop. Подробности — в [`docs/phase-2-implementation.md`](docs/phase-2-implementation.md).
 
 Целевая модель системы зафиксирована в этом документе. При изменении продуктовых или технических решений документ необходимо обновлять вместе с кодом.
+
+## Быстрый локальный запуск
+
+После подготовки рабочей станции:
+
+```text
+pnpm bootstrap
+pnpm env:init
+pnpm check
+pnpm test
+pnpm dev
+```
+
+`pnpm env:init` один раз создаёт игнорируемый Git локальный `.env` со случайными значениями и никогда не перезаписывает существующий файл. `pnpm dev` собирает и запускает весь Compose-контур. После готовности доступны:
+
+- внутренняя status-панель — `http://127.0.0.1:8080/`;
+- REST API — `http://127.0.0.1:8080/api/v1/system/status`;
+- liveness/readiness — `/health/live` и `/health/ready`;
+- MCP Streamable HTTP — `http://127.0.0.1:8080/mcp/`.
+
+Пока Docker Engine недоступен, можно независимо выполнять `pnpm check`, `pnpm test` и `pnpm build:web`. Полная процедура находится в [`docs/local-development.md`](docs/local-development.md).
 
 ## Кратко о главном
 
@@ -238,7 +259,10 @@ SMM GPT/
 ├── uv.lock
 ├── package.json
 ├── pnpm-lock.yaml
-├── docker-compose.yml
+├── compose.yaml
+├── Dockerfile
+├── Dockerfile.web
+├── Caddyfile
 ├── src/
 │   └── smm_gpt/
 │       ├── core/                 # настройки, ошибки, общие типы
@@ -285,8 +309,10 @@ SMM GPT/
 ├── scripts/
 │   ├── bootstrap-dev.ps1
 │   ├── doctor.ps1
-│   ├── check-fast.ps1
-│   ├── project-command.ps1
+│   ├── check-fast.mjs
+│   ├── init-dev-env.mjs
+│   ├── project-command.mjs
+│   ├── export-openapi.py
 │   ├── tool-versions.psd1
 │   ├── install-smm.ps1
 │   ├── uninstall-smm.ps1
@@ -303,6 +329,7 @@ SMM GPT/
 │   ├── data-model.md
 │   ├── local-development.md
 │   ├── phase-1-audit.md
+│   ├── phase-2-implementation.md
 │   ├── knowledge-rag.md
 │   ├── web-app.md
 │   ├── git-workflow.md
@@ -691,17 +718,17 @@ Embeddings создаются через внутренний интерфейс
 /var/log/smm-gpt/      # операционные журналы при необходимости
 ```
 
-В Docker Compose планируются сервисы:
+Локальный `compose.yaml` уже содержит сервисы фазы 2:
 
 - `app` — MCP и REST API;
-- `web` — сборка или раздача статических файлов веб-панели;
-- `identity` — authentik и связанные служебные процессы;
+- `web` — Caddy раздаёт собранную SPA и проксирует API/MCP;
+- `migrate` — одноразово применяет Alembic migrations до запуска приложения;
 - `worker`;
 - `scheduler`;
-- `postgres`;
-- `redis`;
-- `proxy`;
-- опционально `object-storage`.
+- `postgres` — source of truth с host-портом только на `127.0.0.1`;
+- `redis` — очередь и временная координация с host-портом только на `127.0.0.1`.
+
+`identity`, production TLS/Tailscale Serve и объектное хранилище добавляются в последующих фазах. Текущий Caddy работает только как локальный HTTP reverse proxy.
 
 В production предпочтителен один внешний origin: reverse proxy раздаёт веб-панель, направляет `/api/*` в FastAPI и публикует MCP на отдельном защищённом пути или поддомене. Это упрощает cookie, CORS и защиту от CSRF. Frontend может собираться отдельным контейнером, но готовые статические файлы раздаются proxy без постоянно работающего Node.js-процесса.
 

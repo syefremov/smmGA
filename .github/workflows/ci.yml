@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.8
+          enable-cache: true
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: |
+          uv sync --locked --all-groups
+          pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Check source and generated contracts
+        run: pnpm check
+
+      - name: Run unit and component tests
+        run: pnpm test
+
+      - name: Build frontend
+        run: pnpm build:web
+
+  integration:
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: 0.12.8
+          enable-cache: true
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: |
+          uv sync --locked --all-groups
+          pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Create isolated local configuration
+        run: pnpm env:init
+
+      - name: Validate and build images without cache
+        run: |
+          docker compose config --quiet
+          docker compose build --no-cache
+
+      - name: Start the complete stack
+        run: docker compose up --detach --wait --wait-timeout 180
+
+      - name: Verify queue and transports
+        run: |
+          pnpm worker:smoke
+          pnpm test:integration
+
+      - name: Install pinned Playwright browser
+        run: pnpm --dir web exec playwright install --with-deps chromium
+
+      - name: Run browser smoke tests
+        run: pnpm test:e2e
+
+      - name: Show service logs after a failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose down --volumes --remove-orphans

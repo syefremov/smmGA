@@ -160,7 +160,13 @@ try {
     else {
         Add-Result FAIL 'Docker daemon' 'не отвечает; запустите Docker Desktop'
     }
-    Test-MinimumVersion 'Docker Compose' 'docker' @('compose', 'version', '--short') $toolVersions.Minimum.DockerCompose
+    $standaloneCompose = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\docker-compose.exe'
+    if (Test-Path -LiteralPath $standaloneCompose) {
+        Test-MinimumVersion 'Docker Compose' $standaloneCompose @('version') $toolVersions.Minimum.DockerCompose
+    }
+    else {
+        Test-MinimumVersion 'Docker Compose' 'docker' @('compose', 'version', '--short') $toolVersions.Minimum.DockerCompose
+    }
 
     Test-MinimumVersion 'uv' 'uv' @('--version') $toolVersions.Minimum.Uv
 

@@ -1,0 +1,184 @@
+name: smm-gpt
+
+x-app-environment: &app-environment
+  SMM_ENV: development
+  SMM_LOG_LEVEL: ${SMM_LOG_LEVEL:-INFO}
+  SMM_TIMEZONE: ${SMM_TIMEZONE:-Europe/Moscow}
+  SMM_DATABASE_URL: postgresql+asyncpg://${SMM_POSTGRES_USER}:${SMM_POSTGRES_PASSWORD}@postgres:5432/${SMM_POSTGRES_DB}
+  SMM_REDIS_URL: redis://redis:6379/0
+  SMM_MEDIA_ROOT: /app/.data/media
+  SMM_WEB_ORIGIN: http://127.0.0.1:8080
+
+x-app-service: &app-service
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: smm-gpt-app:dev
+  env_file:
+    - .env
+  environment: *app-environment
+  init: true
+  restart: unless-stopped
+  networks:
+    - backend
+
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: ${SMM_POSTGRES_DB}
+      POSTGRES_USER: ${SMM_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${SMM_POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:${SMM_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - backend
+
+  redis:
+    image: redis:7.4.5-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:${SMM_REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - backend
+
+  migrate:
+    <<: *app-service
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    <<: *app-service
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - media-data:/app/.data/media
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2)",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+
+  worker:
+    <<: *app-service
+    command:
+      [
+        "celery",
+        "-A",
+        "smm_gpt.workers.celery_app:celery_app",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=2",
+      ]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "celery -A smm_gpt.workers.celery_app:celery_app inspect ping --destination celery@$$HOSTNAME --timeout 5",
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  scheduler:
+    <<: *app-service
+    command:
+      [
+        "celery",
+        "-A",
+        "smm_gpt.workers.celery_app:celery_app",
+        "beat",
+        "--loglevel=INFO",
+        "--pidfile=/tmp/celerybeat.pid",
+        "--schedule=/tmp/celerybeat-schedule",
+      ]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "test -s /tmp/celerybeat.pid && kill -0 $$(cat /tmp/celerybeat.pid)",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: smm-gpt-web:dev
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--spider",
+          "--quiet",
+          "http://127.0.0.1:8080/health/live",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  media-data:

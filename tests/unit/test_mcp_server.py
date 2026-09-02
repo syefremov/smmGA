@@ -5,6 +5,7 @@ from smm_gpt.integrations.base import ConnectorRegistry
 from smm_gpt.integrations.fake import FakeSocialConnector
 from smm_gpt.mcp.server import create_mcp_server
 from smm_gpt.services.system_status import SystemStatusService
+
 from ..fakes import FakeProbe
 
 
