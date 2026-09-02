@@ -2,9 +2,9 @@
 
 ## Статус
 
-Репозиторная часть фазы 2 реализована. Проверки, не требующие Docker daemon, проходят. `compose.yaml` успешно преобразуется Docker Compose 5.5.0 без ошибок модели.
+Репозиторная часть фазы 2 реализована. Локальные проверки, не требующие Docker daemon, проходят. `compose.yaml` успешно преобразуется Docker Compose 5.5.0 без ошибок модели. Полный Linux CI на commit `7c227f8` завершился успешно: [CI run 33659861622](https://github.com/syefremov/smmGA/actions/runs/33659861622).
 
-Exit gate пока не пройден: legacy Docker Desktop 3.2.1 не предоставляет работающий Engine. Поэтому локально не подтверждены image build, healthy stack, фактическая очередь, сетевой MCP handshake и Playwright smoke через Compose. Фаза остаётся `in progress`, а не `complete`.
+Локальный exit gate пока не пройден: legacy Docker Desktop 3.2.1 не предоставляет работающий Engine. Image build, healthy stack, фактическая очередь, сетевой MCP handshake и Playwright smoke через Compose подтверждены в Linux CI, но ещё не на текущей Windows-машине. Из-за незакрытой фазы 1 фаза 2 остаётся `in progress`, а не `complete`.
 
 ## Что реализовано
 
@@ -65,6 +65,8 @@ docker-compose -f compose.yaml config --quiet
 
 ## Как пройти оставшийся gate
 
+В Linux CI уже прошли оба job: `quality` и `integration`. Интеграционный job собрал образы с `--no-cache`, запустил весь стек с `--wait`, выполнил безопасную worker task, HTTP/MCP tests и Playwright smoke для desktop и mobile viewport.
+
 После безопасного восстановления Docker Engine:
 
 ```text
@@ -77,7 +79,7 @@ pnpm --dir web exec playwright install chromium
 pnpm test:e2e
 ```
 
-Затем нужно проверить `docker compose ps`: `postgres`, `redis`, `app`, `worker`, `scheduler` и `web` должны быть healthy, а `migrate` — завершиться кодом `0`. Отдельно подтверждается GitHub Actions CI на отправленном commit.
+Затем нужно проверить `docker compose ps`: `postgres`, `redis`, `app`, `worker`, `scheduler` и `web` должны быть healthy, а `migrate` — завершиться кодом `0`. Зелёный CI не заменяет этот workstation gate, но подтверждает исполняемость кода и Compose-конфигурации на чистом Linux runner.
 
 ## Ограничения, принятые намеренно
 

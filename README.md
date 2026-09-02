@@ -4,7 +4,7 @@
 
 ## Статус проекта
 
-Исполняемый каркас фазы 2 реализован: FastAPI и Streamable HTTP MCP используют общий сервис состояния, Celery имеет безопасную диагностическую задачу, React-панель получает типы из OpenAPI, а Compose и CI связывают PostgreSQL, Redis, worker, scheduler и reverse proxy. Локальные проверки исходников проходят. Exit gate фаз 1–2 пока не закрыт: legacy Docker Engine на текущей Windows-машине не запускается, поэтому образы и полный стек должны быть подтверждены после безопасного обновления Docker Desktop. Подробности — в [`docs/phase-2-implementation.md`](docs/phase-2-implementation.md).
+Исполняемый каркас фазы 2 реализован: FastAPI и Streamable HTTP MCP используют общий сервис состояния, Celery имеет безопасную диагностическую задачу, React-панель получает типы из OpenAPI, а Compose и CI связывают PostgreSQL, Redis, worker, scheduler и reverse proxy. Локальные проверки исходников и полный Linux CI проходят, включая сборку образов, healthy stack, очередь, MCP и Playwright. Exit gate фаз 1–2 пока не закрыт только на текущей Windows-машине: legacy Docker Engine не запускается, и локальный стек должен быть подтверждён после безопасного обновления Docker Desktop. Подробности — в [`docs/phase-2-implementation.md`](docs/phase-2-implementation.md).
 
 Целевая модель системы зафиксирована в этом документе. При изменении продуктовых или технических решений документ необходимо обновлять вместе с кодом.
 
