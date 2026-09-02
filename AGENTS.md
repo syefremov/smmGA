@@ -96,8 +96,25 @@
 - Before handing off a change, run the relevant formatter, linter, type checker, unit tests, and integration/contract tests that are available.
 - If the repository does not yet define those commands, state that clearly; when the toolchain is added, document the exact commands here and in `README.md`.
 
+## Git workflow
+
+- Follow `docs/git-workflow.md`. Treat it as the source of truth for branch, commit, pull-request, generated-file, migration, and release practices.
+- Before changing files, inspect the current branch and `git status`; inspect relevant diffs again before handoff.
+- Treat all pre-existing tracked and untracked changes as user-owned. Do not overwrite, discard, stash, stage, clean, or move them merely to obtain a clean tree.
+- Never run destructive history or worktree commands such as `git reset --hard`, `git clean -fd`, checkout-based file restoration, or an unrequested history rewrite.
+- Standing user authorization: after every completed and verified iteration, commit and push only that iteration's task-related changes to the current task branch so work is preserved remotely.
+- Treat one user request or one agreed logical milestone as an iteration. Do not create noisy checkpoint commits for partial, failing, or unverified work unless the user explicitly asks for a checkpoint.
+- The standing authorization does not permit creating or switching branches, amending, rebasing, merging, force-pushing, tagging, publishing a release, deploying, or including unrelated user changes. Those actions still require an explicit request.
+- Before every automatic iteration commit, review the staged diff, scan it for secrets, and keep the commit atomic. After pushing, report the branch and commit hash to the user.
+- Use Conventional Commit subjects in English: `type(scope): imperative summary`. Use a Russian body when it better explains business context.
+- Never bypass hooks or CI with `--no-verify`. Do not force-push; a coordinated exceptional rewrite requires explicit user approval and `--force-with-lease` rather than `--force`.
+- Keep `main` deployable. Prefer short-lived `feature/`, `fix/`, `docs/`, and `chore/` branches; do not introduce a permanent `develop` branch without an explicit decision.
+- Schema changes must include migrations and relevant tests. Generated OpenAPI client changes must accompany their source contract and pass the regeneration-diff check.
+- Commit lockfiles. Do not commit build products, local environments, caches, logs, database dumps, credentials, employee content, or generated files designated as local-only.
+- A merge does not authorize a production deployment. Deployment and irreversible migrations require a separate explicit action and documented rollback plan.
+
 ## Documentation and completion
 
 - Update `README.md` when changing architecture, workflows, roles, tool contracts, deployment assumptions, or MVP scope.
-- Put detailed operational procedures in `docs/`; keep this file concise and focused on durable rules.
+- Put detailed operational procedures in `docs/`; keep this file focused on durable rules.
 - A task is complete only when the requested artifact works, relevant checks pass, no secrets were introduced, and the user-facing result explains material limitations.
