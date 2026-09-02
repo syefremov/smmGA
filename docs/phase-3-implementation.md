@@ -16,9 +16,13 @@
 
 ## Проверки и ограничения
 
-Локально проверяются Python formatting/lint/types, unit/component tests, shell syntax, Compose interpolation, frontend build и generated contracts. Результат Linux server lifecycle CI фиксируется после push. Проверка на CI — доказательство работы скриптов с синтетическими данными, а не настройка реального сервера.
+Локально прошли `pnpm check`, 42 Python unit tests, 2 React component tests, shell syntax, Compose interpolation и `pnpm build:web`. Generated OpenAPI contracts не изменились.
 
-Первый Linux-прогон обнаружил incompatibility upstream Caddy binary с `cap_drop: ALL`: у бинарника была file capability для low ports, вызывавшая `operation not permitted`. В нашем image она снимается на этапе сборки, поскольку proxy слушает 8080. Защитные ограничения контейнера сохранены; CI дополнительно проверяет отсутствие file capabilities.
+На commit `0a29608` прошли все три jobs [Linux CI](https://github.com/syefremov/smmGA/actions/runs/33664103388): `quality`, `integration`, `server-integration`. Последний подтвердил инициализацию без перезаписи секретов, два синтетических releases, повторный deploy, отсутствие file capabilities у Caddy, повторное применение firewall guard, backup/isolated restore с SQL fixture и media, rollback и `down` → `up` с сохранением данных. Обычный integration job также подтвердил MCP/queue и Playwright desktop/mobile smoke.
+
+После этого в bootstrap явно добавлены Git/Python как host dependencies; локальные Python-проверки повторно прошли. Установка пакетов на реальной ОС ещё не выполнялась. Проверка CI — доказательство работы deployment-скриптов с синтетическими данными, а не настройка реального сервера.
+
+Первый Linux-прогон обнаружил несовместимость upstream Caddy binary с `cap_drop: ALL`: у бинарника была file capability для low ports, вызывавшая `operation not permitted`. В нашем image она снимается на этапе сборки, поскольку proxy слушает 8080. Защитные ограничения контейнера сохранены; CI дополнительно проверяет отсутствие file capabilities.
 
 Не выполнены:
 

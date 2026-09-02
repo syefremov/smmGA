@@ -8,6 +8,8 @@
 
 Для фазы 3 добавлены отдельный server Compose, двухэтапный bootstrap, deployment/rollback, backup, isolated restore drill, server doctor и Linux CI-сценарий. На удалённом сервере они ещё не применялись: SSH-проверка завершилась таймаутом, recovery-доступ не подтверждён. Порядок запуска — [`docs/deployment.md`](docs/deployment.md), ограничения и эксплуатация — [`docs/operations.md`](docs/operations.md).
 
+Linux CI подтвердил серверный цикл на синтетических данных, включая два releases, повторный deploy, backup/restore и rollback. Результаты и незакрытые пункты фазы 3 — в [`docs/phase-3-implementation.md`](docs/phase-3-implementation.md).
+
 Целевая модель системы зафиксирована в этом документе. При изменении продуктовых или технических решений документ необходимо обновлять вместе с кодом.
 
 ## Быстрый локальный запуск

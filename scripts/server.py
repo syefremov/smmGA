@@ -697,6 +697,8 @@ def bootstrap(args: argparse.Namespace) -> None:
             "ca-certificates",
             "curl",
             "gnupg",
+            "git",
+            "python3",
             "sudo",
             "ufw",
             "chrony",
