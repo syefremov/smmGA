@@ -343,6 +343,9 @@ Exit gate остаётся открытым до ввода предыдущих
 ## Фаза 7. База знаний, гибридный RAG и специализированные AI-профили
 
 **Статус 2026-09-03:** реализован первый текстовый FTS-срез, не вся фаза.
+Во втором срезе добавлены versioned eval datasets, corpus snapshots/reports, exact baseline
+review, stale detection и owner web reports: [`retrieval-evaluations.md`](retrieval-evaluations.md).
+Это готовый инструмент проверки, но реальные вопросы/ожидания GreenAurum ещё не утверждены.
 Версии/очередь/chunks/owner activation, shared REST/MCP, тестовый text gateway,
 каталог профилей и web knowledge workspace описаны в
 [`phase-7-implementation.md`](phase-7-implementation.md).

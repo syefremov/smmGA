@@ -80,6 +80,25 @@
   margin-top: 2rem;
   padding-top: 1rem;
 }
+.eval-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
+  margin: 1.5rem 0;
+}
+.eval-metrics dt {
+  color: #47574e;
+  font-size: 0.85rem;
+}
+.eval-metrics dd {
+  margin: 0.4rem 0 0;
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+}
+.eval-notice {
+  border-left: 3px solid #8a671e;
+  padding-left: 1rem;
+}
 .knowledge-workspace summary {
   cursor: pointer;
   padding: 0.5rem 0;

@@ -154,6 +154,13 @@
   Unknown/interrupted runs are not blindly retried. Memory curation is not permanent authority.
 - Use real corpus evaluations before adding pgvector or activating specialist profiles.
   Synthetic fixture scores and exact citation IDs do not establish semantic truth or readiness.
+- Follow `docs/retrieval-evaluations.md` for phase 7 corpus benchmarks. Keep dataset/report/review
+  history immutable and owner-only. Exact report hash, fresh corpus, latest dataset and explicit
+  human review are required for baseline acceptance; historical acceptance can become stale.
+  `accept_baseline` never activates RAG, a model provider, specialist profile or publication.
+  Workspace-only eval is a narrower owner query, not employee impersonation or proof of RLS.
+  Reuse the production retrieval helper; bump the algorithm version and repeat evals when changing
+  ranking. Never replace real owner-curated expectations with synthetic fixture scores.
 
 - Update `README.md` when changing architecture, workflows, roles, tool contracts, deployment assumptions, or MVP scope.
 - Phase 5 contracts and remaining rollout gates live in `docs/phase-5-implementation.md`; employee onboarding is in `docs/employee-setup.md`. Keep the plugin source unconfigured until export with an issued HTTPS endpoint. Never distribute Codex auth stores, shared bearer tokens or DB credentials. Work items are internal tasks, not publication approvals. Default staging remains gated; the authenticated Caddy template requires explicit commissioning.

@@ -1,5 +1,10 @@
 # Центральная модель данных — фаза 4
 
+Второй срез фазы 7: `0006_retrieval_eval` добавляет append-only datasets/runs/reviews/receipts.
+Owner-only FORCE RLS, INSERT actor=current, composite brand/family/hash FKs, без worker grants.
+Versions, corpus snapshots, metrics, exact human review и stale semantics —
+[`retrieval-evaluations.md`](retrieval-evaluations.md). Все данные входят в PostgreSQL backup.
+
 Дополнение первого среза фазы 7: `0005_knowledge` добавляет документы/immutable versions,
 queue/indexes/chunks/activations, retrieval traces, private receipts, owner notes/reviews,
 actor-private AI runs и immutable artifacts. Text originals входят в PostgreSQL backup.

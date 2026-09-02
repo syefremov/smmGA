@@ -62,4 +62,9 @@ gaps/memory review и AI testing доступны только Owner + MFA. AI p
 не получают Principal/approval tools. Runs и artifacts actor-private; источники повторно
 проверяются при чтении. Details: [phase-7-implementation.md](phase-7-implementation.md).
 
+Retrieval eval datasets/runs/review также требуют Owner + MFA, включая read. Они видимы всем
+текущим Owners данного workspace, receipts только инициатору; worker доступа не имеет.
+`audience=workspace` сужает owner query до общих документов, не входит под сотрудником и не
+заменяет employee RLS/OAuth checks. `accept_baseline` не выдаёт новых capabilities и не активирует AI.
+
 В фазе 6 реализованы внутренние задачи и ручной контентный цикл, но не внешняя публикация и не управление ролями через веб. `content.publish` пока означает ручную подготовку/отмену, не вызов VK. Только Owner подтверждает факты/правила и одобряет редакции; `content.comment` не даёт approval. Одна роль на membership; deny-by-default. Расширение/совмещение ролей и право назначить Owner потребуют отдельного дизайна, migration и тестов. Повышенные роли без подтверждённого MFA не получают даже workspace read. Подробности и граница человеческого подтверждения — [phase-6-implementation.md](phase-6-implementation.md).

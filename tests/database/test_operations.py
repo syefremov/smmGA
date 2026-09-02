@@ -239,6 +239,74 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(tenants: TenantFix
             json={**knowledge_command, "format": "pdf", "text": "never-echo-knowledge-input"},
         )
         assert invalid_knowledge.status_code == 422 and "never-echo" not in invalid_knowledge.text
+        eval_command = {
+            "action": "dataset_submit",
+            "idempotency_key": uuid4().hex,
+            "brand_id": str(content.brand),
+            "definition": {
+                "title": "Synthetic transport benchmark",
+                "origin": "synthetic",
+                "cases": [
+                    {
+                        "key": "absent",
+                        "category": "no_answer",
+                        "audience": "workspace",
+                        "query": "No approved source",
+                        "expected_document_ids": [],
+                    }
+                ],
+            },
+        }
+        eval_prefix = f"/api/v1/workspaces/{wid}/knowledge/evaluations"
+        eval_mcp = await call(
+            "knowledge_eval_execute", {"workspace_id": wid, "command": eval_command}
+        )
+        eval_rest = await browser.post(eval_prefix + "/commands", json=eval_command)
+        assert eval_rest.status_code == 200, eval_rest.text
+        assert eval_mcp["structuredContent"] == eval_rest.json()
+        dataset_id = eval_rest.json()["entity_id"]
+        assert (await call("knowledge_eval_datasets", {"workspace_id": wid}))[
+            "structuredContent"
+        ] == (await browser.get(eval_prefix + "/datasets")).json()
+        assert (
+            await call(
+                "knowledge_eval_dataset_read", {"workspace_id": wid, "dataset_id": dataset_id}
+            )
+        )["structuredContent"] == (
+            await browser.get(eval_prefix + f"/datasets/{dataset_id}")
+        ).json()
+        run_command = {
+            "action": "evaluation_run",
+            "idempotency_key": uuid4().hex,
+            "dataset_id": dataset_id,
+            "dataset_hash": eval_rest.json()["content_hash"],
+        }
+        run_mcp = await call(
+            "knowledge_eval_execute", {"workspace_id": wid, "command": run_command}
+        )
+        run_rest = await browser.post(eval_prefix + "/commands", json=run_command)
+        assert run_rest.status_code == 200, run_rest.text
+        assert run_mcp["structuredContent"] == run_rest.json()
+        rid = run_rest.json()["entity_id"]
+        report_mcp = await call("knowledge_eval_run_read", {"workspace_id": wid, "run_id": rid})
+        report_rest = await browser.get(eval_prefix + f"/runs/{rid}")
+        assert report_mcp["structuredContent"] == report_rest.json()
+        assert not report_rest.json()["baseline_current"]
+        assert (await call("knowledge_eval_runs", {"workspace_id": wid}))["structuredContent"] == (
+            await browser.get(eval_prefix + "/runs")
+        ).json()
+        malformed_eval = await browser.post(
+            eval_prefix + "/commands",
+            json={
+                **eval_command,
+                "definition": {"title": "never-echo-eval-input"},
+            },
+        )
+        assert malformed_eval.status_code == 422 and "never-echo" not in malformed_eval.text
+        foreign_eval = await call(
+            "knowledge_eval_run_read", {"workspace_id": str(t.other_workspace), "run_id": rid}
+        )
+        assert foreign_eval["isError"] and "access_denied" in str(foreign_eval)
         post = await content.post()
         revision = post.revisions[0]
         commands: list[content_dto.ContentCommand] = [

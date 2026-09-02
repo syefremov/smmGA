@@ -1,10 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import * as api from "../api/knowledge";
 import { listCatalog, type Workspace } from "../api/operations";
 import { Failure, Paging } from "./content/shared";
 import { time } from "./content/hooks";
 import "./knowledge.css";
+
+const RetrievalEvaluations = lazy(() =>
+  import("./RetrievalEvaluations").then((module) => ({
+    default: module.RetrievalEvaluations,
+  })),
+);
 
 const states: Record<string, string> = {
   queued: "В очереди",
@@ -25,9 +31,9 @@ export function KnowledgeWorkspace({
   workspace: Workspace;
   offline: boolean;
 }) {
-  const [tab, setTab] = useState<"search" | "documents" | "profiles" | "notes">(
-    "search",
-  );
+  const [tab, setTab] = useState<
+    "search" | "documents" | "profiles" | "notes" | "evaluations"
+  >("search");
   return (
     <main id="work-main" className="work-main knowledge-workspace">
       <header>
@@ -45,7 +51,10 @@ export function KnowledgeWorkspace({
             ["documents", "Документы"],
             ["profiles", "AI-профили"],
             ...(workspace.permissions.includes("content.approve")
-              ? [["notes", "Пробелы и память"]]
+              ? [
+                  ["notes", "Пробелы и память"],
+                  ["evaluations", "Качество поиска"],
+                ]
               : []),
           ] as [typeof tab, string][]
         ).map(([key, label]) => (
@@ -64,6 +73,12 @@ export function KnowledgeWorkspace({
       {tab === "documents" && <Documents workspace={workspace} />}
       {tab === "profiles" && <Profiles workspace={workspace} />}
       {tab === "notes" && <Notes workspace={workspace} />}
+      {tab === "evaluations" &&
+        workspace.permissions.includes("content.approve") && (
+          <Suspense fallback={<p role="status">Загрузка проверок поиска…</p>}>
+            <RetrievalEvaluations key={workspace.id} workspace={workspace} />
+          </Suspense>
+        )}
     </main>
   );
 }

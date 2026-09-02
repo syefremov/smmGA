@@ -1,5 +1,6 @@
 """One knowledge workflow for REST and MCP. Worker never activates an index."""
 
+from datetime import datetime
 from typing import cast
 from uuid import UUID, uuid4
 
@@ -94,6 +95,43 @@ async def eligible_citation(s: AsyncSession, wid: UUID, cid: UUID, bid: UUID) ->
     if row is None:
         raise OperationError("source_unavailable", 409)
     return citation(row[0], row[1], row[2])
+
+
+async def retrieve(
+    s: AsyncSession,
+    wid: UUID,
+    query: d.SearchRequest,
+    *,
+    at: datetime,
+    workspace_only: bool = False,
+) -> list[d.Citation]:
+    """Production search and benchmarks share the exact ranked SQL path.
+
+    workspace_only can only NARROW existing RLS visibility; it never impersonates a user.
+    """
+    vector = query_vector(query.query)
+    statement = (
+        select(KnowledgeChunk, KnowledgeDocument, KnowledgeVersion)
+        .join(KnowledgeDocument, KnowledgeDocument.id == KnowledgeChunk.document_id)
+        .join(KnowledgeIndex, KnowledgeIndex.id == KnowledgeChunk.index_id)
+        .join(KnowledgeVersion, KnowledgeVersion.id == KnowledgeIndex.document_version_id)
+        .where(
+            KnowledgeChunk.workspace_id == wid,
+            KnowledgeDocument.brand_id == query.brand_id,
+            KnowledgeDocument.archived.is_(False),
+            KnowledgeIndex.state == "ready",
+            KnowledgeDocument.active_index_id == KnowledgeIndex.id,
+            KnowledgeVersion.effective_from <= at,
+            KnowledgeVersion.effective_to > at,
+            KnowledgeChunk.search_vector.op("@@")(vector),
+        )
+        .order_by(func.ts_rank_cd(KnowledgeChunk.search_vector, vector).desc(), KnowledgeChunk.id)
+        .limit(query.limit)
+    )
+    if workspace_only:
+        statement = statement.where(KnowledgeDocument.visibility == "workspace")
+    rows = (await s.execute(statement)).all()
+    return [citation(row[0], row[1], row[2]) for row in rows]
 
 
 class KnowledgeService:
@@ -442,32 +480,7 @@ class KnowledgeService:
         safe_text(query.query)
         async with self.access.authorized(actor, wid, Permission.READ, request) as s:
             await brand_exists(s, wid, query.brand_id)
-            vector = query_vector(query.query)
-            rows = (
-                await s.execute(
-                    select(KnowledgeChunk, KnowledgeDocument, KnowledgeVersion)
-                    .join(KnowledgeDocument, KnowledgeDocument.id == KnowledgeChunk.document_id)
-                    .join(KnowledgeIndex, KnowledgeIndex.id == KnowledgeChunk.index_id)
-                    .join(
-                        KnowledgeVersion, KnowledgeVersion.id == KnowledgeIndex.document_version_id
-                    )
-                    .where(
-                        KnowledgeChunk.workspace_id == wid,
-                        KnowledgeDocument.brand_id == query.brand_id,
-                        KnowledgeDocument.archived.is_(False),
-                        KnowledgeIndex.state == "ready",
-                        KnowledgeDocument.active_index_id == KnowledgeIndex.id,
-                        KnowledgeVersion.effective_from <= utcnow(),
-                        KnowledgeVersion.effective_to > utcnow(),
-                        KnowledgeChunk.search_vector.op("@@")(vector),
-                    )
-                    .order_by(
-                        func.ts_rank_cd(KnowledgeChunk.search_vector, vector).desc(),
-                        KnowledgeChunk.id,
-                    )
-                    .limit(query.limit)
-                )
-            ).all()
+            citations = await retrieve(s, wid, query, at=utcnow())
             run = RetrievalRun(
                 id=uuid4(),
                 workspace_id=wid,
@@ -475,12 +488,10 @@ class KnowledgeService:
                 brand_id=query.brand_id,
                 query_hash=digest(query.query),
                 algorithm="ru-simple-v1",
-                chunk_ids=[str(row[0].id) for row in rows],
+                chunk_ids=[str(c.chunk_id) for c in citations],
             )
             s.add(run)
-            return d.SearchResult(
-                run_id=run.id, citations=[citation(row[0], row[1], row[2]) for row in rows]
-            )
+            return d.SearchResult(run_id=run.id, citations=citations)
 
     async def notes(
         self,

@@ -1,9 +1,15 @@
-# Фаза 7 — первый срез: текстовая база знаний
+# Фаза 7 — текстовая база знаний и проверка поиска
 
 Дата: 2026-09-03. **Фаза 7 реализована частично; exit gate не закрыт.**
 Это работающий FTS-контур и ограниченный тестовый gateway, не законченный гибридный RAG
 и не восемь готовых специалистов. Реальные источники, сервер и платные модели не подключались.
 Прежние server/identity/two-machine gates сохраняются. Следующая итерация продолжает фазу 7.
+
+**Второй срез:** добавлен owner-only evaluation workflow с immutable dataset versions,
+корпусом/отчётом/hash, per-case метриками, exact human review и проверкой stale при чтении.
+REST/MCP shared, web «Качество поиска» read-only. Подробный контракт и порядок использования —
+[`retrieval-evaluations.md`](retrieval-evaluations.md). Нижеследующий text/AI foundation сохраняется;
+синтетические тесты и принятие FTS baseline не активируют рабочий RAG или профили.
 
 ## Реализованный workflow
 
@@ -135,7 +141,8 @@ Selector показывает первые 25 брендов; остальные
 ## Запуск и обновление
 
 Новых dependencies нет. `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграция `0005_knowledge` требует privileged migration role, runtime остаётся restricted.
+Миграции `0005_knowledge` и `0006_retrieval_eval` требуют privileged migration role,
+runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
 Rollback кода не удаляет знания; destructive downgrade — только disposable/отдельно разрешённый restore.
@@ -154,6 +161,8 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
 1. Binary upload/storage, ClamAV fail-closed, sandbox/resource-isolated PDF/DOCX parsers,
    authorized original download, zip-bomb/memory/timeout tests. Regex — не антивирус и не полноценный DLP.
 2. Реальный owner-approved GreenAurum корпус и eval questions/expected sources/conflicts.
+   Инструмент сохранения наборов/прогонов/review реализован во втором срезе; наполнение и
+   человеческая проверка реальных ожиданий ещё нужны. Принятый FTS benchmark не закрывает exit gate.
    Автоматического обнаружения противоречий пока нет; model finding — только предположение.
 3. После baseline: pgvector, embedding provider/model/dimension/version, hybrid fusion,
    corpus-level parallel reindex/eval switch, сравнение с FTS. Нынешний switch per-document.
