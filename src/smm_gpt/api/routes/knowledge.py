@@ -168,3 +168,15 @@ async def runs(
 @router.get("/runs/{run_id}")
 async def read_run(workspace_id: UUID, run_id: UUID, actor: Actor, service: AI) -> a.AIRunView:
     return await service.read(actor, workspace_id, run_id, request_id())
+
+
+@router.get("/runs/{run_id}/inputs")
+async def read_inputs(workspace_id: UUID, run_id: UUID, actor: Actor, service: AI) -> a.AIInputView:
+    return await service.inputs(actor, workspace_id, run_id, request_id())
+
+
+@router.post("/runs/{run_id}/cancel")
+async def cancel_run(
+    workspace_id: UUID, run_id: UUID, command: a.CancelAssessment, actor: Actor, service: AI
+) -> a.AICancelReceipt:
+    return await service.cancel(actor, workspace_id, run_id, command, request_id())

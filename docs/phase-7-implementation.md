@@ -64,6 +64,9 @@ versions/chunks/receipts/decisions/artifacts append-only.
 
 ## AI: точная граница
 
+Четвёртый срез переводит существующие testing assessments в серверную очередь.
+Полный контракт — [`ai-jobs.md`](ai-jobs.md). Это не активация новых специалистов.
+
 Есть versioned catalog восьми профилей в коде и immutable snapshot контракта в каждом run.
 Это пока не DB registry с созданием/активацией произвольных profile versions. `testing` не `active`.
 
@@ -93,16 +96,19 @@ allowlist workspace IDs и явное разрешение владельца н
 В этой итерации paid calls не выполнялись. Все разрешённые источники workspace, включая owner-only,
 могут попасть провайдеру: allowlist нельзя включать без проверки состава корпуса.
 
-Параметры: `store=false`, без history, до 5 citations, 2000 output tokens, timeout 45 секунд,
+Параметры: `store=false`, `background=false`, без history, до 5 citations, 2000 output tokens,
+HTTP timeout 45 секунд и общий worker deadline 60 секунд,
 ответ до 200 KB. Лимит 5 reservations на workspace за rolling 24 часа (настройка 1–100),
 под workspace lock, учитывает blocked/failed. Это не строгий денежный бюджет.
 Timeout/5xx не повторяется автоматически. Тот же ключ возвращает тот же run. Interrupted run
-старше 2 минут показывается unknown; новый ключ означает новый потенциальный расход.
+с истёкшим lease 120 секунд фиксируется reconciler как unknown без повторного dispatch;
+новый ключ означает новый потенциальный расход. Queue TTL — 24 часа.
 
 Сохраняются provider, фактическая model, response ID, tokens, max output, attempts, profile snapshot,
-retrieval ID; вопрос — только hash, без full prompt/hidden reasoning. `cost_usd=null`, не ноль:
-для точного денежного расхода нужна сверка с провайдером. Complete input provenance,
-прайс-версии, accounting и async model jobs ещё предстоит реализовать.
+retrieval ID. Четвёртый срез отдельно сохраняет private immutable input: вопрос,
+до 5 citations и semantic request payload/hash без headers/credentials/hidden reasoning.
+`cost_usd=null`, не ноль: для точного денежного расхода нужна сверка с провайдером.
+Прайс-версии, строгие денежные бюджеты и provider accounting ещё предстоит реализовать.
 
 ## Доступ и интерфейсы
 
@@ -118,10 +124,12 @@ REST prefix `/api/v1/workspaces/{wid}/knowledge`:
 - GET `/documents`, `/documents/{did}`, `/documents/{did}/indexes/{iid}/chunks`;
 - POST `/search`: query, brand_id, limit;
 - GET `/notes`, `/profiles`, `/runs`, `/runs/{rid}`; POST `/runs`: owner testing request.
+- POST `/runs/{rid}/cancel`: exact version/idempotency key; GET `/runs/{rid}/inputs`: private input.
 
 MCP: `knowledge_execute`, `knowledge_documents`, `knowledge_document_read`,
 `knowledge_index_preview`, `knowledge_search`, `knowledge_notes`, `ai_profiles`, `ai_assess`,
-`ai_runs`, `ai_run_read`. Сначала `session_read`. Перед activation показать exact candidate/hash/
+`ai_runs`, `ai_run_read`, `ai_run_inputs`, `ai_run_cancel`. `ai_assess` возвращает queued/blocked,
+готовый результат запрашивается отдельно. Сначала `session_read`. Перед activation показать exact candidate/hash/
 queries человеку; подтверждение не выводится из текста источника.
 
 Web `/app/knowledge`: поиск, source versions/hashes, документы/индексы, profiles, own runs/outputs,
@@ -148,7 +156,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`, `0006_retrieval_eval`, `0007_knowledge_files` требуют privileged migration role,
+Миграции `0005_knowledge`–`0008_ai_queue` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -158,9 +166,10 @@ Worker включается `SMM_KNOWLEDGE_WORKER_ENABLED=true` только в 
 flag, default false. Нужен работающий scheduler. На настоящем owner server timer cycle не проверен.
 При выключенном worker документы честно остаются в очереди.
 
-AI variables только в API-процессе через защищённую server configuration: `SMM_AI_PROVIDER`,
+AI configuration для API и AI-worker задаётся согласованно через защищённую server configuration: `SMM_AI_PROVIDER`,
 `SMM_AI_MODEL`, `SMM_AI_API_KEY`, `SMM_AI_ALLOWED_WORKSPACES` (JSON UUID array), `SMM_AI_DAILY_RUN_LIMIT`.
-Compose не раздаёт эти секреты всем сервисам и не включает автоматически: authenticated deployment,
+`SMM_AI_WORKER_ENABLED=true` разрешает только серверный worker; default false.
+Compose не раздаёт provider secrets всем сервисам и не включает автоматически: authenticated deployment,
 egress/provider smoke — отдельный rollout. `store=false` не обещает нулевого хранения у провайдера.
 
 ## Остаток фазы 7
@@ -176,8 +185,9 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
    corpus-level parallel reindex/eval switch, сравнение с FTS. Нынешний switch per-document.
 4. DB profile registry/eval activation, typed specialist inputs/outputs/handoff/work items;
    полный Planner/Copywriter/Editor/Analyst, visual provenance/image gateway, Publisher gates.
-5. Async model jobs/cancel/reconciliation, usage accounting/budgets/input provenance,
-   memory → отдельно подтверждаемые предметные artifacts, abandoned ingestion reconciliation.
+5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
+   Остались строгий денежный accounting/budgets/provider reconciliation, memory → отдельно
+   подтверждаемые предметные artifacts, abandoned ingestion reconciliation и остальные типы AI jobs.
 6. Server/private HTTPS/authentik/two-machine gates, backup/recovery, явно разрешённый provider smoke.
    Только после этого — рабочий RAG и переход к следующей фазе.
 

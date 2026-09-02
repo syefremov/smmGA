@@ -1,6 +1,5 @@
-"""Testing runs reserve quota before I/O; no AI path receives a human service principal."""
+"""Personal commands enqueue durable runs; only the restricted worker calls a model."""
 
-from datetime import timedelta
 from uuid import UUID, uuid4
 
 from sqlalchemy import func, select
@@ -11,20 +10,19 @@ from smm_gpt.domain.access import Permission, Principal
 from smm_gpt.domain.content import canonical_hash
 from smm_gpt.domain.knowledge import SearchRequest
 from smm_gpt.domain.operations import OperationError, Page
-from smm_gpt.infrastructure.ai_models import AIArtifact, AIRun
+from smm_gpt.infrastructure.ai_models import AIArtifact, AICancel, AIInput, AIRun
+from smm_gpt.infrastructure.knowledge_models import RetrievalRun
 from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import AccessService, audit, digest
-from smm_gpt.services.knowledge import KnowledgeService, brand_exists, eligible_citation, lock
+from smm_gpt.services.ai_queue import current_input
+from smm_gpt.services.knowledge import brand_exists, eligible_citation, lock, retrieve
 from smm_gpt.services.knowledge_text import safe_text
-from smm_gpt.services.model_gateway import OpenAITextGateway, TextGateway
+from smm_gpt.services.model_gateway import assessment_payload
 
 
 class AIService:
-    def __init__(
-        self, access: AccessService, settings: Settings, gateway: TextGateway | None = None
-    ):
+    def __init__(self, access: AccessService, settings: Settings):
         self.access, self.settings = access, settings
-        self.gateway = gateway or OpenAITextGateway(settings)
 
     async def profiles(self, actor: Principal, wid: UUID, request: UUID) -> list[d.Profile]:
         async with self.access.authorized(actor, wid, Permission.READ, request):
@@ -37,7 +35,6 @@ class AIService:
         profile = next(p for p in d.PROFILES if p.name == command.profile)
         fingerprint = canonical_hash(command.model_dump(mode="json", exclude={"idempotency_key"}))
         existing_id: UUID | None = None
-        run: AIRun | None
         async with self.access.authorized(actor, wid, Permission.APPROVE, request) as s:
             await lock(s, wid)
             await brand_exists(s, wid, command.brand_id)
@@ -62,100 +59,139 @@ class AIService:
                     or wid not in self.settings.ai_allowed_workspaces
                 ):
                     error = "model_provider_disabled"
+                citations = []
+                if not error:
+                    citations = await retrieve(
+                        s,
+                        wid,
+                        SearchRequest(query=command.question, brand_id=command.brand_id),
+                        at=utcnow(),
+                    )
+                    if not citations:
+                        error = "knowledge_gap_no_current_sources"
                 run = AIRun(
                     id=uuid4(),
                     workspace_id=wid,
                     actor_id=actor.user_id,
+                    identity_id=actor.identity_id,
                     brand_id=command.brand_id,
                     key_hash=digest(command.idempotency_key),
                     request_hash=fingerprint,
                     profile=profile.name,
                     profile_version=profile.version,
                     profile_snapshot=profile.model_dump(mode="json"),
-                    state="blocked" if error else "running",
+                    state="blocked" if error else "queued",
                     error_code=error,
                     provider=self.settings.ai_provider,
                     model=self.settings.ai_model,
                     usage={
                         "cost_usd": None,
-                        "cost_status": "not_called" if error else "unknown",
+                        "cost_status": "not_called",
                         "max_output_tokens": 2000,
                         "attempts": 0,
                     },
+                    finished_at=utcnow() if error else None,
                 )
-                s.add(run)
-                audit(s, actor.user_id, wid, request, "ai.run_reserved", run.state, run.id)
-                run_id, blocked = run.id, error is not None
-        if existing_id:
-            # Includes interrupted/unknown outcomes: never issue a second provider call.
-            return await self.read(actor, wid, existing_id, request)
-        if blocked:
-            return await self.read(actor, wid, run_id, request)
-        try:
-            result = await KnowledgeService(self.access).search(
-                actor,
-                wid,
-                SearchRequest(query=command.question, brand_id=command.brand_id),
-                request,
-            )
-            if not result.citations:
-                raise OperationError("knowledge_gap_no_current_sources")
-            # Recheck sources and authorization immediately before the external boundary.
-            async with self.access.authorized(actor, wid, Permission.APPROVE, request) as s:
-                run = await s.get(AIRun, run_id)
-                if run is None:
-                    raise OperationError("not_found", 404)
-                for c in result.citations:
-                    await eligible_citation(s, wid, c.chunk_id, command.brand_id)
-                run.retrieval_run_id = result.run_id
-                run.usage = {**run.usage, "attempts": 1}
-            generated = await self.gateway.assess(profile, command.question, result.citations)
-            # The injected gateway used by tests is not trusted more than the real adapter.
-            body = d.ReferenceAssessment.model_validate(generated.assessment.model_dump())
-            safe_text(body.model_dump_json())
-            used = {cid for statement in body.statements for cid in statement.citation_ids}
-            if not used <= {c.chunk_id for c in result.citations}:
-                raise OperationError("model_citation_invalid")
-            async with self.access.authorized(actor, wid, Permission.APPROVE, request) as s:
-                await lock(s, wid)
-                run = await s.get(AIRun, run_id)
-                if run is None or run.state != "running":
-                    raise OperationError("run_conflict")
-                # ALL context is rechecked: even a hypothesis can derive from a stale source.
-                for c in result.citations:
-                    await eligible_citation(s, wid, c.chunk_id, command.brand_id)
-                run.state = "needs_review"
-                run.model = generated.model
-                run.usage = {
-                    "input_tokens": generated.input_tokens,
-                    "output_tokens": generated.output_tokens,
-                    "response_id": generated.response_id,
-                    "attempts": 1,
-                    "max_output_tokens": 2000,
-                    "cost_usd": None,
-                    "cost_status": "provider_invoice_required",
-                }
-                s.add(
-                    AIArtifact(
+                if not error:
+                    trace = RetrievalRun(
+                        id=uuid4(),
                         workspace_id=wid,
                         actor_id=actor.user_id,
-                        run_id=run_id,
-                        body=body.model_dump(mode="json"),
-                        content_hash=canonical_hash(body.model_dump(mode="json")),
-                        citation_ids=[str(c.chunk_id) for c in result.citations],
+                        brand_id=command.brand_id,
+                        query_hash=digest(command.question),
+                        algorithm="ru-simple-v1",
+                        chunk_ids=[str(c.chunk_id) for c in citations],
                     )
+                    s.add(trace)
+                    await s.flush()
+                    run.retrieval_run_id = trace.id
+                s.add(run)
+                await s.flush()
+                if not error:
+                    payload = assessment_payload(
+                        profile, command.question, citations, self.settings.ai_model
+                    )
+                    safe_text(str(payload))
+                    s.add(
+                        AIInput(
+                            workspace_id=wid,
+                            actor_id=actor.user_id,
+                            run_id=run.id,
+                            question=command.question,
+                            citations=[c.model_dump(mode="json") for c in citations],
+                            payload=payload,
+                            content_hash=canonical_hash(payload),
+                        )
+                    )
+                audit(s, actor.user_id, wid, request, "ai.run_reserved", run.state, run.id)
+                return d.AIRunView.model_validate(run)
+        assert existing_id
+        # Includes terminal/unknown runs: the same key NEVER starts another provider call.
+        return await self.read(actor, wid, existing_id, request)
+
+    async def cancel(
+        self, actor: Principal, wid: UUID, rid: UUID, command: d.CancelAssessment, request: UUID
+    ) -> d.AICancelReceipt:
+        async with self.access.authorized(actor, wid, Permission.APPROVE, request) as s:
+            await lock(s, wid)
+            fingerprint = canonical_hash({"run_id": str(rid), "version": command.expected_version})
+            previous = await s.scalar(
+                select(AICancel).where(
+                    AICancel.workspace_id == wid,
+                    AICancel.actor_id == actor.user_id,
+                    AICancel.key_hash == digest(command.idempotency_key),
                 )
-                audit(
-                    s, actor.user_id, wid, request, "ai.artifact_proposed", "needs_review", run_id
+            )
+            if previous:
+                if previous.request_hash != fingerprint:
+                    raise OperationError("idempotency_conflict")
+                return d.AICancelReceipt.model_validate(previous.result)
+            run = await s.scalar(
+                select(AIRun)
+                .where(
+                    AIRun.workspace_id == wid,
+                    AIRun.id == rid,
                 )
-        except OperationError as exc:
-            async with self.access.authorized(actor, wid, Permission.APPROVE, request) as s:
-                run = await s.get(AIRun, run_id)
-                if run:
-                    run.state = "unknown" if exc.code == "model_outcome_unknown" else "failed"
-                    run.error_code = exc.code
-                    audit(s, actor.user_id, wid, request, "ai.run_failed", run.state, run_id)
-        return await self.read(actor, wid, run_id, request)
+                .with_for_update()
+            )
+            if not run:
+                raise OperationError("not_found", 404)
+            if run.version != command.expected_version:
+                raise OperationError("run_conflict")
+            if run.state not in {"queued", "running", "cancel_requested"}:
+                raise OperationError("run_cancel_not_allowed")
+            if run.state != "cancel_requested":
+                run.state = "cancelled" if run.state == "queued" else "cancel_requested"
+                run.version += 1
+                if run.state == "cancelled":
+                    run.finished_at = utcnow()
+            receipt = d.AICancelReceipt(run_id=rid, state=run.state, version=run.version)
+            s.add(
+                AICancel(
+                    workspace_id=wid,
+                    actor_id=actor.user_id,
+                    run_id=rid,
+                    key_hash=digest(command.idempotency_key),
+                    request_hash=fingerprint,
+                    result=receipt.model_dump(mode="json"),
+                )
+            )
+            audit(s, actor.user_id, wid, request, "ai.cancel_requested", run.state, rid)
+            return receipt
+
+    async def inputs(self, actor: Principal, wid: UUID, rid: UUID, request: UUID) -> d.AIInputView:
+        async with self.access.authorized(actor, wid, Permission.APPROVE, request) as s:
+            run = await s.scalar(select(AIRun).where(AIRun.workspace_id == wid, AIRun.id == rid))
+            if not run:
+                raise OperationError("not_found", 404)
+            record, _, citations = await current_input(s, run)
+            return d.AIInputView(
+                run_id=rid,
+                content_hash=record.content_hash,
+                question=record.question,
+                citations=citations,
+                payload=record.payload,
+            )
 
     async def read(self, actor: Principal, wid: UUID, rid: UUID, request: UUID) -> d.AIRunView:
         async with self.access.authorized(actor, wid, Permission.READ, request) as s:
@@ -163,12 +199,13 @@ class AIService:
             if run is None:
                 raise OperationError("not_found", 404)
             view = d.AIRunView.model_validate(run)
-            if run.state == "running" and run.created_at < utcnow() - timedelta(minutes=2):
-                view.state, view.error_code = "unknown", "interrupted_run_not_replayed"
             artifact = await s.scalar(
-                select(AIArtifact).where(AIArtifact.workspace_id == wid, AIArtifact.run_id == rid)
+                select(AIArtifact).where(
+                    AIArtifact.workspace_id == wid,
+                    AIArtifact.run_id == rid,
+                )
             )
-            if artifact:
+            if artifact and run.state == "needs_review":
                 try:
                     view.citations = [
                         await eligible_citation(s, wid, UUID(cid), run.brand_id)
@@ -193,7 +230,6 @@ class AIService:
             if cursor:
                 query = query.where(AIRun.id > cursor)
             rows = list((await s.scalars(query.order_by(AIRun.id).limit(limit + 1))).all())
-            # List never includes text artifacts or sources; detail rechecks current access.
             return Page(
                 items=[d.AIRunView.model_validate(r) for r in rows[:limit]],
                 next_cursor=rows[limit - 1].id if len(rows) > limit else None,

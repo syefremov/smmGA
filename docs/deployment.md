@@ -2,6 +2,11 @@
 
 ## Статус и границы
 
+AI queue фазы 7 — [`ai-jobs.md`](ai-jobs.md), migration `0008_ai_queue`.
+Перед разрешённым обновлением остановить старые API/worker writers: старый синхронный
+AI-код несовместим с новыми column grants/state transitions. Downgrade не является безопасным
+rolling rollback; нужен заранее проверенный план восстановления. Автовключения paid provider нет.
+
 Дополнение фазы 7: optional PDF/DOCX ingestion требует Linux libseccomp2 в runtime image,
 private ClamAV service и свободных ресурсов. Порядок включения и отдельные gates —
 [`knowledge-files.md`](knowledge-files.md). Overlay не подключён по умолчанию; эта итерация

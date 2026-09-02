@@ -17,6 +17,7 @@ celery_app.conf.update(
         },
         "knowledge-queue": {"task": "smm_gpt.knowledge.poll", "schedule": 30.0},
         "knowledge-files": {"task": "smm_gpt.knowledge_files.poll", "schedule": 30.0},
+        "ai-queue": {"task": "smm_gpt.ai.poll", "schedule": 30.0},
     },
     enable_utc=True,
     imports=("smm_gpt.workers.tasks",),

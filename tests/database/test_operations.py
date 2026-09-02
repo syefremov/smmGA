@@ -8,6 +8,7 @@ from uuid import uuid4
 
 import httpx
 import pytest
+from pydantic import SecretStr
 from sqlalchemy import func, select, update
 
 from smm_gpt.application import create_app
@@ -28,6 +29,7 @@ from smm_gpt.services.sessions import SessionService
 from ..identity_fakes import FakeIssuer
 from .conftest import TenantFixture
 from .test_content import pilot
+from .test_knowledge import activate as activate_knowledge
 from .test_knowledge_files import command as file_command
 
 pytestmark = pytest.mark.integration
@@ -119,6 +121,11 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
     issuer = FakeIssuer()
     issuer.settings.media_root = str(tmp_path)
     issuer.settings.knowledge_files_enabled = True
+    # Queue-only transport fixture: no worker/provider is called by these HTTP clients.
+    issuer.settings.ai_provider = "openai"
+    issuer.settings.ai_model = "synthetic-model"
+    issuer.settings.ai_api_key = SecretStr("test-only")
+    issuer.settings.ai_allowed_workspaces = (t.workspace,)
     sessions = SessionService(issuer.settings, t.access, issuer.client())
     app = create_app(settings=issuer.settings, sessions=sessions)
     async with (
@@ -252,6 +259,35 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
         )
         assert knowledge_rest.status_code == 200, knowledge_rest.text
         assert knowledge_mcp["structuredContent"] == knowledge_rest.json()
+        await activate_knowledge(
+            t, knowledge_dto.KnowledgeResult.model_validate(knowledge_rest.json()), "Synthetic"
+        )
+        ai_command = {
+            "idempotency_key": uuid4().hex,
+            "profile": "product_expert",
+            "brand_id": str(content.brand),
+            "question": "Synthetic",
+            "testing_only": True,
+        }
+        ai_prefix = f"/api/v1/workspaces/{wid}/knowledge/runs"
+        ai_mcp = await call("ai_assess", {"workspace_id": wid, "command": ai_command})
+        ai_rest = await browser.post(ai_prefix, json=ai_command)
+        assert ai_rest.status_code == 200 and ai_rest.json()["state"] == "queued", ai_rest.text
+        assert ai_mcp["structuredContent"] == ai_rest.json(), ai_mcp
+        ai_id = ai_rest.json()["id"]
+        assert (await call("ai_run_inputs", {"workspace_id": wid, "run_id": ai_id}))[
+            "structuredContent"
+        ] == (await browser.get(ai_prefix + f"/{ai_id}/inputs")).json()
+        cancel_ai = {"idempotency_key": uuid4().hex, "expected_version": 1}
+        cancel_mcp = await call(
+            "ai_run_cancel", {"workspace_id": wid, "run_id": ai_id, "command": cancel_ai}
+        )
+        cancel_rest = await browser.post(ai_prefix + f"/{ai_id}/cancel", json=cancel_ai)
+        assert cancel_rest.status_code == 200 and cancel_rest.json()["state"] == "cancelled"
+        assert cancel_mcp["structuredContent"] == cancel_rest.json()
+        assert (await call("ai_run_read", {"workspace_id": wid, "run_id": ai_id}))[
+            "structuredContent"
+        ] == (await browser.get(ai_prefix + f"/{ai_id}")).json()
         read_knowledge = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/documents")
         assert (await call("knowledge_documents", {"workspace_id": wid}))[
             "structuredContent"

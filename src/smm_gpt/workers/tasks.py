@@ -4,6 +4,7 @@ import asyncio
 from datetime import UTC, datetime
 from typing import TypedDict
 
+from smm_gpt.workers.ai import poll as ai_poll
 from smm_gpt.workers.celery_app import celery_app
 from smm_gpt.workers.knowledge import poll
 from smm_gpt.workers.knowledge_files import poll as file_poll
@@ -31,3 +32,9 @@ def knowledge_poll() -> None:
 def knowledge_files_poll() -> None:
     """Only a wake-up is sent to Redis, never files or credentials."""
     asyncio.run(file_poll())
+
+
+@celery_app.task(name="smm_gpt.ai.poll", ignore_result=True)
+def ai_queue_poll() -> None:
+    """Wake-up only. User text and credentials never enter Redis."""
+    asyncio.run(ai_poll())

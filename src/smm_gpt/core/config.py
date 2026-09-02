@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     ai_api_key: SecretStr = SecretStr("")
     ai_allowed_workspaces: tuple[UUID, ...] = ()
     ai_daily_run_limit: int = 5
+    ai_worker_enabled: bool = False
 
     @model_validator(mode="after")
     def validate_ai(self) -> "Settings":

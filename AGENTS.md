@@ -155,6 +155,11 @@
 - AI gateway has no tools or content-service principal. Paid testing requires explicit owner
   authorization plus server provider/model/workspace allowlist; defaults remain disabled.
   Unknown/interrupted runs are not blindly retried. Memory curation is not permanent authority.
+- Follow `docs/ai-jobs.md`: API/MCP only enqueue assessments; the restricted server worker
+  dispatches once after committing its reservation. Do not add retries for uncertain model calls.
+  Preserve immutable input snapshots and compare sources/profile/payload/config before execution.
+  Queued cancellation prevents dispatch; in-flight cancellation discards output, not necessarily
+  provider computation or charges. Reconciliation changes state only, never replays a run.
 - Use real corpus evaluations before adding pgvector or activating specialist profiles.
   Synthetic fixture scores and exact citation IDs do not establish semantic truth or readiness.
 - Follow `docs/retrieval-evaluations.md` for phase 7 corpus benchmarks. Keep dataset/report/review

@@ -355,6 +355,10 @@ scan/sandbox jobs, preview, exact Owner import, provenance и retry/rescan. Defa
 Binary commissioning, pgvector/hybrid, полные specialist workflows и реальные corpus/provider/server
 gates ещё не закрыты. Следующая итерация продолжает фазу 7, не начинает фазу 8 автоматически.
 
+Четвёртый срез: [`ai-jobs.md`](ai-jobs.md) — durable AI queue, cancel, immutable request inputs,
+lease fencing и bounded reconciliation. Тестовые assessments больше не исполняются внутри
+HTTP/MCP-запроса. Денежный accounting и DB registry специалистов остаются незавершёнными.
+
 ### Цель
 
 Сделать генерацию и анализ grounded: каждое фактическое утверждение связано с разрешённым источником, а специализированные AI-профили работают в ограниченных границах.

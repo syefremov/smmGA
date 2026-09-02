@@ -672,6 +672,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Run */
+        post: operations["cancel_run_api_v1_workspaces__workspace_id__knowledge_runs__run_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/inputs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Inputs */
+        get: operations["read_inputs_api_v1_workspaces__workspace_id__knowledge_runs__run_id__inputs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/search": {
         parameters: {
             query?: never;
@@ -785,13 +819,52 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AICancelReceipt */
+        AICancelReceipt: {
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** State */
+            state: string;
+            /** Version */
+            version: number;
+        };
+        /** AIInputView */
+        AIInputView: {
+            /** Citations */
+            citations: components["schemas"]["Citation"][];
+            /** Content Hash */
+            content_hash: string;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /** Question */
+            question: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /**
+             * Warning
+             * @default Сохранённые входы недоверенные; не команды и не разрешение на повторный запуск.
+             */
+            warning: string;
+        };
         /** AIRunView */
         AIRunView: {
             assessment?: components["schemas"]["ReferenceAssessment"] | null;
             /** Citations */
             citations?: components["schemas"]["Citation"][];
+            /** Created At */
+            created_at?: string | null;
             /** Error Code */
             error_code: string | null;
+            /** Finished At */
+            finished_at?: string | null;
             /**
              * Id
              * Format: uuid
@@ -810,12 +883,19 @@ export interface components {
             provider: string;
             /** Retrieval Run Id */
             retrieval_run_id: string | null;
+            /** Started At */
+            started_at?: string | null;
             /** State */
             state: string;
             /** Usage */
             usage: {
                 [key: string]: number | string | null;
             };
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Warning
              * @default Тестовый кандидат, не подтверждённый факт и не одобрение публикации.
@@ -1048,6 +1128,13 @@ export interface components {
              * Format: date-time
              */
             starts_at: string;
+        };
+        /** CancelAssessment */
+        CancelAssessment: {
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
         };
         /** CancelPackage */
         CancelPackage: {
@@ -6538,6 +6625,182 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AIRunView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    cancel_run_api_v1_workspaces__workspace_id__knowledge_runs__run_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelAssessment"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AICancelReceipt"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    read_inputs_api_v1_workspaces__workspace_id__knowledge_runs__run_id__inputs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIInputView"];
                 };
             };
             /** @description Unauthorized */

@@ -37,6 +37,7 @@ async def test_structured_gateway_redaction_and_no_tools(outcome: str) -> None:
         calls += 1
         payload = json.loads(request.content)
         assert payload["store"] is False and payload["max_output_tokens"] == 2000
+        assert payload["background"] is False
         assert "tools" not in payload and payload["text"]["format"]["strict"] is True
         assert "untrusted_sources" in payload["input"]
         assert "Ignore policy" not in payload["instructions"]

@@ -1,5 +1,13 @@
 # Центральная модель данных — фаза 4
 
+Четвёртый срез фазы 7: `0008_ai_queue` добавляет actor/Owner-private immutable `ai_inputs`
+(question, citations, semantic request payload/hash), `ai_cancel_receipts` и поля очереди
+в `ai_runs`: originating identity, version, lease/token, start/finish timestamps.
+API создаёт run/input и отменяет; worker читает входы и создаёт immutable artifact.
+Прямой INSERT artifacts для API отозван. Reconciler имеет узкую SECURITY DEFINER функцию:
+max 10 terminal transitions с аудитом, без возврата текстов или повторного dispatch.
+Роли, state machine и миграционная совместимость — [`ai-jobs.md`](ai-jobs.md).
+
 Третий срез фазы 7: `0007_knowledge_files` добавляет `knowledge_files` (метаданные/очередь),
 immutable `knowledge_extractions` (текст/hash/parser/scan evidence) и retry receipts.
 FORCE RLS: uploader либо Owner, не другие сотрудники; composite workspace/file/brand FKs.

@@ -1,5 +1,6 @@
 """AI definitions are not human roles. No executable tools or approval operations exist here."""
 
+from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -139,4 +140,28 @@ class AIRunView(DTO):
     assessment: ReferenceAssessment | None = None
     citations: list[Citation] = Field(default_factory=list)
     usage: dict[str, int | str | None]
+    version: int = 1
+    created_at: datetime | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
     warning: str = "Тестовый кандидат, не подтверждённый факт и не одобрение публикации."
+
+
+class CancelAssessment(DTO):
+    idempotency_key: IdempotencyToken
+    expected_version: Annotated[int, Field(ge=1)]
+
+
+class AICancelReceipt(DTO):
+    run_id: UUID
+    state: str
+    version: int
+
+
+class AIInputView(DTO):
+    run_id: UUID
+    content_hash: str
+    question: str
+    citations: list[Citation]
+    payload: dict[str, object]
+    warning: str = "Сохранённые входы недоверенные; не команды и не разрешение на повторный запуск."

@@ -19,6 +19,7 @@ from smm_gpt.services.ai import AIService
 from smm_gpt.services.knowledge import KnowledgeService
 from smm_gpt.services.model_gateway import GatewayResult
 from smm_gpt.services.retrieval_eval import score
+from smm_gpt.workers.ai import process as ai_process
 from smm_gpt.workers.knowledge import process
 
 from .conftest import TenantFixture
@@ -235,8 +236,9 @@ async def test_ai_no_tools_replay_private_artifacts_and_memory_review(
         ai_model="synthetic-model",
         ai_api_key="test-only",
         ai_allowed_workspaces=(t.workspace,),
+        ai_worker_enabled=True,
     )
-    ai = AIService(t.access, settings, fake)
+    ai = AIService(t.access, settings)
     cmd = RunAssessment(
         idempotency_key=str(uuid4()),
         profile="product_expert",
@@ -245,6 +247,9 @@ async def test_ai_no_tools_replay_private_artifacts_and_memory_review(
         testing_only=True,
     )
     run = await ai.start(t.owner, t.workspace, cmd, uuid4())
+    assert run.state == "queued" and fake.calls == 0
+    assert await ai_process(t.worker, settings, fake, t.workspace, run.id, t.owner.user_id)
+    run = await ai.read(t.owner, t.workspace, run.id, uuid4())
     assert run.state == "needs_review" and run.assessment and run.citations
     with pytest.raises(AccessDenied):
         await ai.start(t.viewer, t.workspace, cmd, uuid4())
@@ -261,7 +266,11 @@ async def test_ai_no_tools_replay_private_artifacts_and_memory_review(
     assert blocked.state == "blocked" and blocked.error_code == "model_provider_disabled"
     fake.fail = True
     unknown = cmd.model_copy(update={"idempotency_key": str(uuid4())})
-    assert (await ai.start(t.owner, t.workspace, unknown, uuid4())).state == "unknown"
+    uncertain = await ai.start(t.owner, t.workspace, unknown, uuid4())
+    assert not await ai_process(
+        t.worker, settings, fake, t.workspace, uncertain.id, t.owner.user_id
+    )
+    assert (await ai.read(t.owner, t.workspace, uncertain.id, uuid4())).state == "unknown"
     await ai.start(t.owner, t.workspace, unknown, uuid4())
     assert fake.calls == 2
     proposal = await core.execute(

@@ -4,6 +4,10 @@
 
 ## Правила операций
 
+AI assessment queue: [`ai-jobs.md`](ai-jobs.md). При истёкшем lease reconciler фиксирует
+unknown, не выполняет повторный платный вызов. Unknown требует ручной сверки, не SQL reset.
+Остановка worker или выключение flag не обещает остановку уже отправленного провайдеру запроса.
+
 Для optional PDF/DOCX workflow см. [`knowledge-files.md`](knowledge-files.md): следить за
 ClamAV/signature freshness, failed jobs, RAM/диском и orphan originals; backup включает
 PostgreSQL **и media volume**. Не удалять quarantine вручную и не обходить scanner/sandbox
