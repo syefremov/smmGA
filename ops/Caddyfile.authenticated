@@ -1,0 +1,37 @@
+# Opt-in only after the phase-3/4 gates. TLS terminates in verified Tailscale Serve.
+# Bind stays inside the container; Compose publishes ONLY 127.0.0.1:8080.
+{
+    auto_https off
+    admin off
+}
+
+:8080 {
+    encode zstd gzip
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        Content-Security-Policy "default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+        Cache-Control no-store
+        -Server
+    }
+    request_body {
+        max_size 128KB
+    }
+    @backend path /api/* /health/* /mcp* /.well-known/oauth-protected-resource*
+    handle @backend {
+        reverse_proxy app:8000 {
+            flush_interval -1
+        }
+    }
+    @internal path /docs* /redoc* /openapi.json
+    handle @internal {
+        respond "Not available" 404
+    }
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
+}

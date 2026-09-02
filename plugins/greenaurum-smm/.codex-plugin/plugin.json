@@ -1,0 +1,20 @@
+{
+  "name": "greenaurum-smm",
+  "version": "0.1.0",
+  "description": "Private chat-first SMM workspace: tasks, references and audit through personal OAuth.",
+  "author": {
+    "name": "SMM GPT project"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "GreenAurum SMM",
+    "shortDescription": "Задачи и справочники SMM из чата.",
+    "longDescription": "Личный доступ к общей базе SMM. Внутренние задачи, справочники и аудит; без публикации в соцсети.",
+    "developerName": "SMM GPT project",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Write"],
+    "brandColor": "#205D42",
+    "defaultPrompt": "Покажи мои рабочие пространства и открытые задачи SMM."
+  },
+  "mcpServers": "./.mcp.json"
+}

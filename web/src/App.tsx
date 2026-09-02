@@ -1,209 +1,276 @@
-import { useQuery } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Link,
+  Outlet,
+  RouterProvider,
+  useRouterState,
+} from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
+import { ApiError, client } from "./api/client";
+import { fetchSession, type Session } from "./api/operations";
+import { Status } from "./Status";
+import { WorkspaceContent } from "./features/WorkspaceContent";
+import "./workspace.css";
 
-import { fetchSystemStatus } from "./api/client";
-
-const navigation = [
-  { label: "Состояние", active: true },
-  { label: "Контент", active: false },
-  { label: "Календарь", active: false },
-  { label: "Аналитика", active: false },
-];
-
-function formatUpdatedAt(timestamp: number): string {
-  if (timestamp === 0) return "ещё не обновлялось";
-  return new Intl.DateTimeFormat("ru-RU", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(timestamp);
+function Gate() {
+  const cache = useQueryClient();
+  const [blocked, setBlocked] = useState(false);
+  const session = useQuery({
+    queryKey: ["session"],
+    queryFn: ({ signal }) => fetchSession(signal),
+    retry: false,
+    refetchInterval: 10_000,
+  });
+  useEffect(() => {
+    const stop = () => {
+      setBlocked(true);
+      cache.removeQueries({ queryKey: ["session"] });
+    };
+    window.addEventListener("smm-access-changed", stop);
+    return () => window.removeEventListener("smm-access-changed", stop);
+  }, [cache]);
+  if (blocked)
+    return (
+      <Notice title="Доступ изменился">
+        Приватные данные скрыты.{" "}
+        <button onClick={() => window.location.reload()}>
+          Проверить доступ
+        </button>
+      </Notice>
+    );
+  if (session.isPending)
+    return (
+      <Notice title="Проверяем доступ…">
+        Подключаем рабочее пространство.
+      </Notice>
+    );
+  if (session.error)
+    return (
+      <Notice title="Вход в рабочее пространство">
+        <p>
+          {session.error instanceof ApiError && session.error.status === 401
+            ? "Войдите под личной учётной записью."
+            : "Сервис входа недоступен или ещё не настроен. Данные не загружены."}
+        </p>
+        <a className="primary" href="/api/v1/auth/login">
+          Войти
+        </a>{" "}
+        <button onClick={() => void session.refetch()}>
+          Повторить проверку
+        </button>
+      </Notice>
+    );
+  return (
+    <Shell
+      key={`${session.data.user_id}:${session.data.access_version}`}
+      session={session.data}
+    />
+  );
 }
 
-export function App() {
-  const statusQuery = useQuery({
-    queryKey: ["system-status"],
-    queryFn: ({ signal }) => fetchSystemStatus(signal),
-    refetchInterval: 15_000,
-  });
-  const status = statusQuery.data;
-  const isReady = status?.state === "ready";
-
+function Notice({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="app-shell">
-      <aside className="sidebar" aria-label="Основная навигация">
-        <a
-          className="brand"
-          href="#status"
-          aria-label="SMM GPT, начало страницы"
+    <main className="entry">
+      <a href="/">SMM GPT · GreenAurum</a>
+      <h1>{title}</h1>
+      <div>{children}</div>
+      <p>
+        <Link to="/">Состояние системы</Link>
+      </p>
+    </main>
+  );
+}
+
+function PrivateCache({ children }: { children: ReactNode }) {
+  const [cache] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: false,
+            refetchOnWindowFocus: true,
+            staleTime: 5000,
+          },
+          mutations: { retry: false },
+        },
+      }),
+  );
+  useEffect(
+    () => () => {
+      void cache.cancelQueries();
+      cache.clear();
+    },
+    [cache],
+  );
+  return <QueryClientProvider client={cache}>{children}</QueryClientProvider>;
+}
+
+function Shell({ session }: { session: Session }) {
+  const location = useRouterState({ select: (s) => s.location });
+  const section = location.pathname.split("/")[2] ?? "work";
+  const requested = new URLSearchParams(location.searchStr).get("workspace");
+  const workspace = requested
+    ? session.workspaces.find((w) => w.id === requested)
+    : session.workspaces[0];
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutFailed, setLogoutFailed] = useState(false);
+  const [offline, setOffline] = useState(!navigator.onLine);
+  useEffect(() => {
+    const update = () => setOffline(!navigator.onLine);
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+  async function logout() {
+    setLoggingOut(true);
+    setLogoutFailed(false);
+    try {
+      await client.POST("/api/v1/auth/logout");
+      window.location.replace("/app/work");
+    } catch {
+      setLogoutFailed(true);
+    }
+  }
+  if (loggingOut)
+    return (
+      <Notice
+        title={logoutFailed ? "Выход пока не подтверждён" : "Завершаем сеанс…"}
+      >
+        {logoutFailed && (
+          <>
+            <p>Локальные данные скрыты. Сервер не подтвердил отзыв сессии.</p>
+            <button onClick={() => void logout()}>Повторить выход</button>
+          </>
+        )}
+      </Notice>
+    );
+  return (
+    <div className="workspace-shell">
+      <a className="skip" href="#work-main">
+        К содержимому
+      </a>
+      <aside className="rail">
+        <Link to="/" className="wordmark">
+          SMM<span>GPT</span>
+        </Link>
+        <p className="eyebrow">Рабочее пространство</p>
+        <label htmlFor="workspace">Компания</label>
+        <select
+          id="workspace"
+          value={workspace?.id ?? ""}
+          onChange={(e) =>
+            window.location.assign(
+              `/app/work?workspace=${encodeURIComponent(e.target.value)}`,
+            )
+          }
         >
-          <span className="brand-mark" aria-hidden="true">
-            GA
-          </span>
-          <span>
-            <strong>SMM GPT</strong>
-            <small>GreenAurum workspace</small>
-          </span>
-        </a>
-
-        <nav className="nav-list" aria-label="Разделы системы">
-          {navigation.map((item) =>
-            item.active ? (
-              <a
-                className="nav-item active"
-                href="#status"
-                aria-current="page"
-                key={item.label}
-              >
-                <span aria-hidden="true">01</span>
-                {item.label}
-              </a>
-            ) : (
-              <span
-                className="nav-item disabled"
-                aria-disabled="true"
-                key={item.label}
-              >
-                <span aria-hidden="true">—</span>
-                {item.label}
-              </span>
-            ),
-          )}
+          {!workspace && <option value="">Выберите пространство</option>}
+          {session.workspaces.map((w) => (
+            <option key={w.id} value={w.id}>
+              {w.name}
+            </option>
+          ))}
+        </select>
+        <nav aria-label="Рабочие разделы">
+          {(
+            [
+              ["work", "Задачи"],
+              ["brands", "Бренды"],
+              ["products", "Продукты"],
+              ["sources", "Источники"],
+              ["audit", "Аудит"],
+            ] as const
+          ).map(([key, label]) => (
+            <a
+              key={key}
+              aria-current={section === key ? "page" : undefined}
+              href={`/app/${key}${workspace ? `?workspace=${workspace.id}` : ""}`}
+            >
+              {label}
+            </a>
+          ))}
         </nav>
-
-        <p className="phase-note">
-          Фаза 2<span>Исполняемый каркас</span>
-        </p>
-      </aside>
-
-      <main id="status" className="workspace">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">Операционный контур</p>
-            <h1>Состояние системы</h1>
-          </div>
-          <div
-            className={`overall-status ${isReady ? "ready" : "degraded"}`}
-            role="status"
-          >
-            <span aria-hidden="true" />
-            {statusQuery.isPending
-              ? "Проверяем"
-              : isReady
-                ? "Система готова"
-                : "Требует внимания"}
-          </div>
-        </header>
-
-        <div className="workspace-grid">
-          <section className="primary-panel" aria-labelledby="services-heading">
-            <div className="section-intro">
-              <div>
-                <p className="eyebrow">Живой сигнал</p>
-                <h2 id="services-heading">Сервисы и зависимости</h2>
-              </div>
-              <button
-                className="refresh-button"
-                type="button"
-                onClick={() => void statusQuery.refetch()}
-                disabled={statusQuery.isFetching}
-              >
-                {statusQuery.isFetching ? "Обновление…" : "Обновить"}
-              </button>
-            </div>
-
-            {statusQuery.isPending && (
-              <div className="message-state" role="status">
-                Проверяем API, PostgreSQL и Redis…
-              </div>
-            )}
-
-            {statusQuery.isError && (
-              <div className="message-state error" role="alert">
-                <strong>API пока недоступен.</strong>
-                <span>Проверьте локальный стек и повторите запрос.</span>
-              </div>
-            )}
-
-            {status && (
-              <div className="status-table-wrap">
-                <table className="status-table">
-                  <caption className="sr-only">
-                    Состояние зависимостей приложения
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Компонент</th>
-                      <th scope="col">Состояние</th>
-                      <th scope="col">Отклик</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {status.dependencies.map((dependency) => (
-                      <tr key={dependency.name}>
-                        <th scope="row">{dependency.name}</th>
-                        <td>
-                          <span className={`state-label ${dependency.state}`}>
-                            <span aria-hidden="true" />
-                            {dependency.state === "ready"
-                              ? "Готов"
-                              : "Недоступен"}
-                          </span>
-                        </td>
-                        <td className="metric">
-                          {dependency.latency_ms.toFixed(1)} мс
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            <div className="activity-line">
-              <span>Последняя проверка</span>
-              <time>{formatUpdatedAt(statusQuery.dataUpdatedAt)}</time>
-            </div>
-          </section>
-
-          <aside className="context-panel" aria-labelledby="context-heading">
-            <p className="eyebrow">Контекст</p>
-            <h2 id="context-heading">Что доступно сейчас</h2>
-
-            <dl className="facts-list">
-              <div>
-                <dt>Среда</dt>
-                <dd>{status?.environment ?? "—"}</dd>
-              </div>
-              <div>
-                <dt>Версия API</dt>
-                <dd>{status?.version ?? "—"}</dd>
-              </div>
-              <div>
-                <dt>MCP</dt>
-                <dd>только чтение</dd>
-              </div>
-            </dl>
-
-            <div className="connector-block">
-              <p>Коннекторы</p>
-              {status?.connectors.map((connector) => (
-                <div className="connector-row" key={connector.name}>
-                  <span>{connector.name}</span>
-                  <small>
-                    {connector.can_publish
-                      ? "запись доступна"
-                      : "без публикации"}
-                  </small>
-                </div>
-              )) ?? <span className="muted">Ожидаем данные API</span>}
-            </div>
-
-            <p className="safety-note">
-              На этом этапе система не выполняет внешние публикации и не хранит
-              реальные токены соцсетей.
-            </p>
-          </aside>
+        <div className="rail-bottom">
+          <p>{session.display_name}</p>
+          <button onClick={() => void logout()}>Выйти</button>
+          <p className="muted">Личный доступ · фаза 5</p>
         </div>
-      </main>
+      </aside>
+      <div className="work-area">
+        <header className="work-header">
+          <span>{workspace?.name ?? "Нет пространства"}</span>
+          <span className="muted">{workspace?.timezone ?? ""} · чат + веб</span>
+        </header>
+        {offline && (
+          <p role="alert" className="banner">
+            Нет связи. Данные могут устареть; изменения недоступны.
+          </p>
+        )}
+        {workspace ? (
+          <PrivateCache key={workspace.id}>
+            <WorkspaceContent
+              key={section}
+              workspace={workspace}
+              section={section}
+              offline={offline}
+            />
+          </PrivateCache>
+        ) : (
+          <main id="work-main" className="work-main">
+            <h1>Нет доступа к пространству</h1>
+            <p>
+              Проверьте membership и MFA у администратора. Чужие данные не
+              загружены.
+            </p>
+          </main>
+        )}
+      </div>
     </div>
   );
+}
+
+const root = createRootRoute({ component: Outlet });
+const index = createRoute({
+  getParentRoute: () => root,
+  path: "/",
+  component: () => (
+    <>
+      <div className="open-work">
+        <Link to="/app/$section" params={{ section: "work" }}>
+          Открыть рабочее пространство →
+        </Link>
+      </div>
+      <Status />
+    </>
+  ),
+});
+const app = createRoute({
+  getParentRoute: () => root,
+  path: "/app/$section",
+  component: Gate,
+});
+const router = createRouter({
+  routeTree: root.addChildren([index, app]),
+  defaultNotFoundComponent: () => (
+    <Notice title="Раздел не найден">Вернитесь к состоянию системы.</Notice>
+  ),
+});
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
+export function App() {
+  return <RouterProvider router={router} />;
 }

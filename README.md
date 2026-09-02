@@ -4,6 +4,13 @@
 
 ## Статус проекта
 
+Добавлен репозиторный срез фазы 5: внутренние задачи в общей БД, одинаковые REST/MCP команды,
+справочники и аудит, web shell с личным входом, переносимый plugin и export/doctor прототип.
+Серверный запуск и проверка с двух машин **ещё не выполнены**. Реализованные контракты и
+проверки — [`docs/phase-5-implementation.md`](docs/phase-5-implementation.md), подключение
+сотрудника — [`docs/employee-setup.md`](docs/employee-setup.md). Задачи не являются постами;
+публикация и сбор соцсетей пока недоступны.
+
 Добавлен backend foundation фазы 4: персональная web/MCP identity, семь ролей, транзакции, PostgreSQL RLS, аудит и идемпотентные диагностические jobs. Вход пока выключен до настройки реального authentik и private HTTPS. Детали, проверки и незакрытые gates — в [`docs/phase-4-implementation.md`](docs/phase-4-implementation.md); контракты — в [`docs/authentication.md`](docs/authentication.md) и [`docs/data-model.md`](docs/data-model.md).
 
 Исполняемый каркас фазы 2 реализован: FastAPI и Streamable HTTP MCP используют общий сервис состояния, Celery имеет безопасную диагностическую задачу, React-панель получает типы из OpenAPI, а Compose и CI связывают PostgreSQL, Redis, worker, scheduler и reverse proxy. Локальные проверки исходников и полный Linux CI проходят, включая сборку образов, healthy stack, очередь, MCP и Playwright. Exit gate фаз 1–2 пока не закрыт только на текущей Windows-машине: legacy Docker Engine не запускается, и локальный стек должен быть подтверждён после безопасного обновления Docker Desktop. Подробности — в [`docs/phase-2-implementation.md`](docs/phase-2-implementation.md).
@@ -29,6 +36,7 @@ pnpm dev
 `pnpm env:init` один раз создаёт игнорируемый Git локальный `.env` со случайными значениями и никогда не перезаписывает существующий файл. `pnpm dev` собирает и запускает весь Compose-контур. После готовности доступны:
 
 - внутренняя status-панель — `http://127.0.0.1:8080/`;
+- рабочая панель — `/app/work` (без настроенной личной identity показывает вход, не demo-доступ);
 - REST API — `http://127.0.0.1:8080/api/v1/system/status`;
 - liveness/readiness — `/health/live` и `/health/ready`;
 - MCP Streamable HTTP — `http://127.0.0.1:8080/mcp/`.

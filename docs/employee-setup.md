@@ -1,0 +1,59 @@
+# Подключение сотрудника
+
+## Принцип
+
+Сотруднику передаётся маленький настроенный плагин, а **не сервер и не база**.
+Обычному пользователю не нужны Python, Node, Docker или SSH. Общие данные остаются на Linux-сервере.
+Нужны Codex, персональный Tailscale-доступ, браузер и личная identity/membership в системе.
+Сейчас инструкция подготовлена, но реальный rollout заблокирован инфраструктурными gates.
+
+## Администратор подготавливает пакет
+
+1. Завершить серверные gates и `docs/authentication.md`: private HTTPS, authentik, MFA,
+   явно привязанные web/MCP identities, resource/audience/scope, выключенный public ingress.
+2. На машине разработчика выполнить план, подставив **выданный** endpoint и публичный client ID:
+
+   ```powershell
+   uv run python scripts/employee.py export --endpoint https://YOUR-PRIVATE-HOST/mcp/ --client-id YOUR-PUBLIC-CLIENT-ID --destination output/employee/greenaurum-smm
+   ```
+
+3. После проверки добавить `--apply`. Скрипт создаёт только новый каталог и отказывается
+   заменять существующий. Передать полученную папку разрешённым внутренним каналом.
+   Она содержит только код/инструкции/публичную конфигурацию. Пароли, tokens и БД не копировать.
+4. Добавить копию пакета в личный marketplace Codex штатным поддерживаемым процессом;
+   source path должен указывать на эту неизменяемую версионную копию. Установка/enable делаются
+   отдельно. Текущий prototype намеренно не переписывает личные конфигурации и marketplaces.
+   Порядок UI/CLI — [официальные plugin docs](https://learn.chatgpt.com/docs/build-plugins).
+
+## Сотрудник
+
+1. Войти в Tailscale лично, открыть приватную web-панель и войти через authentik.
+2. Установить выданный плагин в Codex из личного marketplace.
+3. Выполнить OAuth-вход MCP под **своей** учётной записью. Для pre-registered client администратор
+   регистрирует точный callback URL, показанный установленным Codex, и проверяет политику
+   динамического loopback-порта (или согласованный фиксированный порт).
+   Не отправлять authorization code, tokens или cookies в чат.
+4. На Windows из копии пакета запустить `powershell -NoProfile -File scripts/doctor.ps1`.
+   Это read-only проверка HTTPS metadata, запрета anonymous MCP и наличия Codex CLI.
+   Ошибки скрывают response bodies. `PersonalOAuthVerified: false` — честная граница doctor;
+   успешный OAuth подтверждается следующими действиями, не этим отчётом.
+5. В чате попросить «Покажи мои рабочие пространства», затем создать синтетическую задачу.
+   Открыть `/app/work` в браузере — должна появиться та же задача и версия.
+6. На втором доверенном компьютере повторить вход; проверить чтение той же базы, свои права,
+   отказ чужому workspace, конфликт одновременного изменения и отзыв membership/identity.
+
+CLI doctor для машины администратора: `uv run python scripts/employee.py doctor --endpoint ...`.
+Он не устанавливает программы, не требует shared credentials и не подтверждает OAuth refresh.
+
+## Обновление и отзыв
+
+Новую версию экспортировать в новый каталог; после проверки обновить plugin через штатный
+marketplace update. Не копировать каталог авторизации Codex между машинами. Папка plugin
+сама по себе не выдаёт права: они хранятся и проверяются на сервере.
+
+Отзыв сотрудника: отключить identity/membership по runbook и проверить отказ новых REST/MCP
+запросов. Browser logout отзывает web sessions, но не равнозначен отзыву OAuth grants у IdP.
+При потере машины отдельно отозвать её Tailscale-доступ и OAuth/identity по процедуре.
+
+Полный установщик без ручного marketplace шага и cross-platform standalone doctor — отдельное
+улучшение после первого проверенного входа. Текущий export/doctor — прототип, не обещание one-click.

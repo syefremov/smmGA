@@ -97,6 +97,7 @@ jobs:
       - name: Validate and build images without cache
         run: |
           docker compose config --quiet
+          docker run --rm -v "$PWD/ops/Caddyfile.authenticated:/etc/caddy/Caddyfile:ro" caddy:2.10.2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
           docker compose build --no-cache
 
       - name: Start the complete stack

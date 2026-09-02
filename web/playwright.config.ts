@@ -9,6 +9,8 @@ export default defineConfig({
   use: {
     baseURL: process.env.SMM_TEST_BASE_URL ?? "http://127.0.0.1:8080",
     trace: "on-first-retry",
+    channel:
+      process.env.SMM_TEST_BROWSER_CHANNEL === "msedge" ? "msedge" : undefined,
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },

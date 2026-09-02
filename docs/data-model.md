@@ -1,5 +1,10 @@
 # Центральная модель данных — фаза 4
 
+Дополнение фазы 5: `0003_operations` добавляет tenant-таблицы `work_items`, `brands`,
+`products`, `sources` и ограниченную функцию `smm_my_workspaces()` для собственных membership.
+Права, state/version/idempotency и ограничения каталогов описаны в
+[phase-5-implementation.md](phase-5-implementation.md). Предыдущие миграции неизменны.
+
 Источник истины — PostgreSQL. Миграция `0002_identity` добавляет foundation к неизменённой `0001_phase_two`. SQLAlchemy models описывают актуальный контракт; migration содержит самостоятельный снимок DDL и не импортирует меняющиеся модели.
 
 ## Таблицы и границы

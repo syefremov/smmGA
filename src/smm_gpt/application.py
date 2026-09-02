@@ -5,17 +5,18 @@ from contextlib import asynccontextmanager
 from urllib.parse import urlsplit
 from uuid import uuid4
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from mcp.server.transport_security import TransportSecuritySettings
 from sqlalchemy.exc import SQLAlchemyError
 
 from smm_gpt import __version__
-from smm_gpt.api.routes import health, identity, system
+from smm_gpt.api.routes import health, identity, operations, system
 from smm_gpt.core.config import Settings, get_settings
-from smm_gpt.core.request_context import request_context
+from smm_gpt.core.request_context import request_context, request_id
 from smm_gpt.domain.access import AccessDenied, Conflict
+from smm_gpt.domain.operations import OperationError
 from smm_gpt.infrastructure.database import Database
 from smm_gpt.infrastructure.redis import RedisCache
 from smm_gpt.integrations.base import ConnectorRegistry
@@ -86,6 +87,7 @@ def create_app(
     app.state.system_status_service = service
     app.state.sessions = sessions
     app.include_router(identity.router, prefix="/api/v1")
+    app.include_router(operations.router, prefix="/api/v1")
 
     @app.middleware("http")
     async def privacy_headers(
@@ -105,22 +107,37 @@ def create_app(
         finally:
             request_context.reset(context_token)
 
+    def error(code: str, status: int) -> JSONResponse:
+        # Keep phase-4 `detail` for existing clients while exposing the shared envelope.
+        return JSONResponse(
+            {"detail": code, "error": {"code": code, "correlation_id": str(request_id())}},
+            status_code=status,
+        )
+
+    @app.exception_handler(HTTPException)
+    async def http_error(_: Request, exc: HTTPException) -> JSONResponse:
+        return error(str(exc.detail), exc.status_code)
+
+    @app.exception_handler(OperationError)
+    async def operation_error(_: Request, exc: OperationError) -> JSONResponse:
+        return error(exc.code, exc.status)
+
     @app.exception_handler(AccessDenied)
     async def access_denied(_: Request, __: AccessDenied) -> JSONResponse:
-        return JSONResponse({"detail": "access_denied"}, status_code=403)
+        return error("access_denied", 403)
 
     @app.exception_handler(Conflict)
     async def conflict(_: Request, __: Conflict) -> JSONResponse:
-        return JSONResponse({"detail": "idempotency_conflict"}, status_code=409)
+        return error("idempotency_conflict", 409)
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(_: Request, __: RequestValidationError) -> JSONResponse:
         # Pydantic's default response echoes submitted values, including unknown secret fields.
-        return JSONResponse({"detail": "invalid_request"}, status_code=422)
+        return error("invalid_request", 422)
 
     @app.exception_handler(SQLAlchemyError)
     async def persistence_unavailable(_: Request, __: SQLAlchemyError) -> JSONResponse:
-        return JSONResponse({"detail": "service_unavailable"}, status_code=503)
+        return error("service_unavailable", 503)
 
     if settings.auth_enabled:
 

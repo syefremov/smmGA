@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 
-import { App } from "./App";
+import { Status as App } from "./Status";
 
 const { fetchSystemStatusMock } = vi.hoisted(() => ({
   fetchSystemStatusMock: vi.fn(),

@@ -143,5 +143,6 @@
 ## Documentation and completion
 
 - Update `README.md` when changing architecture, workflows, roles, tool contracts, deployment assumptions, or MVP scope.
+- Phase 5 contracts and remaining rollout gates live in `docs/phase-5-implementation.md`; employee onboarding is in `docs/employee-setup.md`. Keep the plugin source unconfigured until export with an issued HTTPS endpoint. Never distribute Codex auth stores, shared bearer tokens or DB credentials. Work items are internal tasks, not publication approvals. Default staging remains gated; the authenticated Caddy template requires explicit commissioning.
 - Put detailed operational procedures in `docs/`; keep this file focused on durable rules.
 - A task is complete only when the requested artifact works, relevant checks pass, no secrets were introduced, and the user-facing result explains material limitations.

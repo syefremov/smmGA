@@ -12,6 +12,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     Integer,
     String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -155,3 +156,41 @@ class OutboxEvent(Record, Base):
     job_id: Mapped[UUID]
     kind: Mapped[str] = mapped_column(String(80))
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class WorkItem(Record, Base):
+    __tablename__ = "work_items"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "actor_id", "key_hash"),
+        CheckConstraint(
+            "state IN ('open','in_progress','done','cancelled')", name="work_item_state"
+        ),
+        CheckConstraint("version >= 1", name="work_item_version"),
+    )
+    workspace_id: Mapped[UUID] = mapped_column(ForeignKey("workspaces.id"), index=True)
+    actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    title: Mapped[str] = mapped_column(String(200))
+    brief: Mapped[str] = mapped_column(Text)
+    state: Mapped[str] = mapped_column(String(24), default="open")
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    key_hash: Mapped[str] = mapped_column(String(64))
+    request_hash: Mapped[str] = mapped_column(String(64))
+
+
+class CatalogRecord(Record):
+    """Minimal reference entries; facts, provenance and ingestion arrive in phase 6."""
+
+    workspace_id: Mapped[UUID] = mapped_column(ForeignKey("workspaces.id"), index=True)
+    name: Mapped[str] = mapped_column(String(200))
+
+
+class Brand(CatalogRecord, Base):
+    __tablename__ = "brands"
+
+
+class Product(CatalogRecord, Base):
+    __tablename__ = "products"
+
+
+class Source(CatalogRecord, Base):
+    __tablename__ = "sources"

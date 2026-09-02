@@ -18,6 +18,10 @@
         reverse_proxy app:8000
     }
 
+    handle /.well-known/oauth-protected-resource* {
+        reverse_proxy app:8000
+    }
+
     handle /health/* {
         reverse_proxy app:8000
     }

@@ -25,15 +25,22 @@ class Permission(StrEnum):
     ANALYZE = "analytics.read"
     AUDIT = "audit.read"
     RUN_JOB = "system.job.run"
+    WORK_ITEM = "work_item.write"
 
 
 GRANTS: dict[Role, frozenset[Permission]] = {
     Role.OWNER: frozenset(Permission),
     Role.ADMINISTRATOR: frozenset({Permission.READ, Permission.MANAGE, Permission.AUDIT}),
-    Role.STRATEGIST: frozenset({Permission.READ, Permission.PLAN, Permission.RUN_JOB}),
-    Role.EDITOR: frozenset({Permission.READ, Permission.EDIT, Permission.RUN_JOB}),
+    Role.STRATEGIST: frozenset(
+        {Permission.READ, Permission.PLAN, Permission.RUN_JOB, Permission.WORK_ITEM}
+    ),
+    Role.EDITOR: frozenset(
+        {Permission.READ, Permission.EDIT, Permission.RUN_JOB, Permission.WORK_ITEM}
+    ),
     Role.PUBLISHER: frozenset({Permission.READ, Permission.PUBLISH}),
-    Role.ANALYST: frozenset({Permission.READ, Permission.ANALYZE, Permission.RUN_JOB}),
+    Role.ANALYST: frozenset(
+        {Permission.READ, Permission.ANALYZE, Permission.RUN_JOB, Permission.WORK_ITEM}
+    ),
     Role.VIEWER: frozenset({Permission.READ}),
 }
 MFA_ROLES = {Role.OWNER, Role.ADMINISTRATOR, Role.PUBLISHER}
