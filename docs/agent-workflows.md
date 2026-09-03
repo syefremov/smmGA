@@ -507,6 +507,12 @@ Human override не стирает finding. Решение, автор, осно
 
 ## 9. Память без неконтролируемого дрейфа
 
+**Реализовано в седьмом срезе фазы 7:** Owner-only proposal/review → отдельно подтверждённый
+новый неактивный `reference` с immutable provenance. Порядок команд, evidence/expiry/visibility,
+раздельная activation и ограничения — [`memory-curation.md`](memory-curation.md).
+`accept_for_curation` не разрешает импорт автоматически. Преобразования в brand rule,
+product fact/evaluation case и произвольный profile/product/platform scope ниже остаются целевыми.
+
 Профиль не редактирует постоянные правила напрямую.
 
 После задачи он может создать `memory_proposal`:

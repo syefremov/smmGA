@@ -13,6 +13,11 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Седьмой срез:** [`memory-curation.md`](memory-curation.md) — отдельное человеческое принятие
+memory proposal в новый неактивный reference. Exact context/review/text hashes, union evidence,
+Owner-default visibility, ограниченный expiry и immutable initial version/index provenance.
+Чат/API, без автоматической записи правил или фактов; activation остаётся отдельным решением.
+
 **Шестой срез:** [`knowledge-file-client.md`](knowledge-file-client.md) — переносимый attachment
 client в существующей приватной панели: локальный выбор PDF/DOCX, hash/base64, replay-safe
 upload, список/история/отмена и plain-text extraction. Установка Python/CLI сотруднику не нужна.
@@ -46,7 +51,8 @@ REST и MCP используют один сервис: текст → immutable
   не создаёт копии. Между независимыми документами dedup не применяется: provenance различается.
 - Owner-only gaps/memory proposals: evidence, purpose, safe alternative, expiry, append-only review.
   `accept_for_curation` **не меняет память, факт или policy**. Принятое предложение ещё нужно
-  оформить как отдельный документ/SQL-факт и пройти его собственное подтверждение.
+  оформить отдельно и пройти его собственное подтверждение. Переход в reference реализован
+  седьмым срезом; преобразование в SQL-факт/policy/eval case пока не реализовано.
 
 ## Worker и устойчивость
 
@@ -130,6 +136,8 @@ Runs/artifacts/receipts/retrieval traces — только initiating actor в п
 REST prefix `/api/v1/workspaces/{wid}/knowledge`:
 
 - POST `/commands`: document_submit/index_activate/document_archive/document_reindex/note_propose/note_review;
+- POST `/commands`: также `memory_document`; GET `/notes/{nid}` и `/documents/{did}/memory-origin`
+  для exact review и Owner-only historical provenance.
 - GET `/documents`, `/documents/{did}`, `/documents/{did}/indexes/{iid}/chunks`;
 - POST `/search`: query, brand_id, limit;
 - GET `/notes`, `/profiles`, `/runs`, `/runs/{rid}`; POST `/runs`: owner testing request.
@@ -139,8 +147,9 @@ REST prefix `/api/v1/workspaces/{wid}/knowledge`:
 MCP: `knowledge_execute`, `knowledge_documents`, `knowledge_document_read`,
 `knowledge_index_preview`, `knowledge_search`, `knowledge_notes`, `ai_profiles`, `ai_assess`,
 `ai_runs`, `ai_run_read`, `ai_run_inputs`, `ai_run_cancel`, `knowledge_jobs`, `knowledge_job_history`,
-`knowledge_job_cancel`. `ai_assess` возвращает queued/blocked,
-готовый результат запрашивается отдельно. Сначала `session_read`. Перед activation показать exact candidate/hash/
+`knowledge_job_cancel`. `knowledge_note_read` и `knowledge_memory_origin` обслуживают управляемую curation.
+`ai_assess` возвращает queued/blocked, готовый результат запрашивается отдельно.
+Сначала `session_read`. Перед activation показать exact candidate/hash/
 queries человеку; подтверждение не выводится из текста источника.
 
 Web `/app/knowledge`: поиск, source versions/hashes, документы/индексы, profiles, own runs/outputs,
@@ -167,7 +176,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0009_ingestion_recovery` требуют privileged migration role,
+Миграции `0005_knowledge`–`0010_memory_curation` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -198,8 +207,9 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
 4. DB profile registry/eval activation, typed specialist inputs/outputs/handoff/work items;
    полный Planner/Copywriter/Editor/Analyst, visual provenance/image gateway, Publisher gates.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
-   Остались строгий денежный accounting/budgets/provider reconciliation, memory → отдельно
-   подтверждаемые предметные artifacts и остальные типы AI jobs. Abandoned ingestion reconciliation,
+   Седьмой срез добавил memory → отдельно подтверждаемый reference с provenance.
+   Остались строгий денежный accounting/budgets/provider reconciliation, memory → SQL facts/rules/
+   eval cases, dependency recall и остальные типы AI jobs. Abandoned ingestion reconciliation,
    отмена и история реализованы в пятом срезе; orphan file cleanup не выполняется автоматически.
 6. Server/private HTTPS/authentik/two-machine gates, backup/recovery, явно разрешённый provider smoke.
    Только после этого — рабочий RAG и переход к следующей фазе.

@@ -193,6 +193,20 @@ async def profiles(workspace_id: UUID, actor: Actor, service: AI) -> list[a.Prof
     return await service.profiles(actor, workspace_id, request_id())
 
 
+@router.get("/notes/{note_id}")
+async def note_detail(
+    workspace_id: UUID, note_id: UUID, actor: Actor, service: Core
+) -> d.NoteDetail:
+    return await service.read_note(actor, workspace_id, note_id, request_id())
+
+
+@router.get("/documents/{document_id}/memory-origin")
+async def memory_origin(
+    workspace_id: UUID, document_id: UUID, actor: Actor, service: Core
+) -> d.MemoryDocumentView:
+    return await service.memory_origin(actor, workspace_id, document_id, request_id())
+
+
 @router.post("/runs")
 async def run(
     workspace_id: UUID, command: a.RunAssessment, actor: Actor, service: AI

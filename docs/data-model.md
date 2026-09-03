@@ -1,5 +1,12 @@
 # Центральная модель данных — фаза 4
 
+Седьмой срез фазы 7: `0010_memory_curation` добавляет append-only `knowledge_memory_documents`:
+proposal/review → точная initial document version/index, context/text hashes и evidence snapshot.
+Unique proposal/document на workspace, composite review/version/index FK, Owner-only FORCE RLS,
+без worker grants. Новые reference constraints добавлены к reviews/indexes, старые миграции
+не менялись. Это не verified facts и не автоматическая память. Контракт —
+[`memory-curation.md`](memory-curation.md).
+
 Пятый срез фазы 7: `0009_ingestion_recovery` добавляет version/start/finish и cancelled
 для text/file jobs, actor-private cancel receipts и DB-triggered immutable transition events.
 RLS ограничивает историю Owner/автором видимого parent; worker получает только служебные

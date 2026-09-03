@@ -31,6 +31,7 @@ from .conftest import TenantFixture
 from .test_content import pilot
 from .test_knowledge import activate as activate_knowledge
 from .test_knowledge_files import command as file_command
+from .test_memory_curation import proposal as memory_proposal
 
 pytestmark = pytest.mark.integration
 
@@ -287,6 +288,47 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
         await activate_knowledge(
             t, knowledge_dto.KnowledgeResult.model_validate(knowledge_rest.json()), "Synthetic"
         )
+        _, memory = await memory_proposal(t)
+        memory_prefix = f"/api/v1/workspaces/{wid}/knowledge"
+        note_rest = await browser.get(memory_prefix + f"/notes/{memory.note_id}")
+        assert note_rest.status_code == 200
+        assert (
+            await call(
+                "knowledge_note_read",
+                {
+                    "workspace_id": wid,
+                    "note_id": str(memory.note_id),
+                },
+            )
+        )["structuredContent"] == note_rest.json()
+        memory_args = memory.model_dump(mode="json")
+        memory_mcp = await call("knowledge_execute", {"workspace_id": wid, "command": memory_args})
+        memory_rest = await browser.post(memory_prefix + "/commands", json=memory_args)
+        assert memory_rest.status_code == 200, memory_rest.text
+        assert memory_mcp["structuredContent"] == memory_rest.json()
+        memory_did = memory_rest.json()["entity_id"]
+        origin_rest = await browser.get(memory_prefix + f"/documents/{memory_did}/memory-origin")
+        assert origin_rest.status_code == 200
+        assert (
+            await call(
+                "knowledge_memory_origin",
+                {
+                    "workspace_id": wid,
+                    "document_id": memory_did,
+                },
+            )
+        )["structuredContent"] == origin_rest.json()
+        memory_doc = await browser.get(memory_prefix + f"/documents/{memory_did}")
+        assert memory_doc.json()["active_index_id"] is None
+        denied_memory = await browser.post(
+            memory_prefix + "/commands",
+            json={
+                **memory_args,
+                "human_confirmed": False,
+                "text": "never-echo-proposal-body",
+            },
+        )
+        assert denied_memory.status_code == 422 and "never-echo" not in denied_memory.text
         ai_command = {
             "idempotency_key": uuid4().hex,
             "profile": "product_expert",

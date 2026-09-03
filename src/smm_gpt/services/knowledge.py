@@ -19,6 +19,7 @@ from smm_gpt.infrastructure.knowledge_models import (
     KnowledgeChunk,
     KnowledgeDocument,
     KnowledgeIndex,
+    KnowledgeMemoryDocument,
     KnowledgeNote,
     KnowledgeNoteReview,
     KnowledgeReceipt,
@@ -101,6 +102,73 @@ async def eligible_citation(s: AsyncSession, wid: UUID, cid: UUID, bid: UUID) ->
     return citation(row[0], row[1], row[2])
 
 
+def memory_context_hash(note: KnowledgeNote, review: KnowledgeNoteReview | None) -> str:
+    """Bind the immutable proposal, author, scope and exact review, not current availability."""
+    return canonical_hash(
+        {
+            "schema": "memory-context-v1",
+            "workspace_id": str(note.workspace_id),
+            "actor_id": str(note.actor_id),
+            "created_at": note.created_at.isoformat(),
+            "note": d.NoteView.model_validate(note).model_dump(mode="json", exclude={"decision"}),
+            "review": d.NoteReviewView.model_validate(review).model_dump(mode="json")
+            if review
+            else None,
+        }
+    )
+
+
+async def memory_note(
+    s: AsyncSession, wid: UUID, nid: UUID
+) -> tuple[KnowledgeNote, KnowledgeNoteReview | None, KnowledgeMemoryDocument | None]:
+    note = await s.scalar(
+        select(KnowledgeNote).where(KnowledgeNote.workspace_id == wid, KnowledgeNote.id == nid)
+    )
+    if note is None:
+        raise OperationError("not_found", 404)
+    review = await s.scalar(
+        select(KnowledgeNoteReview).where(
+            KnowledgeNoteReview.workspace_id == wid, KnowledgeNoteReview.note_id == nid
+        )
+    )
+    origin = await s.scalar(
+        select(KnowledgeMemoryDocument).where(
+            KnowledgeMemoryDocument.workspace_id == wid, KnowledgeMemoryDocument.note_id == nid
+        )
+    )
+    return note, review, origin
+
+
+async def memory_evidence(
+    s: AsyncSession, wid: UUID, note: KnowledgeNote, review: KnowledgeNoteReview | None
+) -> tuple[list[d.MemoryEvidence], list[UUID]]:
+    # Review cannot silently replace or discard evidence in the original proposal.
+    ids = sorted(set(note.evidence_ids + (review.evidence_ids if review else [])))
+    evidence, unavailable = [], []
+    for value in ids:
+        cid = UUID(value)
+        try:
+            source = await eligible_citation(s, wid, cid, note.brand_id)
+        except OperationError as exc:
+            if exc.code != "source_unavailable":
+                raise
+            unavailable.append(cid)
+            continue
+        doc = await document(s, wid, source.document_id)
+        evidence.append(
+            d.MemoryEvidence(
+                chunk_id=cid,
+                document_id=source.document_id,
+                document_version_id=source.document_version_id,
+                index_id=source.index_id,
+                content_hash=source.content_hash,
+                visibility=cast(d.Visibility, doc.visibility),
+                effective_to=source.effective_to,
+            )
+        )
+    return evidence, unavailable
+
+
 async def retrieve(
     s: AsyncSession,
     wid: UUID,
@@ -150,7 +218,14 @@ class KnowledgeService:
             Permission.APPROVE
             if isinstance(
                 command,
-                (d.ActivateIndex, d.ArchiveDocument, d.ReviewNote, d.ProposeNote, d.ImportFile),
+                (
+                    d.ActivateIndex,
+                    d.ArchiveDocument,
+                    d.ReviewNote,
+                    d.ProposeNote,
+                    d.ImportFile,
+                    d.CurateMemory,
+                ),
             )
             else Permission.KNOWLEDGE
         )
@@ -202,6 +277,70 @@ class KnowledgeService:
         source_file_id: UUID | None = None,
     ) -> d.KnowledgeResult:
         note: KnowledgeNote | None
+        if isinstance(c, d.CurateMemory):
+            note, review, prior = await memory_note(s, wid, c.note_id)
+            if (
+                review is None
+                or review.id != c.review_id
+                or memory_context_hash(note, review) != c.context_hash
+            ):
+                raise OperationError("memory_context_changed")
+            if prior:
+                raise OperationError("memory_already_curated")
+            now = utcnow()
+            if (
+                note.kind != "memory"
+                or review.decision != "accept_for_curation"
+                or note.effective_to <= now
+            ):
+                raise OperationError("memory_not_accepted_or_expired")
+            if c.brand_id != note.brand_id:
+                raise OperationError("memory_brand_mismatch")
+            if digest(c.text) != c.text_hash:
+                raise OperationError("memory_text_hash_mismatch")
+            evidence, unavailable = await memory_evidence(s, wid, note, review)
+            if unavailable or not evidence:
+                raise OperationError("memory_evidence_unavailable")
+            if c.visibility == "workspace" and any(e.visibility == "owner" for e in evidence):
+                raise OperationError("memory_visibility_conflict")
+            if (
+                c.effective_to > min(note.effective_to, *(e.effective_to for e in evidence))
+                or c.effective_to <= now
+                or c.source_date > now
+            ):
+                raise OperationError("memory_period_invalid")
+            submitted = d.SubmitDocument(
+                **c.model_dump(
+                    exclude={
+                        "action",
+                        "note_id",
+                        "review_id",
+                        "context_hash",
+                        "text_hash",
+                        "human_confirmed",
+                    }
+                )
+            )
+            result = await self._execute(s, actor, wid, submitted)
+            await s.flush()
+            index = await s.get(KnowledgeIndex, result.index_id) if result.index_id else None
+            if index is None:
+                raise OperationError("memory_document_incomplete")
+            s.add(
+                KnowledgeMemoryDocument(
+                    workspace_id=wid,
+                    note_id=note.id,
+                    review_id=review.id,
+                    actor_id=actor.user_id,
+                    document_id=result.entity_id,
+                    document_version_id=index.document_version_id,
+                    index_id=index.id,
+                    context_hash=c.context_hash,
+                    content_hash=c.text_hash,
+                    evidence=[e.model_dump(mode="json") for e in evidence],
+                )
+            )
+            return result
         if isinstance(c, d.ImportFile):
             # Local import avoids the shared text/file service module initialization cycle.
             from smm_gpt.services.knowledge_files import file_row, importable
@@ -377,6 +516,17 @@ class KnowledgeService:
             version = await s.get(KnowledgeVersion, index.document_version_id)
             if version is None or not version.effective_from <= utcnow() < version.effective_to:
                 raise OperationError("source_not_current")
+            origin = await s.scalar(
+                select(KnowledgeMemoryDocument).where(
+                    KnowledgeMemoryDocument.workspace_id == wid,
+                    KnowledgeMemoryDocument.document_version_id == version.id,
+                )
+            )
+            if origin:
+                proposal, reviewed, _ = await memory_note(s, wid, origin.note_id)
+                current, unavailable = await memory_evidence(s, wid, proposal, reviewed)
+                if unavailable or [e.model_dump(mode="json") for e in current] != origin.evidence:
+                    raise OperationError("memory_evidence_unavailable")
             for query in c.expected_queries:
                 safe_text(query)
                 found = await s.scalar(
@@ -548,3 +698,48 @@ class KnowledgeService:
                 ],
                 next_cursor=rows[limit - 1][0].id if len(rows) > limit else None,
             )
+
+    async def read_note(
+        self, actor: Principal, wid: UUID, nid: UUID, request: UUID
+    ) -> d.NoteDetail:
+        async with self.access.authorized(actor, wid, Permission.APPROVE, request) as s:
+            note, review, origin = await memory_note(s, wid, nid)
+            evidence, unavailable = await memory_evidence(s, wid, note, review)
+            reasons = []
+            if note.kind != "memory":
+                reasons.append("not_memory")
+            if review is None or review.decision != "accept_for_curation":
+                reasons.append("not_accepted_for_curation")
+            if note.effective_to <= utcnow():
+                reasons.append("note_expired")
+            if unavailable or not evidence:
+                reasons.append("evidence_unavailable")
+            if origin:
+                reasons.append("already_curated")
+            return d.NoteDetail(
+                **d.NoteView.model_validate(note).model_dump(exclude={"decision"}),
+                actor_id=note.actor_id,
+                created_at=note.created_at,
+                decision=review.decision if review else None,
+                context_hash=memory_context_hash(note, review),
+                review=d.NoteReviewView.model_validate(review) if review else None,
+                evidence=evidence,
+                unavailable_evidence_ids=unavailable,
+                blocked_reasons=reasons,
+                curation=d.MemoryDocumentView.model_validate(origin) if origin else None,
+            )
+
+    async def memory_origin(
+        self, actor: Principal, wid: UUID, did: UUID, request: UUID
+    ) -> d.MemoryDocumentView:
+        # Proposal and evidence identities remain private even for a workspace-visible document.
+        async with self.access.authorized(actor, wid, Permission.APPROVE, request) as s:
+            origin = await s.scalar(
+                select(KnowledgeMemoryDocument).where(
+                    KnowledgeMemoryDocument.workspace_id == wid,
+                    KnowledgeMemoryDocument.document_id == did,
+                )
+            )
+            if origin is None:
+                raise OperationError("not_found", 404)
+            return d.MemoryDocumentView.model_validate(origin)

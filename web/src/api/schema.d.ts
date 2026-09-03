@@ -432,6 +432,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/documents/{document_id}/memory-origin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Memory Origin */
+        get: operations["memory_origin_api_v1_workspaces__workspace_id__knowledge_documents__document_id__memory_origin_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/evaluations/commands": {
         parameters: {
             query?: never;
@@ -663,6 +680,23 @@ export interface paths {
         };
         /** Notes */
         get: operations["notes_api_v1_workspaces__workspace_id__knowledge_notes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/notes/{note_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Note Detail */
+        get: operations["note_detail_api_v1_workspaces__workspace_id__knowledge_notes__note_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1549,6 +1583,85 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** CurateMemory */
+        CurateMemory: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "memory_document";
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Context Hash */
+            context_hash: string;
+            /** Document Id */
+            document_id?: null;
+            /**
+             * Document Type
+             * @default reference
+             * @constant
+             */
+            document_type: "reference";
+            /**
+             * Effective From
+             * Format: date-time
+             */
+            effective_from: string;
+            /**
+             * Effective To
+             * Format: date-time
+             */
+            effective_to: string;
+            /**
+             * Expected Version
+             * @default 0
+             * @constant
+             */
+            expected_version: 0;
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Note Id
+             * Format: uuid
+             */
+            note_id: string;
+            /**
+             * Review Id
+             * Format: uuid
+             */
+            review_id: string;
+            /**
+             * Source Date
+             * Format: date-time
+             */
+            source_date: string;
+            /**
+             * Source Uri
+             * @default owner-input
+             * @constant
+             */
+            source_uri: "owner-input";
+            /** Text */
+            text: string;
+            /** Text Hash */
+            text_hash: string;
+            /** Title */
+            title: string;
+            /**
+             * Visibility
+             * @default owner
+             * @enum {string}
+             */
+            visibility: "workspace" | "owner";
+        };
         /** DatasetView */
         DatasetView: {
             /**
@@ -2430,6 +2543,174 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** MemoryDocumentView */
+        MemoryDocumentView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Context Hash */
+            context_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /**
+             * Document Version Id
+             * Format: uuid
+             */
+            document_version_id: string;
+            /** Evidence */
+            evidence: components["schemas"]["MemoryEvidence"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Index Id
+             * Format: uuid
+             */
+            index_id: string;
+            /**
+             * Note Id
+             * Format: uuid
+             */
+            note_id: string;
+            /**
+             * Review Id
+             * Format: uuid
+             */
+            review_id: string;
+            /**
+             * Warning
+             * @default Historical curation provenance for one version, not approval or verified facts.
+             */
+            warning: string;
+        };
+        /** MemoryEvidence */
+        MemoryEvidence: {
+            /**
+             * Chunk Id
+             * Format: uuid
+             */
+            chunk_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /**
+             * Document Version Id
+             * Format: uuid
+             */
+            document_version_id: string;
+            /**
+             * Effective To
+             * Format: date-time
+             */
+            effective_to: string;
+            /**
+             * Index Id
+             * Format: uuid
+             */
+            index_id: string;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "workspace" | "owner";
+        };
+        /** NoteDetail */
+        NoteDetail: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Blocked Reasons */
+            blocked_reasons: string[];
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Context Hash */
+            context_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            curation: components["schemas"]["MemoryDocumentView"] | null;
+            /** Decision */
+            decision?: string | null;
+            /**
+             * Effective To
+             * Format: date-time
+             */
+            effective_to: string;
+            /** Evidence */
+            evidence: components["schemas"]["MemoryEvidence"][];
+            /** Evidence Ids */
+            evidence_ids: string[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Purpose */
+            purpose: string;
+            review: components["schemas"]["NoteReviewView"] | null;
+            /** Safe Alternative */
+            safe_alternative: string;
+            /** Text */
+            text: string;
+            /** Unavailable Evidence Ids */
+            unavailable_evidence_ids: string[];
+            /**
+             * Warning
+             * @default Untrusted proposal and historical review; memory_document needs a separate human decision.
+             */
+            warning: string;
+        };
+        /** NoteReviewView */
+        NoteReviewView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decision */
+            decision: string;
+            /** Evidence Ids */
+            evidence_ids: string[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reason */
+            reason: string;
         };
         /** NoteView */
         NoteView: {
@@ -5090,7 +5371,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SubmitDocument"] | components["schemas"]["ImportFile"] | components["schemas"]["ActivateIndex"] | components["schemas"]["ArchiveDocument"] | components["schemas"]["ReindexDocument"] | components["schemas"]["ProposeNote"] | components["schemas"]["ReviewNote"];
+                "application/json": components["schemas"]["SubmitDocument"] | components["schemas"]["ImportFile"] | components["schemas"]["ActivateIndex"] | components["schemas"]["ArchiveDocument"] | components["schemas"]["ReindexDocument"] | components["schemas"]["ProposeNote"] | components["schemas"]["ReviewNote"] | components["schemas"]["CurateMemory"];
             };
         };
         responses: {
@@ -5365,6 +5646,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_Citation_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    memory_origin_api_v1_workspaces__workspace_id__knowledge_documents__document_id__memory_origin_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryDocumentView"];
                 };
             };
             /** @description Unauthorized */
@@ -6737,6 +7104,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_NoteView_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    note_detail_api_v1_workspaces__workspace_id__knowledge_notes__note_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                note_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteDetail"];
                 };
             };
             /** @description Unauthorized */

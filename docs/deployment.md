@@ -2,6 +2,11 @@
 
 ## Статус и границы
 
+Memory curation: [`memory-curation.md`](memory-curation.md), migration `0010_memory_curation`.
+Новый Owner-only immutable ledger и composite reference constraints; deployment guard ожидает
+этот schema head. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
+Downgrade удаляет provenance и требует отдельно согласованного restore-backed плана.
+
 Ingestion jobs: [`ingestion-jobs.md`](ingestion-jobs.md), migration `0009_ingestion_recovery`.
 Перед разрешённым deploy остановить старые API/worker writers: они не поддерживают версии
 переходов. Downgrade удаляет историю/receipts и новые поля, а cancelled переводит в failed;

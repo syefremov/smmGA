@@ -117,6 +117,23 @@ class ReviewNote(DTO):
     human_confirmed: Literal[True]
 
 
+class CurateMemory(DocumentSpec):
+    action: Literal["memory_document"] = "memory_document"
+    idempotency_key: IdempotencyToken
+    note_id: UUID
+    review_id: UUID
+    context_hash: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+    text: Annotated[str, Field(min_length=1, max_length=100_000)]
+    text_hash: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+    human_confirmed: Literal[True]
+    # A new reference candidate, never an overwrite, product fact or brand rule.
+    document_id: None = None
+    expected_version: Literal[0] = 0
+    document_type: Literal["reference"] = "reference"
+    source_uri: Literal["owner-input"] = "owner-input"
+    visibility: Visibility = "owner"
+
+
 KnowledgeCommand = Annotated[
     SubmitDocument
     | ImportFile
@@ -124,7 +141,8 @@ KnowledgeCommand = Annotated[
     | ArchiveDocument
     | ReindexDocument
     | ProposeNote
-    | ReviewNote,
+    | ReviewNote
+    | CurateMemory,
     Field(discriminator="action"),
 ]
 
@@ -209,3 +227,51 @@ class NoteView(DTO):
     evidence_ids: list[UUID]
     effective_to: datetime
     decision: str | None = None
+
+
+class NoteReviewView(DTO):
+    id: UUID
+    actor_id: UUID
+    decision: str
+    reason: str
+    evidence_ids: list[UUID]
+    created_at: datetime
+
+
+class MemoryEvidence(DTO):
+    chunk_id: UUID
+    document_id: UUID
+    document_version_id: UUID
+    index_id: UUID
+    content_hash: str
+    visibility: Visibility
+    effective_to: datetime
+
+
+class MemoryDocumentView(DTO):
+    id: UUID
+    note_id: UUID
+    review_id: UUID
+    actor_id: UUID
+    document_id: UUID
+    document_version_id: UUID
+    index_id: UUID
+    context_hash: str
+    content_hash: str
+    evidence: list[MemoryEvidence]
+    created_at: datetime
+    warning: str = "Historical curation provenance for one version, not approval or verified facts."
+
+
+class NoteDetail(NoteView):
+    actor_id: UUID
+    created_at: datetime
+    context_hash: str
+    review: NoteReviewView | None
+    evidence: list[MemoryEvidence]
+    unavailable_evidence_ids: list[UUID]
+    blocked_reasons: list[str]
+    curation: MemoryDocumentView | None
+    warning: str = (
+        "Untrusted proposal and historical review; memory_document needs a separate human decision."
+    )

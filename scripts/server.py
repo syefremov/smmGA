@@ -39,7 +39,7 @@ ENV_KEYS = {
     "SMM_APP_PASSWORD",
     "SMM_WORKER_PASSWORD",
 }
-SCHEMA = "0009_ingestion_recovery"
+SCHEMA = "0010_memory_curation"
 
 
 class OperationError(Exception):

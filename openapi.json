@@ -1542,6 +1542,128 @@
         "title": "CreateWorkItem",
         "type": "object"
       },
+      "CurateMemory": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "const": "memory_document",
+            "default": "memory_document",
+            "title": "Action",
+            "type": "string"
+          },
+          "brand_id": {
+            "format": "uuid",
+            "title": "Brand Id",
+            "type": "string"
+          },
+          "context_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Context Hash",
+            "type": "string"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "null"
+          },
+          "document_type": {
+            "const": "reference",
+            "default": "reference",
+            "title": "Document Type",
+            "type": "string"
+          },
+          "effective_from": {
+            "format": "date-time",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "effective_to": {
+            "format": "date-time",
+            "title": "Effective To",
+            "type": "string"
+          },
+          "expected_version": {
+            "const": 0,
+            "default": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "human_confirmed": {
+            "const": true,
+            "title": "Human Confirmed",
+            "type": "boolean"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "note_id": {
+            "format": "uuid",
+            "title": "Note Id",
+            "type": "string"
+          },
+          "review_id": {
+            "format": "uuid",
+            "title": "Review Id",
+            "type": "string"
+          },
+          "source_date": {
+            "format": "date-time",
+            "title": "Source Date",
+            "type": "string"
+          },
+          "source_uri": {
+            "const": "owner-input",
+            "default": "owner-input",
+            "title": "Source Uri",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 100000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          },
+          "text_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Text Hash",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Title",
+            "type": "string"
+          },
+          "visibility": {
+            "default": "owner",
+            "enum": [
+              "workspace",
+              "owner"
+            ],
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "brand_id",
+          "title",
+          "source_date",
+          "effective_from",
+          "effective_to",
+          "idempotency_key",
+          "note_id",
+          "review_id",
+          "context_hash",
+          "text",
+          "text_hash",
+          "human_confirmed"
+        ],
+        "title": "CurateMemory",
+        "type": "object"
+      },
       "DatasetView": {
         "additionalProperties": false,
         "properties": {
@@ -3427,6 +3549,321 @@
           }
         },
         "title": "LiveResponse",
+        "type": "object"
+      },
+      "MemoryDocumentView": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "context_hash": {
+            "title": "Context Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "document_id": {
+            "format": "uuid",
+            "title": "Document Id",
+            "type": "string"
+          },
+          "document_version_id": {
+            "format": "uuid",
+            "title": "Document Version Id",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/MemoryEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "index_id": {
+            "format": "uuid",
+            "title": "Index Id",
+            "type": "string"
+          },
+          "note_id": {
+            "format": "uuid",
+            "title": "Note Id",
+            "type": "string"
+          },
+          "review_id": {
+            "format": "uuid",
+            "title": "Review Id",
+            "type": "string"
+          },
+          "warning": {
+            "default": "Historical curation provenance for one version, not approval or verified facts.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "note_id",
+          "review_id",
+          "actor_id",
+          "document_id",
+          "document_version_id",
+          "index_id",
+          "context_hash",
+          "content_hash",
+          "evidence",
+          "created_at"
+        ],
+        "title": "MemoryDocumentView",
+        "type": "object"
+      },
+      "MemoryEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "chunk_id": {
+            "format": "uuid",
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "document_id": {
+            "format": "uuid",
+            "title": "Document Id",
+            "type": "string"
+          },
+          "document_version_id": {
+            "format": "uuid",
+            "title": "Document Version Id",
+            "type": "string"
+          },
+          "effective_to": {
+            "format": "date-time",
+            "title": "Effective To",
+            "type": "string"
+          },
+          "index_id": {
+            "format": "uuid",
+            "title": "Index Id",
+            "type": "string"
+          },
+          "visibility": {
+            "enum": [
+              "workspace",
+              "owner"
+            ],
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "document_id",
+          "document_version_id",
+          "index_id",
+          "content_hash",
+          "visibility",
+          "effective_to"
+        ],
+        "title": "MemoryEvidence",
+        "type": "object"
+      },
+      "NoteDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "blocked_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocked Reasons",
+            "type": "array"
+          },
+          "brand_id": {
+            "format": "uuid",
+            "title": "Brand Id",
+            "type": "string"
+          },
+          "context_hash": {
+            "title": "Context Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "curation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemoryDocumentView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision"
+          },
+          "effective_to": {
+            "format": "date-time",
+            "title": "Effective To",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/MemoryEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "evidence_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NoteReviewView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "safe_alternative": {
+            "title": "Safe Alternative",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "unavailable_evidence_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Unavailable Evidence Ids",
+            "type": "array"
+          },
+          "warning": {
+            "default": "Untrusted proposal and historical review; memory_document needs a separate human decision.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "brand_id",
+          "kind",
+          "text",
+          "purpose",
+          "safe_alternative",
+          "evidence_ids",
+          "effective_to",
+          "actor_id",
+          "created_at",
+          "context_hash",
+          "review",
+          "evidence",
+          "unavailable_evidence_ids",
+          "blocked_reasons",
+          "curation"
+        ],
+        "title": "NoteDetail",
+        "type": "object"
+      },
+      "NoteReviewView": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decision": {
+            "title": "Decision",
+            "type": "string"
+          },
+          "evidence_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "decision",
+          "reason",
+          "evidence_ids",
+          "created_at"
+        ],
+        "title": "NoteReviewView",
         "type": "object"
       },
       "NoteView": {
@@ -8223,6 +8660,7 @@
                     "document_submit": "#/components/schemas/SubmitDocument",
                     "file_import": "#/components/schemas/ImportFile",
                     "index_activate": "#/components/schemas/ActivateIndex",
+                    "memory_document": "#/components/schemas/CurateMemory",
                     "note_propose": "#/components/schemas/ProposeNote",
                     "note_review": "#/components/schemas/ReviewNote"
                   },
@@ -8249,6 +8687,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/ReviewNote"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CurateMemory"
                   }
                 ],
                 "title": "Command"
@@ -8728,6 +9169,116 @@
           }
         },
         "summary": "Preview"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/documents/{document_id}/memory-origin": {
+      "get": {
+        "operationId": "memory_origin_api_v1_workspaces__workspace_id__knowledge_documents__document_id__memory_origin_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryDocumentView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Memory Origin"
       }
     },
     "/api/v1/workspaces/{workspace_id}/knowledge/evaluations/commands": {
@@ -10594,6 +11145,116 @@
           }
         },
         "summary": "Notes"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/notes/{note_id}": {
+      "get": {
+        "operationId": "note_detail_api_v1_workspaces__workspace_id__knowledge_notes__note_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "note_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Note Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Note Detail"
       }
     },
     "/api/v1/workspaces/{workspace_id}/knowledge/profiles": {

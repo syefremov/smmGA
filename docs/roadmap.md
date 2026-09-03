@@ -368,6 +368,12 @@ HTTP/MCP-запроса. Денежный accounting и DB registry специа
 личную web session, стабильная идентичность повторов, история/отмена/plain-text preview.
 Нет автоматического импорта или активации. Серверный rollout и реальная проверка с двух машин впереди.
 
+Седьмой срез: [`memory-curation.md`](memory-curation.md) — управляемое принятие memory proposal
+в отдельный неактивный reference через чат/API. Exact human confirmation, union evidence,
+visibility/expiry, immutable proposal/review/version provenance, unique/idempotent transition.
+Автоматической записи правил/фактов и рекурсивного отзыва активированных документов нет.
+Остальные предметные преобразования памяти и прежние exit gates сохраняются.
+
 ### Цель
 
 Сделать генерацию и анализ grounded: каждое фактическое утверждение связано с разрешённым источником, а специализированные AI-профили работают в ограниченных границах.

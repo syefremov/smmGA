@@ -80,6 +80,13 @@ class KnowledgeIndex(Tenant, Base):
     __table_args__ = (
         *tenant_args(document_id="knowledge_documents"),
         UniqueConstraint("workspace_id", "document_id", "id"),
+        UniqueConstraint(
+            "workspace_id",
+            "document_id",
+            "document_version_id",
+            "id",
+            name="uq_knowledge_index_version_ref",
+        ),
         ForeignKeyConstraint(
             ["workspace_id", "document_id", "document_version_id"],
             [
@@ -210,12 +217,59 @@ class KnowledgeNoteReview(Tenant, Base):
     __table_args__ = (
         *tenant_args(note_id="knowledge_notes"),
         UniqueConstraint("workspace_id", "note_id"),
+        UniqueConstraint("workspace_id", "note_id", "id", name="uq_knowledge_note_review_ref"),
     )
     note_id: Mapped[UUID]
     actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     decision: Mapped[str] = mapped_column(String(32))
     reason: Mapped[str] = mapped_column(Text)
     evidence_ids: Mapped[list[str]] = mapped_column(JSON)
+
+
+class KnowledgeMemoryDocument(Tenant, Base):
+    __tablename__ = "knowledge_memory_documents"
+    __table_args__ = (
+        *tenant_args(note_id="knowledge_notes", document_id="knowledge_documents"),
+        UniqueConstraint("workspace_id", "note_id"),
+        UniqueConstraint("workspace_id", "document_id"),
+        ForeignKeyConstraint(
+            ["workspace_id", "note_id", "review_id"],
+            [
+                "knowledge_note_reviews.workspace_id",
+                "knowledge_note_reviews.note_id",
+                "knowledge_note_reviews.id",
+            ],
+            name="fk_memory_note_review",
+        ),
+        ForeignKeyConstraint(
+            ["workspace_id", "document_id", "document_version_id"],
+            [
+                "knowledge_document_versions.workspace_id",
+                "knowledge_document_versions.document_id",
+                "knowledge_document_versions.id",
+            ],
+            name="fk_memory_document_version",
+        ),
+        ForeignKeyConstraint(
+            ["workspace_id", "document_id", "document_version_id", "index_id"],
+            [
+                "knowledge_indexes.workspace_id",
+                "knowledge_indexes.document_id",
+                "knowledge_indexes.document_version_id",
+                "knowledge_indexes.id",
+            ],
+            name="fk_memory_document_index",
+        ),
+    )
+    note_id: Mapped[UUID]
+    review_id: Mapped[UUID]
+    actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    document_id: Mapped[UUID]
+    document_version_id: Mapped[UUID]
+    index_id: Mapped[UUID]
+    context_hash: Mapped[str] = mapped_column(String(64))
+    content_hash: Mapped[str] = mapped_column(String(64))
+    evidence: Mapped[list[dict[str, object]]] = mapped_column(JSON)
 
 
 class KnowledgeActivation(Tenant, Base):

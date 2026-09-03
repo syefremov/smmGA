@@ -164,6 +164,14 @@
 - AI gateway has no tools or content-service principal. Paid testing requires explicit owner
   authorization plus server provider/model/workspace allowlist; defaults remain disabled.
   Unknown/interrupted runs are not blindly retried. Memory curation is not permanent authority.
+- Follow `docs/memory-curation.md`: accepted proposal is not permission to adopt it. Read exact
+  note/review context, obtain separate human confirmation of text/hash/title/scope/dates, then
+  create only a new inactive reference. Preserve the immutable proposal/review/version/index
+  provenance; union original and review evidence, enforce expiry and visibility, default owner.
+  One proposal has one curation across actors/keys. Recheck evidence before initial-version
+  activation; later versions are independent. Historical receipts/provenance never imply current
+  approval. There is no automatic recursive recall after a source archive/replacement; expose
+  unavailable evidence and require Owner review/archive. Never silently turn memory into facts.
 - Follow `docs/ai-jobs.md`: API/MCP only enqueue assessments; the restricted server worker
   dispatches once after committing its reservation. Do not add retries for uncertain model calls.
   Preserve immutable input snapshots and compare sources/profile/payload/config before execution.
