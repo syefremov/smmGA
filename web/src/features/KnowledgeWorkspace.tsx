@@ -17,6 +17,11 @@ const KnowledgeFiles = lazy(() =>
     default: module.KnowledgeFiles,
   })),
 );
+const CopyDraftResult = lazy(() =>
+  import("./knowledge/CopyDraftResult").then((module) => ({
+    default: module.CopyDraftResult,
+  })),
+);
 
 const states: Record<string, string> = {
   queued: "В очереди",
@@ -419,6 +424,11 @@ function Profiles({ workspace: w }: { workspace: Workspace }) {
               triage={run.data.editorial_triage}
               timezone={w.timezone}
             />
+          )}
+          {run.data.copy_draft && (
+            <Suspense fallback={<p role="status">Загружаем предложение…</p>}>
+              <CopyDraftResult draft={run.data.copy_draft} />
+            </Suspense>
           )}
           {run.data.assessment && (
             <>

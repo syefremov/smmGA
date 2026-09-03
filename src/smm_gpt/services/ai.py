@@ -8,7 +8,8 @@ from smm_gpt.core.config import Settings
 from smm_gpt.domain import ai as d
 from smm_gpt.domain.access import Permission, Principal
 from smm_gpt.domain.content import canonical_hash
-from smm_gpt.domain.editor import EditorialReview, RunEditorialReview
+from smm_gpt.domain.copywriter import CopyDraft, CopywritingContext, RunCopyDraft
+from smm_gpt.domain.editor import EditorContext, EditorialReview, RunEditorialReview
 from smm_gpt.domain.knowledge import SearchRequest
 from smm_gpt.domain.operations import OperationError, Page
 from smm_gpt.infrastructure.ai_models import AIArtifact, AICancel, AIInput, AIRun
@@ -16,11 +17,16 @@ from smm_gpt.infrastructure.knowledge_models import RetrievalRun
 from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import AccessService, audit, digest
 from smm_gpt.services.ai_queue import current_input
+from smm_gpt.services.copywriter import validate_context, validate_draft
 from smm_gpt.services.editor import snapshot, validate_review
 from smm_gpt.services.editor_triage import triage_view
 from smm_gpt.services.knowledge import brand_exists, eligible_citation, lock, retrieve
 from smm_gpt.services.knowledge_text import safe_text
-from smm_gpt.services.model_gateway import assessment_payload, editorial_payload
+from smm_gpt.services.model_gateway import (
+    assessment_payload,
+    copywriting_payload,
+    editorial_payload,
+)
 from smm_gpt.services.profiles import assert_registered_run, compatible_profile, selected_version
 
 
@@ -36,12 +42,14 @@ class AIService:
         self,
         actor: Principal,
         wid: UUID,
-        command: d.RunAssessment | RunEditorialReview,
+        command: d.RunAssessment | RunEditorialReview | RunCopyDraft,
         request: UUID,
     ) -> d.AIRunView:
         question = (
             command.question
             if isinstance(command, d.RunAssessment)
+            else command.direction
+            if isinstance(command, RunCopyDraft)
             else "Review exact stored revision"
         )
         safe_text(question)
@@ -72,6 +80,8 @@ class AIService:
                 error = profile.blocked_reason
                 if command.profile == "editor" and isinstance(command, d.RunAssessment):
                     error = "editor_revision_request_required"
+                if command.profile == "copywriter" and isinstance(command, d.RunAssessment):
+                    error = "copywriter_revision_request_required"
                 selected = None
                 if not error and (
                     self.settings.ai_provider == "disabled"
@@ -97,7 +107,8 @@ class AIService:
                         error = exc.code
                 citations = []
                 context = None
-                if not error and isinstance(command, RunEditorialReview):
+                copy_context = None
+                if not error and isinstance(command, (RunEditorialReview, RunCopyDraft)):
                     try:
                         context = await snapshot(
                             s,
@@ -107,6 +118,11 @@ class AIService:
                             command.revision_id,
                             command.content_hash,
                         )
+                        if isinstance(command, RunCopyDraft):
+                            copy_context = CopywritingContext(
+                                source=context, direction=command.direction
+                            )
+                            validate_context(copy_context)
                     except OperationError as exc:
                         error = exc.code
                 if not error and isinstance(command, d.RunAssessment):
@@ -160,7 +176,11 @@ class AIService:
                 await s.flush()
                 if not error:
                     payload = (
-                        editorial_payload(
+                        copywriting_payload(
+                            profile, copy_context.model_dump(mode="json"), self.settings.ai_model
+                        )
+                        if copy_context
+                        else editorial_payload(
                             profile, context.model_dump(mode="json"), self.settings.ai_model
                         )
                         if context
@@ -180,7 +200,12 @@ class AIService:
                             content_hash=canonical_hash(payload),
                             post_id=context.post_id if context else None,
                             revision_id=context.revision.id if context else None,
-                            editor_context=context.model_dump(mode="json") if context else None,
+                            editor_context=context.model_dump(mode="json")
+                            if context and not copy_context
+                            else None,
+                            copy_context=copy_context.model_dump(mode="json")
+                            if copy_context
+                            else None,
                         )
                     )
                 audit(s, actor.user_id, wid, request, "ai.run_reserved", run.state, run.id)
@@ -252,7 +277,8 @@ class AIService:
                 question=record.question,
                 citations=citations,
                 payload=record.payload,
-                editor_context=context,
+                editor_context=context if isinstance(context, EditorContext) else None,
+                copy_context=context if isinstance(context, CopywritingContext) else None,
             )
 
     async def read(self, actor: Principal, wid: UUID, rid: UUID, request: UUID) -> d.AIRunView:
@@ -271,9 +297,19 @@ class AIService:
                 try:
                     await lock(s, wid)
                     await assert_registered_run(s, run)
+                    if run.profile == "copywriter":
+                        _, _, _, context = await current_input(s, run)
+                        if not isinstance(context, CopywritingContext):
+                            raise OperationError("copywriter_input_invalid")
+                        draft = CopyDraft.model_validate(artifact.body)
+                        if canonical_hash(artifact.body) != artifact.content_hash:
+                            raise OperationError("copywriter_artifact_invalid")
+                        validate_draft(draft, context)
+                        view.copy_draft = draft
+                        return view
                     if run.profile == "editor":
                         _, _, _, context = await current_input(s, run)
-                        if context is None:
+                        if not isinstance(context, EditorContext):
                             raise OperationError("editor_input_invalid")
                         review = EditorialReview.model_validate(artifact.body)
                         if canonical_hash(artifact.body) != artifact.content_hash:
@@ -292,6 +328,8 @@ class AIService:
                     view.error_code = (
                         "artifact_profile_stale_or_unavailable"
                         if exc.code.startswith("profile_")
+                        else "artifact_copywriter_stale_or_unavailable"
+                        if run.profile == "copywriter"
                         else "artifact_editor_stale_or_unavailable"
                         if run.profile == "editor"
                         else "artifact_sources_stale_or_unavailable"

@@ -17,6 +17,7 @@ from smm_gpt.domain import editor_triage as triage_dto
 from smm_gpt.domain import knowledge as knowledge_dto
 from smm_gpt.domain import profiles as profile_dto
 from smm_gpt.domain.access import AccessDenied
+from smm_gpt.domain.copywriter import RunCopyDraft
 from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import (
     CatalogKind,
@@ -35,6 +36,7 @@ from .conftest import TenantFixture
 from .test_ai_queue import Gateway
 from .test_ai_queue import config as ai_test_config
 from .test_content import pilot
+from .test_copywriter import CopyGateway
 from .test_editor import EditorGateway
 from .test_editor_triage import decision as finding_decision
 from .test_knowledge import activate as activate_knowledge
@@ -499,6 +501,47 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
         )
         assert malformed_triage.status_code == 422 and "never-echo" not in malformed_triage.text
         assert (await browser.get(triage_path + "/history?before=0")).status_code == 422
+        copy_selection = await register_editor(t, "copywriter")
+        copy_command = RunCopyDraft(
+            idempotency_key=uuid4().hex,
+            brand_id=content.brand,
+            post_id=content.post_id,
+            revision_id=revision.id,
+            content_hash=revision.content_hash,
+            direction="Concise",
+            profile_version_id=copy_selection.version_id,
+            profile_selection_id=copy_selection.decision_id,
+            testing_only=True,
+        ).model_dump(mode="json")
+        copy_path = f"/api/v1/workspaces/{wid}/knowledge/copywriter-runs"
+        copy_mcp = await call("ai_draft_revision", {"workspace_id": wid, "command": copy_command})
+        copy_rest = await browser.post(copy_path, json=copy_command)
+        assert copy_rest.status_code == 200 and copy_rest.json()["state"] == "queued", (
+            copy_rest.text
+        )
+        assert copy_mcp["structuredContent"] == copy_rest.json()
+        copy_id = copy_rest.json()["id"]
+        assert (await call("ai_run_inputs", {"workspace_id": wid, "run_id": copy_id}))[
+            "structuredContent"
+        ] == (await browser.get(ai_prefix + f"/{copy_id}/inputs")).json()
+        assert await process_ai(
+            t.worker,
+            ai_test_config(t.workspace),
+            Gateway(),
+            t.workspace,
+            UUID(copy_id),
+            t.owner.user_id,
+            copywriting_gateway=CopyGateway(),
+        )
+        copy_result = await browser.get(ai_prefix + f"/{copy_id}")
+        assert copy_result.json()["copy_draft"] and not copy_result.json()["editorial_review"]
+        assert (await call("ai_run_read", {"workspace_id": wid, "run_id": copy_id}))[
+            "structuredContent"
+        ] == copy_result.json()
+        bad_copy = await browser.post(
+            copy_path, json={**copy_command, "direction": "never-echo-copy", "approved": True}
+        )
+        assert bad_copy.status_code == 422 and "never-echo-copy" not in bad_copy.text
         read_knowledge = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/documents")
         assert (await call("knowledge_documents", {"workspace_id": wid}))[
             "structuredContent"

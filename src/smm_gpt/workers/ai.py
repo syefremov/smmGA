@@ -9,17 +9,21 @@ from sqlalchemy import select, text
 from smm_gpt.core.config import Settings, get_settings
 from smm_gpt.domain.ai import ReferenceAssessment
 from smm_gpt.domain.content import canonical_hash
-from smm_gpt.domain.editor import EditorialReview
+from smm_gpt.domain.copywriter import CopyDraft, CopywritingContext
+from smm_gpt.domain.editor import EditorContext, EditorialReview
 from smm_gpt.domain.operations import OperationError
 from smm_gpt.infrastructure.ai_models import AIArtifact, AIRun
 from smm_gpt.infrastructure.database import Database
 from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import audit
 from smm_gpt.services.ai_queue import authorized, current_input, executable
+from smm_gpt.services.copywriter import validate_draft
 from smm_gpt.services.editor import validate_review
 from smm_gpt.services.knowledge import lock
 from smm_gpt.services.knowledge_text import safe_text
 from smm_gpt.services.model_gateway import (
+    CopywritingGateway,
+    CopywritingGatewayResult,
     EditorialGateway,
     EditorialGatewayResult,
     GatewayResult,
@@ -38,6 +42,7 @@ async def process(
     actor: UUID,
     *,
     editorial_gateway: EditorialGateway | None = None,
+    copywriting_gateway: CopywritingGateway | None = None,
 ) -> bool:
     token = uuid4()
     async with database.transaction(actor, wid) as s:
@@ -77,27 +82,35 @@ async def process(
         run.usage = {**run.usage, "attempts": 1, "cost_status": "unknown"}
         audit(s, actor, wid, uuid4(), "ai.dispatch_reserved", "running", rid)
     # Durable dispatch reservation commits BEFORE network I/O. A crash may lose work, not replay it.
-    generated: GatewayResult | EditorialGatewayResult | None = None
-    body: ReferenceAssessment | EditorialReview | None = None
+    generated: GatewayResult | EditorialGatewayResult | CopywritingGatewayResult | None = None
+    body: ReferenceAssessment | EditorialReview | CopyDraft | None = None
     error: str | None = None
     unknown = False
     try:
         async with asyncio.timeout(60):
-            if context:
+            candidate: GatewayResult | EditorialGatewayResult | CopywritingGatewayResult
+            if isinstance(context, CopywritingContext):
+                drafted = await (copywriting_gateway or OpenAITextGateway(settings)).draft(
+                    profile, context
+                )
+                candidate = CopywritingGatewayResult.model_validate(drafted.model_dump())
+            elif context:
                 reviewed = await (editorial_gateway or OpenAITextGateway(settings)).review(
                     profile, context
                 )
-                candidate: GatewayResult | EditorialGatewayResult = (
-                    EditorialGatewayResult.model_validate(reviewed.model_dump())
-                )
+                candidate = EditorialGatewayResult.model_validate(reviewed.model_dump())
             else:
                 returned = await gateway.assess(profile, question, citations)
                 candidate = GatewayResult.model_validate(returned.model_dump())
         safe_text(candidate.model)
         safe_text(candidate.response_id)
         generated = candidate
-        if isinstance(generated, EditorialGatewayResult):
-            assert context is not None
+        if isinstance(generated, CopywritingGatewayResult):
+            assert isinstance(context, CopywritingContext)
+            body = CopyDraft.model_validate(generated.draft.model_dump())
+            validate_draft(body, context)
+        elif isinstance(generated, EditorialGatewayResult):
+            assert isinstance(context, EditorContext)
             body = EditorialReview.model_validate(generated.review.model_dump())
             validate_review(body, context)
         else:

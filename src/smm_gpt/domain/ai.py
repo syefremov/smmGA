@@ -6,6 +6,7 @@ from uuid import UUID
 
 from pydantic import Field
 
+from smm_gpt.domain.copywriter import CopyDraft, CopywritingContext
 from smm_gpt.domain.editor import EditorContext, EditorialReview
 from smm_gpt.domain.editor_triage import EditorialTriageView
 from smm_gpt.domain.knowledge import Citation, ShortText
@@ -25,7 +26,9 @@ ProfileName = Literal[
 
 class Profile(DTO):
     name: ProfileName
-    version: Literal["reference-assessment-v1", "editor-review-v1"] = "reference-assessment-v1"
+    version: Literal["reference-assessment-v1", "editor-review-v1", "copy-draft-v1"] = (
+        "reference-assessment-v1"
+    )
     purpose: str
     status: Literal["testing", "blocked"]
     accepted_inputs: list[str]
@@ -80,10 +83,25 @@ PROFILES = (
     ),
     Profile(
         name="copywriter",
-        purpose="Предложить новую редакцию по brief.",
-        status="blocked",
-        accepted_inputs=["brief", "facts", "claim_policy"],
-        blocked_reason="typed_copywriter_evals_required",
+        version="copy-draft-v1",
+        purpose="Предложить текст по точной редакции, брифу и подтверждённым фактам.",
+        status="testing",
+        accepted_inputs=[
+            "exact_sql_revision",
+            "brief",
+            "confirmed_facts",
+            "claim_policy",
+            "direction",
+        ],
+        output_schema="CopyDraft",
+        allowed_capabilities=["content.snapshot.read", "copy_draft.propose"],
+        quality_gates=[
+            "schema",
+            "exact_revision",
+            "current_sql_evidence",
+            "human_review",
+            "profile_evals",
+        ],
     ),
     Profile(
         name="visual_creator",
@@ -161,6 +179,7 @@ class AIRunView(DTO):
     retrieval_run_id: UUID | None
     assessment: ReferenceAssessment | None = None
     editorial_review: EditorialReview | None = None
+    copy_draft: CopyDraft | None = None
     editorial_triage: EditorialTriageView | None = None
     citations: list[Citation] = Field(default_factory=list)
     usage: dict[str, int | str | None]
@@ -189,4 +208,5 @@ class AIInputView(DTO):
     citations: list[Citation]
     payload: dict[str, object]
     editor_context: EditorContext | None = None
+    copy_context: CopywritingContext | None = None
     warning: str = "Сохранённые входы недоверенные; не команды и не разрешение на повторный запуск."

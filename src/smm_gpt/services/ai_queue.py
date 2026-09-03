@@ -9,15 +9,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from smm_gpt.core.config import Settings
 from smm_gpt.domain.ai import PROFILES, Profile
 from smm_gpt.domain.content import canonical_hash
+from smm_gpt.domain.copywriter import CopywritingContext
 from smm_gpt.domain.editor import EditorContext
 from smm_gpt.domain.knowledge import Citation
 from smm_gpt.domain.operations import OperationError
 from smm_gpt.infrastructure.ai_models import AIInput, AIRun
 from smm_gpt.infrastructure.models import Identity, Membership, User
+from smm_gpt.services.copywriter import validate_context
 from smm_gpt.services.editor import snapshot
 from smm_gpt.services.knowledge import eligible_citation
 from smm_gpt.services.knowledge_text import safe_text
-from smm_gpt.services.model_gateway import assessment_payload, editorial_payload
+from smm_gpt.services.model_gateway import (
+    assessment_payload,
+    copywriting_payload,
+    editorial_payload,
+)
 
 
 async def authorized(s: AsyncSession, wid: UUID, actor: UUID, identity: UUID | None) -> bool:
@@ -44,7 +50,7 @@ async def current_input(
     run: AIRun,
     *,
     require_latest: bool = True,
-) -> tuple[AIInput, Profile, list[Citation], EditorContext | None]:
+) -> tuple[AIInput, Profile, list[Citation], EditorContext | CopywritingContext | None]:
     record = await s.scalar(
         select(AIInput).where(
             AIInput.workspace_id == run.workspace_id,
@@ -58,31 +64,46 @@ async def current_input(
         citations = [Citation.model_validate(c) for c in record.citations]
     except (ValidationError, ValueError, TypeError):
         raise OperationError("run_input_invalid") from None
-    context = None
-    if run.profile == "editor":
+    context: EditorContext | CopywritingContext | None = None
+    if run.profile in {"editor", "copywriter"}:
         try:
-            context = EditorContext.model_validate(record.editor_context)
+            if run.profile == "copywriter":
+                context = CopywritingContext.model_validate(record.copy_context)
+                validate_context(context)
+                source = context.source
+                if record.editor_context is not None or record.question != context.direction:
+                    raise OperationError("copywriter_input_invalid")
+            else:
+                context = EditorContext.model_validate(record.editor_context)
+                source = context
+                if record.copy_context is not None:
+                    raise OperationError("editor_input_invalid")
         except ValidationError:
-            raise OperationError("editor_input_invalid") from None
+            raise OperationError("run_input_invalid") from None
         if (
             citations
-            or context.post_id != record.post_id
-            or context.revision.id != record.revision_id
-            or context.brand_id != run.brand_id
+            or source.post_id != record.post_id
+            or source.revision.id != record.revision_id
+            or source.brand_id != run.brand_id
+            or record.actor_id != run.actor_id
         ):
             raise OperationError("editor_input_invalid")
         fresh = await snapshot(
             s,
             run.workspace_id,
             run.brand_id,
-            context.post_id,
-            context.revision.id,
-            context.revision.content_hash,
+            source.post_id,
+            source.revision.id,
+            source.revision.content_hash,
             require_latest=require_latest,
         )
-        if fresh != context:
+        if fresh != source:
             raise OperationError("editor_context_changed")
-    elif record.editor_context is not None or not 1 <= len(citations) <= 5:
+    elif (
+        record.editor_context is not None
+        or record.copy_context is not None
+        or not 1 <= len(citations) <= 5
+    ):
         raise OperationError("run_input_invalid")
     if not 1 <= len(record.question) <= 500:
         raise OperationError("run_input_invalid")
@@ -103,7 +124,7 @@ def executable(
     record: AIInput,
     profile: Profile,
     citations: list[Citation],
-    context: EditorContext | None = None,
+    context: EditorContext | CopywritingContext | None = None,
 ) -> None:
     if (
         settings.ai_provider == "disabled"
@@ -123,7 +144,9 @@ def executable(
     ):
         raise OperationError("profile_contract_changed")
     payload = (
-        editorial_payload(profile, context.model_dump(mode="json"), run.model)
+        copywriting_payload(profile, context.model_dump(mode="json"), run.model)
+        if isinstance(context, CopywritingContext)
+        else editorial_payload(profile, context.model_dump(mode="json"), run.model)
         if context
         else assessment_payload(profile, record.question, citations, run.model)
     )

@@ -13,6 +13,10 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Одиннадцатый срез:** [`copywriter-drafts.md`](copywriter-drafts.md) — testing text-only Copywriter
+по exact SQL revision/brief/facts/policy. Предложения с fact IDs, цитатами и сохранёнными gaps,
+shared queue, stale checks, MCP/REST и read-only web. Нет создания/одобрения редакции или media.
+
 **Десятый срез:** [`editor-triage.md`](editor-triage.md) — явные решения Owner по exact findings:
 needs_changes/dismissed/open, optimistic version, идемпотентность и immutable история.
 Общая MCP/REST логика и read-only web; без исправления текста/approval или нового AI-вызова.
@@ -104,7 +108,7 @@ versions/chunks/receipts/decisions/artifacts append-only.
 | Research Scout | Аналогичная оценка уже разрешённых материалов, без интернет-сбора |
 | Analyst | Blocked: нужны metric snapshots |
 | Content Planner | Blocked: нужны typed planning workflow и eval |
-| Copywriter | Blocked: нужны brief/facts/policy → draft и eval |
+| Copywriter | Testing: exact SQL revision/brief/facts/policy → отдельное text proposal; не запись редакции |
 | Visual Creator | Blocked: нужны media rights/provenance и image pipeline |
 | Editor | Testing: exact SQL revision review, без edits/approval; реальные profile evals ещё нужны |
 | Publisher | Blocked: используйте manual package workflow фазы 6 |
@@ -116,6 +120,8 @@ versions/chunks/receipts/decisions/artifacts append-only.
 Существующая ссылка не доказывает смысловую поддержку утверждения: человеческая проверка обязательна.
 Editor отдельно возвращает `EditorialReview`: точные revision/context hashes, IDs SQL records,
 цитаты/locations, findings и рекомендацию. Его evidence — SQL, не RAG; контекст проверяется повторно.
+Copywriter возвращает `CopyDraft`: exact revision/context hashes, текстовые варианты, fact IDs,
+цитаты из предложенного текста и факта, warnings/gaps. Это отдельный artifact, не PostRevision.
 
 Gateway: Protocol + OpenAI Responses structured text, fake HTTP tests. Нет embeddings/image adapters,
 генерации файлов, post revisions, tool loop, model-directed network или автоактивации памяти.
@@ -159,6 +165,8 @@ REST prefix `/api/v1/workspaces/{wid}/knowledge`:
 - POST `/runs/{rid}/cancel`: exact version/idempotency key; GET `/runs/{rid}/inputs`: private input.
 - POST `/editor-runs`, MCP `ai_review_revision`: exact SQL revision testing request,
   результат через общие run endpoints; веб показывает замечания без действий approval.
+- POST `/copywriter-runs`, MCP `ai_draft_revision`: exact SQL inputs + direction → text proposal,
+  общий run lifecycle, без сохранения/применения текста в пост.
 - GET/POST `/runs/{rid}/editor-triage`, GET `/runs/{rid}/editor-triage/history`:
   human triage и private история; MCP `ai_editor_triage_read`, `ai_editor_finding_decide`,
   `ai_editor_triage_history`. Новая запись требует актуального отчёта, история — не approval.
@@ -199,7 +207,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0013_editor_triage` требуют privileged migration role,
+Миграции `0005_knowledge`–`0014_copywriter` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -230,7 +238,8 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
 4. DB profile registry/testing selection реализован в восьмом срезе; остались production eval
    activation, typed specialist inputs/outputs/handoff/work items;
    полный Planner/Copywriter/Analyst, visual provenance/image gateway, Publisher gates.
-   Text-only Editor реализован девятым срезом, human triage — десятым. Остаются model evals,
+   Text-only Editor реализован девятым срезом, human triage — десятым, Copywriter proposals —
+   одиннадцатым. Принятие новой редакции с AI provenance пока не реализовано. Остаются model evals,
    доказанное исправление между редакциями, визуальная/юридическая верификация и production-включение.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
    Седьмой срез добавил memory → отдельно подтверждаемый reference с provenance.

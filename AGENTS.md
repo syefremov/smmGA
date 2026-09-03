@@ -188,6 +188,13 @@
   consent. Append history, never overwrite it or transfer decisions to another run. Dismissal
   does not fix content, suppress deterministic blockers or approve a post. Replays are historical
   receipts; new writes recheck current context. Keep private history out of AI worker capabilities.
+- Follow `docs/copywriter-drafts.md`: Copywriter proposes text only from an exact current SQL
+  revision/brief/confirmed facts/policy. No RAG, media, content writes or approvals. Bind profile
+  selection, input hashes and fact IDs with exact output/source quotes; preserve original gaps.
+  Citation membership is not semantic truth or full claim coverage. Require human review and
+  separate save/preflight/approval; no automatic adoption or claim of adoption provenance.
+  Recheck freshness before dispatch/finalize/read; hide stale candidates without erasing history.
+  Downgrade with saved copy inputs must fail closed, never silently discard their provenance.
 - Follow `docs/ai-profile-registry.md`: ai_profiles is a built-in catalog, not the DB selection.
   New queued runs require exact registered version AND selection IDs, with no implicit fallback.
   Only purpose/model are configurable within code-owned capabilities and output contracts.

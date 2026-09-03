@@ -1,5 +1,11 @@
 # Фоновые AI-задания: четвёртый срез фазы 7
 
+Одиннадцатый срез добавляет `ai_draft_revision` / POST `/copywriter-runs` в эту же очередь:
+[`copywriter-drafts.md`](copywriter-drafts.md). Immutable `copy_context` вместо retrieval,
+отдельный `CopyDraft` artifact, прежние at-most-once/cancel/freshness/Owner gates.
+Нет записи поста, дополнительных worker grants или автоматического включения провайдера.
+Ниже описан исходный reference workflow; Editor использует [`editor-review.md`](editor-review.md).
+
 2026-09-03. Реализована очередь существующих **тестовых reference assessments**,
 а не готовые Planner/Copywriter/Editor или публикация. Реальные модели, ключи, данные
 и сервер в этой итерации не подключались. Фаза 7 остаётся частичной.

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from smm_gpt.domain import editor_triage as d
 from smm_gpt.domain.access import Permission, Principal
 from smm_gpt.domain.content import canonical_hash
-from smm_gpt.domain.editor import EditorialReview
+from smm_gpt.domain.editor import EditorContext, EditorialReview
 from smm_gpt.domain.operations import OperationError
 from smm_gpt.infrastructure.ai_models import AIArtifact, AIRun, EditorialDecision
 from smm_gpt.services.access import AccessService, audit, digest
@@ -34,7 +34,7 @@ async def current_report(
         select(AIArtifact).where(AIArtifact.workspace_id == wid, AIArtifact.run_id == rid)
     )
     if (
-        context is None
+        not isinstance(context, EditorContext)
         or artifact is None
         or canonical_hash(artifact.body) != artifact.content_hash
     ):

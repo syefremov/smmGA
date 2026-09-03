@@ -14,6 +14,7 @@ from smm_gpt.domain import evaluation as e
 from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
 from smm_gpt.domain import profiles as p
+from smm_gpt.domain.copywriter import RunCopyDraft
 from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import ErrorResponse, Page, PageSize
 from smm_gpt.infrastructure.file_storage import VolumeFileStore
@@ -296,6 +297,13 @@ async def editorial_run(
     command: RunEditorialReview,
     actor: Actor,
     service: AI,
+) -> a.AIRunView:
+    return await service.start(actor, workspace_id, command, request_id())
+
+
+@router.post("/copywriter-runs")
+async def copywriter_run(
+    workspace_id: UUID, command: RunCopyDraft, actor: Actor, service: AI
 ) -> a.AIRunView:
     return await service.start(actor, workspace_id, command, request_id())
 

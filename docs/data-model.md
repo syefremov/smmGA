@@ -1,5 +1,11 @@
 # Центральная модель данных — фаза 4
 
+Одиннадцатый срез: `0014_copywriter` добавляет nullable `ai_inputs.copy_context`, расширяет
+pair CHECK до ровно одного content context и сохраняет прежний revision FK/Editor guards.
+Copywriter insert/run guards связывают actor/brand/current revision; новых worker grants нет.
+Inputs и artifacts остаются private/append-only. Downgrade с copy inputs запрещён до отдельного
+restore-backed плана. Контракт — [`copywriter-drafts.md`](copywriter-drafts.md).
+
 Десятый срез фазы 7: `0013_editor_triage` добавляет append-only `editorial_decisions` с
 exact artifact/revision/finding hashes, sequence/version, rationale и actor-private Owner RLS.
 Worker не имеет доступа. Решения не меняют content/approval и не переносятся на новый отчёт.

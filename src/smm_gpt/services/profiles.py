@@ -21,7 +21,11 @@ from smm_gpt.infrastructure.profile_models import (
 from smm_gpt.services.access import AccessService, audit, digest
 from smm_gpt.services.knowledge import lock
 from smm_gpt.services.knowledge_text import safe_text
-from smm_gpt.services.model_gateway import assessment_payload, editorial_payload
+from smm_gpt.services.model_gateway import (
+    assessment_payload,
+    copywriting_payload,
+    editorial_payload,
+)
 
 
 def template(name: str) -> ai.Profile:
@@ -40,6 +44,8 @@ def execution_hash(profile: ai.Profile, provider: str, model: str) -> str:
             "profile": profile.model_dump(mode="json"),
             "payload": editorial_payload(profile, {"contract_probe": True}, model)
             if profile.name == "editor"
+            else copywriting_payload(profile, {"contract_probe": True}, model)
+            if profile.name == "copywriter"
             else assessment_payload(profile, "registry-contract-probe", [], model),
         }
     )

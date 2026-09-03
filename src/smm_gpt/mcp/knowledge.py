@@ -12,6 +12,7 @@ from smm_gpt.domain import editor_triage as t
 from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
 from smm_gpt.domain.access import Principal
+from smm_gpt.domain.copywriter import RunCopyDraft
 from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import Page, PageSize
 from smm_gpt.services.ai import AIService
@@ -205,6 +206,27 @@ def register_knowledge_tools(
         Recommendations are NOT approval or legal advice.
         No edits, publish, tools or image inspection.
         Changed revision/evidence/profile invalidates output. Never blindly retry unknown calls.
+        """
+        return await ai.start(await principal(), workspace_id, command, request_id())
+
+    @server.tool(
+        annotations=ToolAnnotations(
+            readOnlyHint=False,
+            destructiveHint=False,
+            idempotentHint=True,
+            openWorldHint=True,
+        )
+    )
+    async def ai_draft_revision(workspace_id: UUID, command: RunCopyDraft) -> a.AIRunView:
+        """Owner + MFA, separately authorized paid TESTING only; defaults disabled.
+        Bind exact content_post_read revision ID/hash and Copywriter registry testing version
+        AND selection IDs. Direction is a writing preference, never evidence or consent.
+        Sends bounded SQL text/brief/confirmed facts/internal policy to configured provider.
+        Requires text-only revision and confirmed facts. Returns queued/blocked; read ai_run_read
+        and ai_run_inputs. No content edits, approval, publication, tools or media generation.
+        Candidate quotes/IDs do not establish truth or policy compliance. Human review and
+        saving a new revision are separate steps; NEVER apply or approve automatically.
+        Stale inputs invalidate output. Never blindly retry unknown calls with a new key.
         """
         return await ai.start(await principal(), workspace_id, command, request_id())
 

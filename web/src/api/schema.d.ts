@@ -381,6 +381,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/copywriter-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copywriter Run */
+        post: operations["copywriter_run_api_v1_workspaces__workspace_id__knowledge_copywriter_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/documents": {
         parameters: {
             query?: never;
@@ -1042,6 +1059,7 @@ export interface components {
             citations: components["schemas"]["Citation"][];
             /** Content Hash */
             content_hash: string;
+            copy_context?: components["schemas"]["CopywritingContext"] | null;
             editor_context?: components["schemas"]["EditorContext"] | null;
             /** Payload */
             payload: {
@@ -1065,6 +1083,7 @@ export interface components {
             assessment?: components["schemas"]["ReferenceAssessment"] | null;
             /** Citations */
             citations?: components["schemas"]["Citation"][];
+            copy_draft?: components["schemas"]["CopyDraft"] | null;
             /** Created At */
             created_at?: string | null;
             editorial_review?: components["schemas"]["EditorialReview"] | null;
@@ -1604,6 +1623,62 @@ export interface components {
             name: string;
             /** Slots */
             slots: components["schemas"]["Slot"][];
+        };
+        /** CopyDraft */
+        CopyDraft: {
+            /** Content Hash */
+            content_hash: string;
+            /** Context Hash */
+            context_hash: string;
+            /** Knowledge Gaps */
+            knowledge_gaps: string[];
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "draft" | "insufficient_evidence";
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /** Variants */
+            variants: components["schemas"]["CopyVariant"][];
+            /** Warnings */
+            warnings: string[];
+        };
+        /** CopyEvidence */
+        CopyEvidence: {
+            /**
+             * Fact Id
+             * Format: uuid
+             */
+            fact_id: string;
+            /** Quote */
+            quote: string;
+            /** Source Quote */
+            source_quote: string;
+        };
+        /** CopyVariant */
+        CopyVariant: {
+            /** Evidence */
+            evidence: components["schemas"]["CopyEvidence"][];
+            /** Text */
+            text: string;
+            /** Variant Index */
+            variant_index: number;
+        };
+        /** CopywritingContext */
+        CopywritingContext: {
+            /**
+             * Contract
+             * @default copywriting-context-v1
+             * @constant
+             */
+            contract: "copywriting-context-v1";
+            /** Direction */
+            direction: string;
+            source: components["schemas"]["EditorContext"];
         };
         /** CorpusSource */
         CorpusSource: {
@@ -3580,7 +3655,7 @@ export interface components {
              * @default reference-assessment-v1
              * @enum {string}
              */
-            version: "reference-assessment-v1" | "editor-review-v1";
+            version: "reference-assessment-v1" | "editor-review-v1" | "copy-draft-v1";
         };
         /** ProfileDecisionView */
         ProfileDecisionView: {
@@ -4010,6 +4085,51 @@ export interface components {
             profile_version_id?: string | null;
             /** Question */
             question: string;
+            /**
+             * Testing Only
+             * @constant
+             */
+            testing_only: true;
+        };
+        /** RunCopyDraft */
+        RunCopyDraft: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Direction */
+            direction: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Profile
+             * @default copywriter
+             * @constant
+             */
+            profile: "copywriter";
+            /**
+             * Profile Selection Id
+             * Format: uuid
+             */
+            profile_selection_id: string;
+            /**
+             * Profile Version Id
+             * Format: uuid
+             */
+            profile_version_id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
             /**
              * Testing Only
              * @constant
@@ -6040,6 +6160,95 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KnowledgeResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    copywriter_run_api_v1_workspaces__workspace_id__knowledge_copywriter_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunCopyDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunView"];
                 };
             };
             /** @description Unauthorized */

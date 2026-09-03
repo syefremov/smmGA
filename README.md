@@ -38,6 +38,9 @@ API/MCP сразу возвращают `queued`/`blocked`, результат �
 Десятый срез: человек отмечает замечания AI как требующие правки, отклонённые или возвращённые
 в работу. Exact report/revision/finding bindings, история и защита от конфликтов между машинами;
 посты и approvals не меняются. Контракт — [`docs/editor-triage.md`](docs/editor-triage.md).
+Одиннадцатый срез: тестовый копирайтер предлагает текст по сохранённой редакции, брифу и
+подтверждённым фактам, с цитатами и пробелами знаний. Управление из чата, просмотр также в панели;
+пост не изменяется. Контракт — [`docs/copywriter-drafts.md`](docs/copywriter-drafts.md).
 **Фаза 7 пока не завершена:** ввод binary ingestion в эксплуатацию, hybrid/pgvector, полный набор AI workflows,
 реальный утверждённый корпус/evals и server gates ещё впереди. Точная граница —
 [`docs/phase-7-implementation.md`](docs/phase-7-implementation.md).

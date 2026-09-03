@@ -74,8 +74,9 @@ class AIInput(Tenant, Base):
         ),
         CheckConstraint(
             "(post_id IS NULL) = (revision_id IS NULL) "
-            "AND (post_id IS NULL) = (editor_context IS NULL)",
-            name="ai_input_editor_pair",
+            "AND ((post_id IS NULL AND editor_context IS NULL AND copy_context IS NULL) "
+            "OR (post_id IS NOT NULL AND ((editor_context IS NULL) <> (copy_context IS NULL))))",
+            name="ai_input_content_pair",
         ),
     )
     run_id: Mapped[UUID]
@@ -87,6 +88,7 @@ class AIInput(Tenant, Base):
     post_id: Mapped[UUID | None]
     revision_id: Mapped[UUID | None]
     editor_context: Mapped[dict[str, object] | None] = mapped_column(JSON(none_as_null=True))
+    copy_context: Mapped[dict[str, object] | None] = mapped_column(JSON(none_as_null=True))
 
 
 class AICancel(Tenant, Base):
