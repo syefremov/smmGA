@@ -110,6 +110,16 @@
             "title": "Citations",
             "type": "array"
           },
+          "copy_adoption": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CopyAdoptionView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "copy_draft": {
             "anyOf": [
               {
@@ -417,6 +427,72 @@
           "text"
         ],
         "title": "AddComment",
+        "type": "object"
+      },
+      "AdoptCopyDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Artifact Hash",
+            "type": "string"
+          },
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "expected_post_version": {
+            "minimum": 1.0,
+            "title": "Expected Post Version",
+            "type": "integer"
+          },
+          "human_confirmed": {
+            "const": true,
+            "title": "Human Confirmed",
+            "type": "boolean"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "preview_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Preview Hash",
+            "type": "string"
+          },
+          "proposed_content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Proposed Content Hash",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Reason",
+            "type": "string"
+          },
+          "share_with_workspace_confirmed": {
+            "const": true,
+            "title": "Share With Workspace Confirmed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "artifact_id",
+          "artifact_hash",
+          "preview_hash",
+          "proposed_content_hash",
+          "expected_post_version",
+          "reason",
+          "human_confirmed",
+          "share_with_workspace_confirmed"
+        ],
+        "title": "AdoptCopyDraft",
         "type": "object"
       },
       "ArchiveDocument": {
@@ -1389,6 +1465,211 @@
           "slots"
         ],
         "title": "ContentPlan",
+        "type": "object"
+      },
+      "CopyAdoptionPreview": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Artifact Hash",
+            "type": "string"
+          },
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "body": {
+            "$ref": "#/components/schemas/RevisionBody"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/CopyDraft"
+          },
+          "input_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "input_id": {
+            "format": "uuid",
+            "title": "Input Id",
+            "type": "string"
+          },
+          "post_id": {
+            "format": "uuid",
+            "title": "Post Id",
+            "type": "string"
+          },
+          "post_version": {
+            "title": "Post Version",
+            "type": "integer"
+          },
+          "preview_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Preview Hash",
+            "type": "string"
+          },
+          "proposed_content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Proposed Content Hash",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "source_content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Content Hash",
+            "type": "string"
+          },
+          "source_revision_id": {
+            "format": "uuid",
+            "title": "Source Revision Id",
+            "type": "string"
+          },
+          "warning": {
+            "default": "Это предпросмотр, не запись и не одобрение. После отдельного подтверждения текст, fact IDs и пробелы станут доступны участникам, которым доступен контент workspace. Старое согласование будет снято; рабочие копии сохранятся.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "artifact_id",
+          "artifact_hash",
+          "input_id",
+          "input_hash",
+          "post_id",
+          "post_version",
+          "source_revision_id",
+          "source_content_hash",
+          "proposed_content_hash",
+          "preview_hash",
+          "body",
+          "draft"
+        ],
+        "title": "CopyAdoptionPreview",
+        "type": "object"
+      },
+      "CopyAdoptionView": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "artifact_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Artifact Hash",
+            "type": "string"
+          },
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "historical_only": {
+            "const": true,
+            "default": true,
+            "title": "Historical Only",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "input_id": {
+            "format": "uuid",
+            "title": "Input Id",
+            "type": "string"
+          },
+          "post_id": {
+            "format": "uuid",
+            "title": "Post Id",
+            "type": "string"
+          },
+          "post_version": {
+            "title": "Post Version",
+            "type": "integer"
+          },
+          "preflight": {
+            "$ref": "#/components/schemas/Preflight"
+          },
+          "preview_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Preview Hash",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "revision_id": {
+            "format": "uuid",
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "source_content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Content Hash",
+            "type": "string"
+          },
+          "source_revision_id": {
+            "format": "uuid",
+            "title": "Source Revision Id",
+            "type": "string"
+          },
+          "warning": {
+            "default": "История сохранения, не текущий статус или одобрение. Перечитайте пост и выполните актуальную проверку перед решением.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "artifact_id",
+          "artifact_hash",
+          "input_id",
+          "input_hash",
+          "post_id",
+          "source_revision_id",
+          "source_content_hash",
+          "revision_id",
+          "content_hash",
+          "post_version",
+          "preview_hash",
+          "actor_id",
+          "created_at",
+          "reason",
+          "preflight"
+        ],
+        "title": "CopyAdoptionView",
         "type": "object"
       },
       "CopyDraft": {
@@ -14034,6 +14315,352 @@
           }
         },
         "summary": "Cancel Run"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/copy-adoption": {
+      "get": {
+        "operationId": "copy_adoption_read_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/CopyAdoptionView"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Copy Adoption Read Api V1 Workspaces  Workspace Id  Knowledge Runs  Run Id  Copy Adoption Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Copy Adoption Read"
+      },
+      "post": {
+        "operationId": "copy_adopt_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdoptCopyDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopyAdoptionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Copy Adopt"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/copy-adoption/preview": {
+      "get": {
+        "operationId": "copy_adoption_preview_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_preview_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopyAdoptionPreview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Copy Adoption Preview"
       }
     },
     "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/editor-triage": {

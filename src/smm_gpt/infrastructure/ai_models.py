@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
@@ -112,6 +113,51 @@ class AIArtifact(Tenant, Base):
     body: Mapped[dict[str, object]] = mapped_column(JSON)
     citation_ids: Mapped[list[str]] = mapped_column(JSON)
     content_hash: Mapped[str] = mapped_column(String(64))
+
+
+class CopyAdoption(Tenant, Base):
+    __tablename__ = "copy_adoptions"
+    __table_args__ = (
+        *tenant_args(
+            run_id="ai_runs", artifact_id="ai_artifacts", input_id="ai_inputs", post_id="posts"
+        ),
+        UniqueConstraint("workspace_id", "run_id"),
+        UniqueConstraint("workspace_id", "revision_id"),
+        UniqueConstraint("workspace_id", "actor_id", "key_hash"),
+        ForeignKeyConstraint(
+            ["workspace_id", "post_id", "source_revision_id"],
+            ["post_revisions.workspace_id", "post_revisions.post_id", "post_revisions.id"],
+        ),
+        ForeignKeyConstraint(
+            ["workspace_id", "post_id", "revision_id"],
+            ["post_revisions.workspace_id", "post_revisions.post_id", "post_revisions.id"],
+        ),
+        CheckConstraint(
+            "source_revision_id <> revision_id AND post_version>=2", name="copy_adoption_revision"
+        ),
+        CheckConstraint(
+            "human_confirmed AND share_with_workspace_confirmed", name="copy_adoption_confirmation"
+        ),
+    )
+    run_id: Mapped[UUID]
+    artifact_id: Mapped[UUID]
+    artifact_hash: Mapped[str] = mapped_column(String(64))
+    input_id: Mapped[UUID]
+    input_hash: Mapped[str] = mapped_column(String(64))
+    post_id: Mapped[UUID]
+    source_revision_id: Mapped[UUID]
+    source_content_hash: Mapped[str] = mapped_column(String(64))
+    revision_id: Mapped[UUID]
+    content_hash: Mapped[str] = mapped_column(String(64))
+    post_version: Mapped[int]
+    preview_hash: Mapped[str] = mapped_column(String(64))
+    actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    reason: Mapped[str] = mapped_column(Text)
+    preflight: Mapped[dict[str, object]] = mapped_column(JSON)
+    key_hash: Mapped[str] = mapped_column(String(64))
+    request_hash: Mapped[str] = mapped_column(String(64))
+    human_confirmed: Mapped[bool] = mapped_column(Boolean)
+    share_with_workspace_confirmed: Mapped[bool] = mapped_column(Boolean)
 
 
 class EditorialDecision(Tenant, Base):

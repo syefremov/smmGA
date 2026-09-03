@@ -9,6 +9,7 @@ from smm_gpt.api.routes.identity import service
 from smm_gpt.api.routes.operations import Actor
 from smm_gpt.core.request_context import request_id
 from smm_gpt.domain import ai as a
+from smm_gpt.domain import copy_adoption as adoption
 from smm_gpt.domain import editor_triage as t
 from smm_gpt.domain import evaluation as e
 from smm_gpt.domain import ingestion as j
@@ -19,6 +20,7 @@ from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import ErrorResponse, Page, PageSize
 from smm_gpt.infrastructure.file_storage import VolumeFileStore
 from smm_gpt.services.ai import AIService
+from smm_gpt.services.copy_adoption import CopyAdoptionService
 from smm_gpt.services.editor_triage import EditorTriageService
 from smm_gpt.services.evaluation import EvaluationService
 from smm_gpt.services.ingestion import IngestionService
@@ -71,6 +73,38 @@ def triage_core(request: Request) -> EditorTriageService:
 
 
 Triage = Annotated[EditorTriageService, Depends(triage_core)]
+
+
+def adoption_core(request: Request) -> CopyAdoptionService:
+    return CopyAdoptionService(service(request).access)
+
+
+Adoption = Annotated[CopyAdoptionService, Depends(adoption_core)]
+
+
+@router.get("/runs/{run_id}/copy-adoption/preview")
+async def copy_adoption_preview(
+    workspace_id: UUID, run_id: UUID, actor: Actor, service: Adoption
+) -> adoption.CopyAdoptionPreview:
+    return await service.preview(actor, workspace_id, run_id, request_id())
+
+
+@router.get("/runs/{run_id}/copy-adoption")
+async def copy_adoption_read(
+    workspace_id: UUID, run_id: UUID, actor: Actor, service: Adoption
+) -> adoption.CopyAdoptionView | None:
+    return await service.read(actor, workspace_id, run_id, request_id())
+
+
+@router.post("/runs/{run_id}/copy-adoption")
+async def copy_adopt(
+    workspace_id: UUID,
+    run_id: UUID,
+    command: adoption.AdoptCopyDraft,
+    actor: Actor,
+    service: Adoption,
+) -> adoption.CopyAdoptionView:
+    return await service.adopt(actor, workspace_id, run_id, command, request_id())
 
 
 @router.get("/runs/{run_id}/editor-triage")

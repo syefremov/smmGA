@@ -17,9 +17,9 @@ const KnowledgeFiles = lazy(() =>
     default: module.KnowledgeFiles,
   })),
 );
-const CopyDraftResult = lazy(() =>
+const CopywriterResult = lazy(() =>
   import("./knowledge/CopyDraftResult").then((module) => ({
-    default: module.CopyDraftResult,
+    default: module.CopywriterResult,
   })),
 );
 
@@ -425,9 +425,14 @@ function Profiles({ workspace: w }: { workspace: Workspace }) {
               timezone={w.timezone}
             />
           )}
-          {run.data.copy_draft && (
+          {(run.data.copy_draft || run.data.copy_adoption) && (
             <Suspense fallback={<p role="status">Загружаем предложение…</p>}>
-              <CopyDraftResult draft={run.data.copy_draft} />
+              <CopywriterResult
+                draft={run.data.copy_draft}
+                adoption={run.data.copy_adoption}
+                workspaceId={w.id}
+                timezone={w.timezone}
+              />
             </Suspense>
           )}
           {run.data.assessment && (

@@ -6,6 +6,7 @@ from uuid import UUID
 
 from pydantic import Field
 
+from smm_gpt.domain.copy_adoption import CopyAdoptionView
 from smm_gpt.domain.copywriter import CopyDraft, CopywritingContext
 from smm_gpt.domain.editor import EditorContext, EditorialReview
 from smm_gpt.domain.editor_triage import EditorialTriageView
@@ -180,6 +181,7 @@ class AIRunView(DTO):
     assessment: ReferenceAssessment | None = None
     editorial_review: EditorialReview | None = None
     copy_draft: CopyDraft | None = None
+    copy_adoption: CopyAdoptionView | None = None
     editorial_triage: EditorialTriageView | None = None
     citations: list[Citation] = Field(default_factory=list)
     usage: dict[str, int | str | None]

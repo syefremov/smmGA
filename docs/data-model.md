@@ -1,5 +1,11 @@
 # Центральная модель данных — фаза 4
 
+Двенадцатый срез: `0015_copy_adoption` добавляет immutable `copy_adoptions` с точными
+run/artifact/input/source/new revision bindings и preflight snapshot. Actor-private Owner RLS,
+SELECT/INSERT runtime, без worker grants. Общая транзакция создаёт draft, снимает approval,
+сохраняет рабочие копии и пишет provenance/audit. Downgrade с историей запрещён до restore-backed
+плана. Контракт — [`copywriter-adoption.md`](copywriter-adoption.md).
+
 Одиннадцатый срез: `0014_copywriter` добавляет nullable `ai_inputs.copy_context`, расширяет
 pair CHECK до ровно одного content context и сохраняет прежний revision FK/Editor guards.
 Copywriter insert/run guards связывают actor/brand/current revision; новых worker grants нет.

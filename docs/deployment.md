@@ -2,8 +2,14 @@
 
 ## Статус и границы
 
+Human Copywriter adoption: [`copywriter-adoption.md`](copywriter-adoption.md), migration
+`0015_copy_adoption` — текущий schema head deployment guard. Новая immutable private таблица;
+нет worker grants, зависимостей или flags. Upgrade только по отдельному разрешению после
+backup/restore rehearsal и остановки writers; код обновляется согласованно. Downgrade при наличии
+receipts отказывается до удаления истории. Перенос plugin сотруднику не мигрирует сервер.
+
 Copywriter proposals: [`copywriter-drafts.md`](copywriter-drafts.md), migration `0014_copywriter` —
-текущий schema head deployment guard. Nullable private inputs/guards, никаких новых worker grants.
+предыдущий schema head. Nullable private inputs/guards, никаких новых worker grants.
 Остановить старые API/worker writers перед отдельно разрешённым upgrade и обновить код вместе.
 Copywriter требует новой registry definition и явной testing selection; defaults выключены.
 Downgrade с существующими copy inputs отказывается без потери данных, нужен restore-backed план.
@@ -24,7 +30,7 @@ Downgrade удаляет registry/provenance; только согласован�
 
 Memory curation: [`memory-curation.md`](memory-curation.md), migration `0010_memory_curation`.
 Owner-only immutable ledger и composite reference constraints; текущий deployment guard ожидает
-более новый `0014_copywriter`. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
+более новый `0015_copy_adoption`. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
 Downgrade удаляет provenance и требует отдельно согласованного restore-backed плана.
 
 Ingestion jobs: [`ingestion-jobs.md`](ingestion-jobs.md), migration `0009_ingestion_recovery`.

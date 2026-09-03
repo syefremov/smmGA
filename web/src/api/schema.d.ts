@@ -876,6 +876,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/copy-adoption": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Copy Adoption Read */
+        get: operations["copy_adoption_read_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_get"];
+        put?: never;
+        /** Copy Adopt */
+        post: operations["copy_adopt_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/copy-adoption/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Copy Adoption Preview */
+        get: operations["copy_adoption_preview_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/editor-triage": {
         parameters: {
             query?: never;
@@ -1083,6 +1118,7 @@ export interface components {
             assessment?: components["schemas"]["ReferenceAssessment"] | null;
             /** Citations */
             citations?: components["schemas"]["Citation"][];
+            copy_adoption?: components["schemas"]["CopyAdoptionView"] | null;
             copy_draft?: components["schemas"]["CopyDraft"] | null;
             /** Created At */
             created_at?: string | null;
@@ -1190,6 +1226,36 @@ export interface components {
             revision_id: string;
             /** Text */
             text: string;
+        };
+        /** AdoptCopyDraft */
+        AdoptCopyDraft: {
+            /** Artifact Hash */
+            artifact_hash: string;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Expected Post Version */
+            expected_post_version: number;
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Preview Hash */
+            preview_hash: string;
+            /** Proposed Content Hash */
+            proposed_content_hash: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Share With Workspace Confirmed
+             * @constant
+             */
+            share_with_workspace_confirmed: true;
         };
         /** ArchiveDocument */
         ArchiveDocument: {
@@ -1623,6 +1689,127 @@ export interface components {
             name: string;
             /** Slots */
             slots: components["schemas"]["Slot"][];
+        };
+        /** CopyAdoptionPreview */
+        CopyAdoptionPreview: {
+            /** Artifact Hash */
+            artifact_hash: string;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            body: components["schemas"]["RevisionBody"];
+            draft: components["schemas"]["CopyDraft"];
+            /** Input Hash */
+            input_hash: string;
+            /**
+             * Input Id
+             * Format: uuid
+             */
+            input_id: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /** Post Version */
+            post_version: number;
+            /** Preview Hash */
+            preview_hash: string;
+            /** Proposed Content Hash */
+            proposed_content_hash: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Source Content Hash */
+            source_content_hash: string;
+            /**
+             * Source Revision Id
+             * Format: uuid
+             */
+            source_revision_id: string;
+            /**
+             * Warning
+             * @default Это предпросмотр, не запись и не одобрение. После отдельного подтверждения текст, fact IDs и пробелы станут доступны участникам, которым доступен контент workspace. Старое согласование будет снято; рабочие копии сохранятся.
+             */
+            warning: string;
+        };
+        /** CopyAdoptionView */
+        CopyAdoptionView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Artifact Hash */
+            artifact_hash: string;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Historical Only
+             * @default true
+             * @constant
+             */
+            historical_only: true;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Hash */
+            input_hash: string;
+            /**
+             * Input Id
+             * Format: uuid
+             */
+            input_id: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /** Post Version */
+            post_version: number;
+            preflight: components["schemas"]["Preflight"];
+            /** Preview Hash */
+            preview_hash: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Source Content Hash */
+            source_content_hash: string;
+            /**
+             * Source Revision Id
+             * Format: uuid
+             */
+            source_revision_id: string;
+            /**
+             * Warning
+             * @default История сохранения, не текущий статус или одобрение. Перечитайте пост и выполните актуальную проверку перед решением.
+             */
+            warning: string;
         };
         /** CopyDraft */
         CopyDraft: {
@@ -8930,6 +9117,268 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AICancelReceipt"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    copy_adoption_read_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopyAdoptionView"] | null;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    copy_adopt_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdoptCopyDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopyAdoptionView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    copy_adoption_preview_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_preview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopyAdoptionPreview"];
                 };
             };
             /** @description Unauthorized */

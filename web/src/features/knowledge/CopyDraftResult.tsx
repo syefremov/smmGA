@@ -1,4 +1,68 @@
 import type { components } from "../../api/schema";
+import { time } from "../content/hooks";
+
+export function CopywriterResult({
+  draft,
+  adoption,
+  workspaceId,
+  timezone,
+}: {
+  draft?: components["schemas"]["CopyDraft"] | null;
+  adoption?: components["schemas"]["CopyAdoptionView"] | null;
+  workspaceId: string;
+  timezone: string;
+}) {
+  return (
+    <>
+      {draft && <CopyDraftResult draft={draft} />}
+      {adoption && (
+        <section aria-label="История сохранения AI-текста">
+          <h3>Предложение сохранено человеком</h3>
+          <p>{adoption.warning}</p>
+          <p>
+            Создана отдельная редакция со статусом «Черновик»; старое
+            согласование снято. Рабочие копии сохранены.
+          </p>
+          <p>
+            Автор решения: {adoption.actor_id} ·{" "}
+            {time(adoption.created_at, timezone)} · {timezone}
+          </p>
+          <p>Основание: {adoption.reason}</p>
+          <dl className="file-metadata">
+            <dt>Новая редакция</dt>
+            <dd>{adoption.revision_id}</dd>
+            <dt>Hash текста</dt>
+            <dd>{adoption.content_hash}</dd>
+            <dt>Исходная редакция</dt>
+            <dd>{adoption.source_revision_id}</dd>
+          </dl>
+          <p>
+            Проверка на момент сохранения:{" "}
+            {adoption.preflight.passed
+              ? "без детерминированных блокеров, не одобрение"
+              : "есть блокирующие замечания"}
+            .
+          </p>
+          <details>
+            <summary>
+              Замечания при сохранении: {adoption.preflight.findings.length}
+            </summary>
+            {adoption.preflight.findings.map((finding, n) => (
+              <p key={n}>
+                {finding.severity} · {finding.code} · {finding.location}
+              </p>
+            ))}
+          </details>
+          <a
+            href={`/app/content?workspace=${encodeURIComponent(workspaceId)}&post=${encodeURIComponent(adoption.post_id)}`}
+          >
+            Открыть пост для актуальной проверки
+          </a>
+        </section>
+      )}
+    </>
+  );
+}
 
 export function CopyDraftResult({
   draft,

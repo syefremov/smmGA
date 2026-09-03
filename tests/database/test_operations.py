@@ -13,6 +13,7 @@ from sqlalchemy import func, select, update
 
 from smm_gpt.application import create_app
 from smm_gpt.domain import content as content_dto
+from smm_gpt.domain import copy_adoption as adoption_dto
 from smm_gpt.domain import editor_triage as triage_dto
 from smm_gpt.domain import knowledge as knowledge_dto
 from smm_gpt.domain import profiles as profile_dto
@@ -36,6 +37,7 @@ from .conftest import TenantFixture
 from .test_ai_queue import Gateway
 from .test_ai_queue import config as ai_test_config
 from .test_content import pilot
+from .test_copy_adoption import command as adoption_command
 from .test_copywriter import CopyGateway
 from .test_editor import EditorGateway
 from .test_editor_triage import decision as finding_decision
@@ -542,6 +544,49 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
             copy_path, json={**copy_command, "direction": "never-echo-copy", "approved": True}
         )
         assert bad_copy.status_code == 422 and "never-echo-copy" not in bad_copy.text
+        adoption_path = ai_prefix + f"/{copy_id}/copy-adoption"
+        preview_rest = await browser.get(adoption_path + "/preview")
+        assert preview_rest.status_code == 200, preview_rest.text
+        assert (await call("ai_copy_adoption_preview", {"workspace_id": wid, "run_id": copy_id}))[
+            "structuredContent"
+        ] == preview_rest.json()
+        adopt_command = adoption_command(
+            adoption_dto.CopyAdoptionPreview.model_validate(preview_rest.json())
+        ).model_dump(mode="json")
+        malformed_adoption = await browser.post(
+            adoption_path,
+            json={
+                **adopt_command,
+                "share_with_workspace_confirmed": False,
+                "reason": "never-echo-adoption",
+            },
+        )
+        assert malformed_adoption.status_code == 422 and "never-echo" not in malformed_adoption.text
+        adopted = await call(
+            "ai_copy_adopt",
+            {
+                "workspace_id": wid,
+                "run_id": copy_id,
+                "command": adopt_command,
+            },
+        )
+        adopted_rest = await browser.post(adoption_path, json=adopt_command)
+        assert adopted_rest.status_code == 200, adopted_rest.text
+        assert adopted["structuredContent"] == adopted_rest.json()
+        private_receipt = (
+            await call("ai_copy_adoption_read", {"workspace_id": wid, "run_id": copy_id})
+        )["structuredContent"]
+        assert isinstance(private_receipt, dict)
+        assert (
+            private_receipt["result"]
+            == (await browser.get(adoption_path)).json()
+            == adopted_rest.json()
+        )
+        adopted_run = (await browser.get(ai_prefix + f"/{copy_id}")).json()
+        assert (
+            adopted_run["copy_draft"] is None
+            and adopted_run["copy_adoption"] == adopted_rest.json()
+        )
         read_knowledge = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/documents")
         assert (await call("knowledge_documents", {"workspace_id": wid}))[
             "structuredContent"
@@ -626,7 +671,7 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
         commands: list[content_dto.ContentCommand] = [
             content_dto.SaveRevision(
                 post_id=post.id,
-                expected_version=2,
+                expected_version=post.version,
                 body=content.body("Cross transport"),
                 idempotency_key=uuid4().hex,
             ),
@@ -647,9 +692,10 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
 
         for c in commands:
             await both(c)
+        post = await content.post()
         await both(
             content_dto.RequestReview(
-                post_id=post.id, expected_version=3, idempotency_key=uuid4().hex
+                post_id=post.id, expected_version=post.version, idempotency_key=uuid4().hex
             )
         )
         post = await content.post()
@@ -657,7 +703,7 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
         await both(
             content_dto.DecidePost(
                 post_id=post.id,
-                expected_version=4,
+                expected_version=post.version,
                 revision_id=revision.id,
                 content_hash=revision.content_hash,
                 decision="approve",
@@ -667,10 +713,11 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
                 idempotency_key=uuid4().hex,
             )
         )
+        post = await content.post()
         package = await both(
             content_dto.PreparePackage(
                 post_id=post.id,
-                expected_version=5,
+                expected_version=post.version,
                 revision_id=revision.id,
                 content_hash=revision.content_hash,
                 scheduled_at=utcnow() + timedelta(days=1),

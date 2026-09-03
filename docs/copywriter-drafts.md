@@ -5,6 +5,9 @@
 Предложение хранится отдельно от поста. Оно **не создаёт редакцию, не согласовывает и не публикует**.
 Сервер, реальные данные, ключи и платные вызовы в этой итерации не подключались.
 
+Двенадцатый срез добавил **отдельное человеческое** принятие точного предложения с provenance:
+[`copywriter-adoption.md`](copywriter-adoption.md). Сама генерация по-прежнему не меняет пост.
+
 ## Порядок работы из чата
 
 После отдельно разрешённого ввода серверной системы и платного тестирования:
@@ -20,7 +23,8 @@
 5. Прочитать `ai_run_read` и `ai_run_inputs`. Очередь продолжает работать без открытого чата.
    Если исход неизвестен, читать прежний run, а не повторять запрос с новым ключом.
 6. Обсудить текст, основания и пробелы. Нельзя автоматически переносить предложение в пост.
-   Новая редакция, deterministic preflight, возможный Editor review и human approval —
+   Точный preview и подтверждённая новая редакция с provenance описаны в
+   [`copywriter-adoption.md`](copywriter-adoption.md). Deterministic preflight, возможный Editor review и human approval —
    отдельные действия существующего контентного процесса. Согласование исходной редакции
    никогда не распространяется на предложенный текст.
 
@@ -76,8 +80,9 @@ knowledge gaps. Все поля обязательны, произвольные
 `copy-draft-v1` имеет только `content.snapshot.read`, `copy_draft.propose`.
 Модели не выдаются tools, Principal, контентный сервис, registry/approval capabilities.
 Post/PostRevision/ContentDecision/WorkingCopy/PublicationPackage не меняются.
-Автоматическое принятие предложения и durable связь «AI artifact → новая ручная редакция»
-в этом срезе не реализованы; не выдавать ручное копирование за такую связь.
+Автоматическое принятие предложения не разрешено. Durable связь «AI artifact → новая ручная
+редакция» реализована отдельным человеческим workflow двенадцатого среза; обычное ручное
+копирование не создаёт эту provenance-запись.
 
 ## Очередь, актуальность, приватность и расходы
 
@@ -118,7 +123,8 @@ SELECT под tenant RLS. Inputs/artifacts остаются private и append-on
 ошибка доступа скрывает предыдущий результат. Для решения всегда перечитать серверные данные.
 
 Реальный upgrade требует отдельного разрешения, backup/restore rehearsal, остановки старых
-API/worker writers и согласованного обновления кода. Deployment guard ожидает `0014_copywriter`.
+API/worker writers и согласованного обновления кода. Текущий deployment guard ожидает более
+новую `0015_copy_adoption`; её отдельный rollback guard описан в документе adoption.
 Никаких автоматических selections, ключей, flags или deploy. Старому Copywriter нужны
 новый draft и явный выбор. Downgrade при наличии copy inputs **отказывается до удаления полей**
 (`copywriter_history_requires_restore_plan`); это не команда очистки истории. Forward-only
@@ -142,8 +148,8 @@ Linux CI отдельно проверяет PostgreSQL 17, контейнерн
 
 Далее нужны реальные owner-approved evals Copywriter: выдуманные/нецитированные claims,
 несоответствие цитаты смыслу, prompt injection, требования policy/тона, сохранение gaps,
-правильное воздержание. Нужны отдельный механизм принятия новой редакции с provenance,
-полные Planner/Analyst/media workflows, финансовые и server/two-machine gates.
+правильное воздержание. Механизм принятия новой редакции с provenance добавлен двенадцатым срезом;
+остаются полные Planner/Analyst/media workflows, финансовые и server/two-machine gates.
 Этот срез не закрывает фазу 7 и не разрешает production activation.
 
 Контракт опирается на [официальную документацию Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs):

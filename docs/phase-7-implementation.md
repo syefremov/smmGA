@@ -13,6 +13,11 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Двенадцатый срез:** [`copywriter-adoption.md`](copywriter-adoption.md) — личный exact preview,
+явное человеческое подтверждение текста/передачи в общий пост, новая immutable редакция и
+provenance receipt. Старое approval снято, рабочие копии сохранены, preflight нового текста;
+MCP/REST shared, web — история. Без автоматического принятия, публикации или нового model call.
+
 **Одиннадцатый срез:** [`copywriter-drafts.md`](copywriter-drafts.md) — testing text-only Copywriter
 по exact SQL revision/brief/facts/policy. Предложения с fact IDs, цитатами и сохранёнными gaps,
 shared queue, stale checks, MCP/REST и read-only web. Нет создания/одобрения редакции или media.
@@ -167,6 +172,9 @@ REST prefix `/api/v1/workspaces/{wid}/knowledge`:
   результат через общие run endpoints; веб показывает замечания без действий approval.
 - POST `/copywriter-runs`, MCP `ai_draft_revision`: exact SQL inputs + direction → text proposal,
   общий run lifecycle, без сохранения/применения текста в пост.
+- GET `/runs/{rid}/copy-adoption/preview`, GET/POST `/runs/{rid}/copy-adoption`:
+  exact preview, человеческое принятие новой редакции и private receipt; MCP
+  `ai_copy_adoption_preview`, `ai_copy_adopt`, `ai_copy_adoption_read`. Не approval и не AI job.
 - GET/POST `/runs/{rid}/editor-triage`, GET `/runs/{rid}/editor-triage/history`:
   human triage и private история; MCP `ai_editor_triage_read`, `ai_editor_finding_decide`,
   `ai_editor_triage_history`. Новая запись требует актуального отчёта, история — не approval.
@@ -207,7 +215,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0014_copywriter` требуют privileged migration role,
+Миграции `0005_knowledge`–`0015_copy_adoption` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -239,7 +247,7 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
    activation, typed specialist inputs/outputs/handoff/work items;
    полный Planner/Copywriter/Analyst, visual provenance/image gateway, Publisher gates.
    Text-only Editor реализован девятым срезом, human triage — десятым, Copywriter proposals —
-   одиннадцатым. Принятие новой редакции с AI provenance пока не реализовано. Остаются model evals,
+   одиннадцатым, человеческое принятие новой редакции с AI provenance — двенадцатым. Остаются model evals,
    доказанное исправление между редакциями, визуальная/юридическая верификация и production-включение.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
    Седьмой срез добавил memory → отдельно подтверждаемый reference с provenance.

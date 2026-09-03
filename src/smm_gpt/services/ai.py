@@ -17,6 +17,7 @@ from smm_gpt.infrastructure.knowledge_models import RetrievalRun
 from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import AccessService, audit, digest
 from smm_gpt.services.ai_queue import current_input
+from smm_gpt.services.copy_adoption import adoption_view
 from smm_gpt.services.copywriter import validate_context, validate_draft
 from smm_gpt.services.editor import snapshot, validate_review
 from smm_gpt.services.editor_triage import triage_view
@@ -287,6 +288,8 @@ class AIService:
             if run is None:
                 raise OperationError("not_found", 404)
             view = d.AIRunView.model_validate(run)
+            if run.profile == "copywriter":
+                view.copy_adoption = await adoption_view(s, wid, rid)
             artifact = await s.scalar(
                 select(AIArtifact).where(
                     AIArtifact.workspace_id == wid,

@@ -5,7 +5,7 @@ from datetime import timedelta
 from typing import cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from smm_gpt.domain import content as d
@@ -27,7 +27,7 @@ from smm_gpt.infrastructure.content_models import (
 )
 from smm_gpt.infrastructure.models import Brand, Product, Source, WorkItem, Workspace, utcnow
 from smm_gpt.services.access import AccessService, audit, digest
-from smm_gpt.services.content_preflight import media_manifest, preflight
+from smm_gpt.services.content_preflight import preflight
 from smm_gpt.services.content_records import (
     confirm_record,
     create_record,
@@ -35,6 +35,7 @@ from smm_gpt.services.content_records import (
     record,
     workspace_lock,
 )
+from smm_gpt.services.content_revision import save_revision
 from smm_gpt.services.operations import Operations
 
 
@@ -231,34 +232,12 @@ class ContentService:
             return comment.id, post.version
         d.check_version(post.version, command.expected_version)
         if isinstance(command, d.SaveRevision):
-            # References are scoped now, verified/current evidence is required only at preflight.
-            for rid in command.body.fact_ids:
-                await record(s, wid, rid, "product_fact", post.brand_id)
-            manifest = await media_manifest(s, wid, command.body)
-            payload = command.body.model_dump(mode="json")
-            revision = PostRevision(
-                id=uuid4(),
-                workspace_id=wid,
-                post_id=post.id,
-                number=post.revision_count + 1,
-                actor_id=actor.user_id,
-                body=payload,
-                media_manifest=manifest,
-                content_hash=d.canonical_hash({"body": payload, "media_manifest": manifest}),
-            )
-            s.add(revision)
-            await s.flush()
-            post.current_revision_id = revision.id
-            post.revision_count += 1
-            post.version += 1
-            post.state = "draft"
-            post.active_approval_id = None
-            await s.execute(
-                delete(WorkingCopy).where(
-                    WorkingCopy.workspace_id == wid,
-                    WorkingCopy.post_id == post.id,
-                    WorkingCopy.actor_id == actor.user_id,
-                )
+            revision = await save_revision(
+                s,
+                post,
+                actor.user_id,
+                command.body,
+                clear_working_copy=True,
             )
             return revision.id, post.version
         revision = await revision_row(s, post)

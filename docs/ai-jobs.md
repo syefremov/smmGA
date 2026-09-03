@@ -1,5 +1,9 @@
 # Фоновые AI-задания: четвёртый срез фазы 7
 
+Двенадцатый срез: [`copywriter-adoption.md`](copywriter-adoption.md) — отдельное человеческое
+принятие готового Copywriter proposal в новую редакцию с provenance. Это не AI job, не модельный
+tool и не approval; очередь/worker дополнительных полномочий не получают.
+
 Одиннадцатый срез добавляет `ai_draft_revision` / POST `/copywriter-runs` в эту же очередь:
 [`copywriter-drafts.md`](copywriter-drafts.md). Immutable `copy_context` вместо retrieval,
 отдельный `CopyDraft` artifact, прежние at-most-once/cancel/freshness/Owner gates.

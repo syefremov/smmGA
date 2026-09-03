@@ -392,6 +392,11 @@ artifact/revision/finding hashes, версиям и явному подтвер�
 по exact SQL revision/brief/facts/policy, с цитатами и сохранением gaps. Общая очередь и
 MCP/REST/web; без записи новой редакции, approval или media. Модельные/серверные gates остаются.
 
+Двенадцатый срез: [`copywriter-adoption.md`](copywriter-adoption.md) — human-confirmed exact
+preview → новая draft-редакция с immutable provenance и preflight. Явное подтверждение передачи
+личного текста в общий пост, сброс approval, сохранение рабочих копий, защита от конфликтов;
+MCP/REST shared, web history. Фаза 7 остаётся частичной; это не автоматическое принятие/публикация.
+
 ### Цель
 
 Сделать генерацию и анализ grounded: каждое фактическое утверждение связано с разрешённым источником, а специализированные AI-профили работают в ограниченных границах.

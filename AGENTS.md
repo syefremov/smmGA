@@ -192,9 +192,17 @@
   revision/brief/confirmed facts/policy. No RAG, media, content writes or approvals. Bind profile
   selection, input hashes and fact IDs with exact output/source quotes; preserve original gaps.
   Citation membership is not semantic truth or full claim coverage. Require human review and
-  separate save/preflight/approval; no automatic adoption or claim of adoption provenance.
+  separate save/preflight/approval; ordinary copying does not establish adoption provenance.
   Recheck freshness before dispatch/finalize/read; hide stale candidates without erasing history.
   Downgrade with saved copy inputs must fail closed, never silently discard their provenance.
+- Follow `docs/copywriter-adoption.md`: personal Owner/MFA adoption needs the whole exact preview
+  and explicit human consent both to save and to share private AI text with content readers.
+  Bind artifact/input/revision hashes and post version; never rebase or silently truncate gaps.
+  Save an immutable draft + private provenance receipt + new-text preflight + audit atomically;
+  invalidate old approval, preserve all working copies and all revision/decision history.
+  Historical receipt/replay is not current approval. Recheck current post before any next decision.
+  Never give models/workers this service or personal command. Decline destructive downgrade
+  with adoption history; actual deployment still needs separate authorization.
 - Follow `docs/ai-profile-registry.md`: ai_profiles is a built-in catalog, not the DB selection.
   New queued runs require exact registered version AND selection IDs, with no implicit fallback.
   Only purpose/model are configurable within code-owned capabilities and output contracts.
