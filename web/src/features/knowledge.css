@@ -80,6 +80,87 @@
   margin-top: 2rem;
   padding-top: 1rem;
 }
+.file-upload {
+  margin: 1.5rem 0 2rem;
+}
+.file-upload fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid #d9e1dc;
+}
+.file-upload legend {
+  padding: 0 0.4rem;
+  font-weight: 600;
+}
+.file-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 1rem;
+}
+.file-fields label {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.file-fields input,
+.file-fields select {
+  display: block;
+  margin-top: 0.5rem;
+  width: 100%;
+  min-width: 0;
+}
+.file-list-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.file-list button,
+.file-detail h3 {
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.file-list > li > div {
+  min-width: 0;
+}
+.file-list button[aria-expanded="true"] {
+  background: #dcece3;
+  color: #123f2d;
+}
+.file-metadata {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(0, 3fr);
+  gap: 0.8rem 1rem;
+}
+.file-metadata dt {
+  color: #47574e;
+}
+.file-metadata dd {
+  margin: 0;
+}
+.file-cancel {
+  margin: 1.5rem 0;
+}
+.file-history {
+  padding-left: 1.5rem;
+}
+.file-history li {
+  padding: 0.5rem 0;
+}
+.file-history p {
+  margin: 0 0 0.3rem;
+}
+.knowledge-workspace .file-extraction {
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.file-metadata code,
+.file-upload code {
+  font-size: 0.875rem;
+}
 .eval-metrics {
   display: flex;
   flex-wrap: wrap;
@@ -115,6 +196,12 @@
   }
 }
 @media (max-width: 600px) {
+  .file-metadata {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .file-metadata dd {
+    margin-bottom: 0.5rem;
+  }
   .knowledge-search {
     display: grid;
   }

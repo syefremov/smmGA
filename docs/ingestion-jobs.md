@@ -99,7 +99,9 @@ API/MCP вызывают один IngestionService. Списки не возвр
 только IDs, actor_id, state, version, attempts, безопасную ошибку и timestamps.
 Имена/тексты доступны через прежние отдельные разрешённые команды.
 IndexView/FileView также получили version/started_at/finished_at.
-Новых web-кнопок нет; текущий просмотр знаний и сгенерированные типы совместимы.
+В шестом срезе добавлены web-список файлов, история и отмена точной версии:
+[`knowledge-file-client.md`](knowledge-file-client.md). Retry/rescan/reindex остаются
+явными командами чата/API; правила сервиса едины для всех клиентов.
 
 `knowledge_job_receipts` хранит actor-private отмены с scoped FK и уникальным ключом.
 `knowledge_job_events` — append-only журнал каждого INSERT/UPDATE после миграции:

@@ -11,6 +11,11 @@ const RetrievalEvaluations = lazy(() =>
     default: module.RetrievalEvaluations,
   })),
 );
+const KnowledgeFiles = lazy(() =>
+  import("./knowledge/KnowledgeFiles").then((module) => ({
+    default: module.KnowledgeFiles,
+  })),
+);
 
 const states: Record<string, string> = {
   queued: "В очереди",
@@ -32,7 +37,7 @@ export function KnowledgeWorkspace({
   offline: boolean;
 }) {
   const [tab, setTab] = useState<
-    "search" | "documents" | "profiles" | "notes" | "evaluations"
+    "search" | "documents" | "files" | "profiles" | "notes" | "evaluations"
   >("search");
   return (
     <main id="work-main" className="work-main knowledge-workspace">
@@ -49,6 +54,9 @@ export function KnowledgeWorkspace({
           [
             ["search", "Поиск"],
             ["documents", "Документы"],
+            ...(workspace.permissions.includes("knowledge.write")
+              ? [["files", "Файлы"]]
+              : []),
             ["profiles", "AI-профили"],
             ...(workspace.permissions.includes("content.approve")
               ? [
@@ -71,6 +79,15 @@ export function KnowledgeWorkspace({
         <Search key={workspace.id} workspace={workspace} offline={offline} />
       )}
       {tab === "documents" && <Documents workspace={workspace} />}
+      {tab === "files" && workspace.permissions.includes("knowledge.write") && (
+        <Suspense fallback={<p role="status">Загрузка файлов…</p>}>
+          <KnowledgeFiles
+            key={workspace.id}
+            workspace={workspace}
+            offline={offline}
+          />
+        </Suspense>
+      )}
       {tab === "profiles" && <Profiles workspace={workspace} />}
       {tab === "notes" && <Notes workspace={workspace} />}
       {tab === "evaluations" &&

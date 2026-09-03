@@ -56,8 +56,10 @@ export function Paging({
 }) {
   return (
     <div className="pagination">
-      <button onClick={() => set(undefined)}>В начало</button>
-      <button disabled={!next} onClick={() => next && set(next)}>
+      <button type="button" onClick={() => set(undefined)}>
+        В начало
+      </button>
+      <button type="button" disabled={!next} onClick={() => next && set(next)}>
         Далее
       </button>
     </div>

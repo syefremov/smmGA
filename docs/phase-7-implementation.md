@@ -13,6 +13,11 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Шестой срез:** [`knowledge-file-client.md`](knowledge-file-client.md) — переносимый attachment
+client в существующей приватной панели: локальный выбор PDF/DOCX, hash/base64, replay-safe
+upload, список/история/отмена и plain-text extraction. Установка Python/CLI сотруднику не нужна.
+Это тонкий клиент существующих REST/MCP сервисов; импорт и активация остаются отдельными.
+
 **Третий срез:** optional PDF/DOCX binary workflow — [`knowledge-files.md`](knowledge-files.md).
 Оригиналы в private media volume, ClamAV → sandbox → extraction → Owner import → обычный
 текстовый pipeline ниже. Это не OCR и не автоматическая активация. Реальный scanner rollout
@@ -181,7 +186,8 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
 ## Остаток фазы 7
 
 1. Binary workflow реализован в третьем срезе, но нужны реальный ClamAV smoke/signature updates,
-   проверка RAM/диска/backup/recovery на разрешённом сервере и удобный attachment client.
+   проверка RAM/диска/backup/recovery на разрешённом сервере. Удобный attachment client
+   реализован в шестом срезе через браузер; реальный вход/загрузка с двух машин ещё не проверены.
    Windows production fallback, OCR и полноценный DLP не реализованы.
 2. Реальный owner-approved GreenAurum корпус и eval questions/expected sources/conflicts.
    Инструмент сохранения наборов/прогонов/review реализован во втором срезе; наполнение и

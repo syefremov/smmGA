@@ -150,6 +150,11 @@
   seccomp/resource-isolated parser, then exact Owner file_import and separate index activation.
   Defaults remain disabled. Never use an in-process production fallback or bypass scanner gates.
   No OCR or source URL fetching; regex checks are not malware scanning or full DLP.
+- Follow `docs/knowledge-file-client.md` for browser attachments: hash/encode actual bytes,
+  reuse the exact upload identity after uncertain responses, keep file bytes out of persistent
+  browser storage and mutation caches. Use personal same-origin session/CSRF and generated DTOs.
+  Never render original documents inline or execute extraction markup; browser upload/cancel
+  must not import, activate knowledge or replace a human decision. Do not bypass disabled ingestion.
 - Knowledge worker may prepare chunks, never activate an index. Preserve ready indexes and
   immutable versions. Recheck actor/identity/visibility and lease fencing before completion.
 - Follow `docs/ingestion-jobs.md`: only queued ingestion is claimed; expired/revoked processing

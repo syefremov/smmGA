@@ -33,6 +33,7 @@ web/dist/
 web/coverage/
 web/playwright-report/
 web/test-results/
+/.playwright-cli/
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
