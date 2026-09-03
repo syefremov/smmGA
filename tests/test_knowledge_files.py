@@ -16,7 +16,7 @@ from smm_gpt.parsers.documents import extract
 from smm_gpt.services.file_parser import SandboxedParser
 from smm_gpt.services.file_scanner import ClamScanner, version_evidence
 
-from .file_fixtures import docx, pdf
+from .file_fixtures import TEXT_FILES, docx, pdf
 
 
 def test_extract_synthetic_documents() -> None:
@@ -77,8 +77,8 @@ def test_xml_entities_never_resolve() -> None:
 
 @pytest.mark.parametrize(
     "format,data,expected",
-    [("docx", docx(), "Крем"), ("pdf", pdf(), "ALPHA-42")],
-    ids=["docx", "pdf"],
+    [("docx", docx(), "Крем"), ("pdf", pdf(), "ALPHA-42"), *TEXT_FILES],
+    ids=["docx", "pdf", "markdown", "csv", "html"],
 )
 def test_preloaded_parsers_need_no_file_opens(format: str, data: bytes, expected: str) -> None:
     # Portable regression for lazy stdlib codecs/imports, in addition to real Linux seccomp.
@@ -170,6 +170,12 @@ async def test_actual_sandbox_or_fail_closed() -> None:
         return
     assert "Крем" in (await parser.parse(docx(), "docx")).text
     assert "ALPHA-42" in (await parser.parse(pdf(), "pdf")).text
+    for format, data, expected in TEXT_FILES:
+        assert expected in (await parser.parse(data, format)).text
+    with pytest.raises(OperationError, match="active_document_rejected"):
+        await parser.parse(b"<script>x</script>", "html")
+    with pytest.raises(OperationError, match="csv_row_width_invalid"):
+        await parser.parse(b"a,b\n1", "csv")
     with pytest.raises(OperationError, match="active_document_rejected"):
         await parser.parse(pdf(active=True), "pdf")
 

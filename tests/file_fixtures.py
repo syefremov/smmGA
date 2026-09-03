@@ -7,6 +7,25 @@ from xml.sax.saxutils import escape
 from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
+from smm_gpt.file_formats import FileFormat
+
+TEXT_FILES: list[tuple[FileFormat, bytes, str]] = [
+    ("markdown", "\ufeff# Синтетика\r\nКрем ALPHA-42.\r\n".encode(), "Крем ALPHA-42"),  # noqa: RUF001
+    (
+        "csv",
+        '\ufeff"Название","Примечание"\r\n"Крем ALPHA-42","=1+1"\r\n'.encode(),
+        '"Название": "Крем ALPHA-42"',
+    ),
+    (
+        "html",
+        (
+            '\ufeff<!doctype html><html><head><meta charset="utf-8"></head>'
+            "<body><p>Крем ALPHA-42 &amp; уход.</p><br/></body></html>"
+        ).encode(),
+        "Крем ALPHA-42 & уход.",
+    ),
+]
+
 
 def docx(
     value: str = "Крем ALPHA-42. Бережное очищение.", extra: dict[str, bytes] | None = None

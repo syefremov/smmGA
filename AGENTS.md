@@ -155,6 +155,11 @@
   browser storage and mutation caches. Use personal same-origin session/CSRF and generated DTOs.
   Never render original documents inline or execute extraction markup; browser upload/cancel
   must not import, activate knowledge or replace a human decision. Do not bypass disabled ingestion.
+- Follow `docs/knowledge-text-files.md` for UTF-8 Markdown/CSV/passive HTML uploads. Use the
+  same immutable-original, fresh-scan and Linux child pipeline; no API/browser CSV/HTML parser
+  or production fallback. CSV formulas remain strings, not metrics. Import extraction as an
+  inactive text reference with source_file_id; never reparse original markup in API/index worker.
+  Keep raw-byte hashes and parser versions. Text-file history prohibits destructive downgrade.
 - Knowledge worker may prepare chunks, never activate an index. Preserve ready indexes and
   immutable versions. Recheck actor/identity/visibility and lease fencing before completion.
 - Follow `docs/ingestion-jobs.md`: only queued ingestion is claimed; expired/revoked processing

@@ -15,6 +15,7 @@ from smm_gpt.domain import knowledge_files as d
 from smm_gpt.domain.access import Permission, Principal
 from smm_gpt.domain.content import canonical_hash
 from smm_gpt.domain.operations import OperationError, Page
+from smm_gpt.file_formats import validate_envelope
 from smm_gpt.infrastructure.file_models import FileRetryReceipt, KnowledgeExtraction, KnowledgeFile
 from smm_gpt.infrastructure.file_storage import FileStore, VolumeFileStore
 from smm_gpt.infrastructure.models import utcnow
@@ -82,10 +83,10 @@ class KnowledgeFileService:
                 raise OperationError("file_size_invalid", 422)
             if hashlib.sha256(data).hexdigest() != c.content_hash:
                 raise OperationError("original_hash_mismatch", 422)
-            if not c.filename.casefold().endswith("." + c.format) or not data.startswith(
-                b"%PDF-" if c.format == "pdf" else b"PK\x03\x04"
-            ):
-                raise OperationError("file_type_mismatch", 422)
+            try:
+                validate_envelope(c.filename, c.format, data)
+            except ValueError as exc:
+                raise OperationError(str(exc), 422) from None
             fingerprint = canonical_hash(
                 c.model_dump(mode="json", exclude={"idempotency_key", "content_base64"})
             )

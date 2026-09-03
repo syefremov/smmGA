@@ -1,16 +1,16 @@
-"""Small PDF/DOCX originals. Transport bytes are never returned as MCP text."""
+"""Small immutable originals. Transport bytes are never returned as MCP text."""
 
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated
 from uuid import UUID
 
 from pydantic import Field, field_validator
 
 from smm_gpt.domain.operations import DTO, IdempotencyToken
+from smm_gpt.file_formats import MAX_FILE_BYTES as MAX_FILE_BYTES
+from smm_gpt.file_formats import FileFormat as FileFormat
 
-MAX_FILE_BYTES = 2 * 1024 * 1024
 MAX_TEXT_BYTES = 200_000
-FileFormat = Literal["pdf", "docx"]
 
 
 class SubmitFile(DTO):

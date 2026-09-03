@@ -33,6 +33,7 @@ from smm_gpt.services.operations import Operations
 from smm_gpt.services.sessions import SessionService
 from smm_gpt.workers.ai import process as process_ai
 
+from ..file_fixtures import TEXT_FILES
 from ..identity_fakes import FakeIssuer
 from .conftest import TenantFixture
 from .test_ai_queue import Gateway
@@ -47,6 +48,7 @@ from .test_knowledge_files import command as file_command
 from .test_memory_curation import proposal as memory_proposal
 from .test_plan_adoption import command as adopt_plan_command
 from .test_planner import PlanGateway, plan_command
+from .test_text_files import text_command
 
 pytestmark = pytest.mark.integration
 
@@ -282,6 +284,17 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
             file_prefix, json={**upload, "content_base64": "never-echo-file-input"}
         )
         assert malformed_file.status_code == 422 and "never-echo" not in malformed_file.text
+        for format, data, _ in TEXT_FILES:
+            text_upload = text_command(content.brand, format, data).model_dump(mode="json")
+            text_mcp = await call(
+                "knowledge_file_submit", {"workspace_id": wid, "command": text_upload}
+            )
+            text_rest = await browser.post(file_prefix, json=text_upload)
+            assert text_rest.status_code == 200, text_rest.text
+            assert text_mcp["structuredContent"] == text_rest.json()
+            detail = await browser.get(file_prefix + "/" + text_rest.json()["file_id"])
+            assert detail.json()["format"] == format and detail.json()["state"] == "queued"
+            assert "content_base64" not in detail.text
         knowledge_command = knowledge_dto.SubmitDocument(
             idempotency_key=uuid4().hex,
             brand_id=content.brand,

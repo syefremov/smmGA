@@ -30,7 +30,12 @@ function FileFailure({ error }: { error: Error }) {
     invalid_filename:
       "Имя файла должно быть не длиннее 160 символов, без служебных знаков и путей.",
     file_type_mismatch:
-      "Поддерживаются только PDF и DOCX. Расширение должно соответствовать содержимому.",
+      "Поддерживаются PDF, DOCX, Markdown, CSV и HTML. Расширение должно соответствовать содержимому.",
+    text_encoding_invalid:
+      "Текстовые файлы принимаются только в UTF-8. Пересохраните файл без потери символов.",
+    text_controls_rejected:
+      "В тексте обнаружены двоичные или управляющие символы.",
+    extracted_text_empty: "В файле нет доступного текста.",
     secure_context_required:
       "Для чтения файла нужен современный браузер и защищённый HTTPS-адрес панели.",
     file_storage_quota_exceeded:
@@ -266,8 +271,10 @@ function Upload({
       <fieldset disabled={offline || request.busy}>
         <legend>Загрузить документ</legend>
         <p id="file-limits">
-          PDF или DOCX, до 2 МиБ. Без OCR: сканы без текстового слоя не
-          поддерживаются. Не загружайте секреты.
+          PDF, DOCX, Markdown, CSV или HTML, до 2 МиБ. Текстовые файлы — только
+          UTF-8; CSV с запятыми и заголовком, HTML без активного содержимого.
+          CSV загружается как справочный текст, не продажи или метрики. Без OCR.
+          Не загружайте секреты.
         </p>
         <div className="file-fields">
           <label>
@@ -292,7 +299,7 @@ function Upload({
               ref={fileInput}
               type="file"
               required
-              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept=".pdf,.docx,.md,.markdown,.csv,.html,.htm"
               aria-describedby="file-limits"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />

@@ -2980,7 +2980,7 @@ export interface components {
              * Format
              * @enum {string}
              */
-            format: "pdf" | "docx";
+            format: "pdf" | "docx" | "markdown" | "csv" | "html";
             /**
              * Id
              * Format: uuid
@@ -3042,7 +3042,7 @@ export interface components {
              * Format
              * @enum {string}
              */
-            format: "pdf" | "docx";
+            format: "pdf" | "docx" | "markdown" | "csv" | "html";
             /**
              * Id
              * Format: uuid
@@ -5085,7 +5085,7 @@ export interface components {
              * Format
              * @enum {string}
              */
-            format: "pdf" | "docx";
+            format: "pdf" | "docx" | "markdown" | "csv" | "html";
             /** Idempotency Key */
             idempotency_key: string;
         };

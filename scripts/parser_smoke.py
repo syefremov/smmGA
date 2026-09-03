@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-from tests.file_fixtures import docx, pdf
+from tests.file_fixtures import TEXT_FILES, docx, pdf
 
 
 def main() -> None:
@@ -16,7 +16,11 @@ def main() -> None:
         "result=asyncio.run(SandboxedParser().parse(sys.stdin.buffer.read(),sys.argv[1])); "
         "print(json.dumps({'text':result.text}))"
     )
-    for format, value, expected in (("docx", docx(), "Крем"), ("pdf", pdf(), "ALPHA-42")):
+    for format, value, expected in [
+        ("docx", docx(), "Крем"),
+        ("pdf", pdf(), "ALPHA-42"),
+        *TEXT_FILES,
+    ]:
         result = subprocess.run(
             ["docker", "compose", "exec", "-T", "worker", "python", "-c", code, format],
             input=value,
@@ -26,7 +30,7 @@ def main() -> None:
         )
         if expected not in json.loads(result.stdout)["text"]:
             raise SystemExit("Synthetic extraction mismatch")
-    print("Linux worker image: isolated PDF/DOCX parsing passed")
+    print("Linux worker image: isolated PDF/DOCX/Markdown/CSV/HTML parsing passed")
 
 
 if __name__ == "__main__":

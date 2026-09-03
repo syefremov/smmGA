@@ -204,6 +204,48 @@ test("disabled ingestion and local validation do not claim success", async () =>
   expect(screen.getByLabelText("Документ")).not.toHaveValue("");
 });
 
+test.each([
+  ["Reference.md", "markdown"],
+  ["Reference.csv", "csv"],
+  ["Reference.htm", "html"],
+])(
+  "accepts native selection of %s without importing or activating it",
+  async (name, format) => {
+    api.prepareFile.mockResolvedValue({
+      filename: name,
+      format,
+      brand_id: "brand",
+      idempotency_key: "synthetic-exact-identity",
+      content_hash: "a".repeat(64),
+      content_base64: "c3ludGhldGlj",
+    });
+    mount();
+    await selectDocument(document(name, "synthetic"));
+    sendFile();
+    await screen.findByText(/Сервер подтвердил загрузку/);
+    expect(api.prepareFile.mock.calls[0][0].name).toBe(name);
+    expect(api.submit.mock.calls[0][1]).toMatchObject({
+      filename: name,
+      format,
+    });
+    expect(
+      screen.queryByRole("button", { name: /Активировать|Импортировать/ }),
+    ).not.toBeInTheDocument();
+  },
+);
+
+test("reports invalid UTF-8 without uploading or echoing contents", async () => {
+  api.prepareFile.mockRejectedValueOnce(
+    new FileInputError("text_encoding_invalid"),
+  );
+  mount();
+  await selectDocument(document("Reference.csv", "private fixture"));
+  sendFile();
+  expect(await screen.findByRole("alert")).toHaveTextContent("UTF-8");
+  expect(api.submit).not.toHaveBeenCalled();
+  expect(screen.queryByText("private fixture")).not.toBeInTheDocument();
+});
+
 test("permissions and offline mode prevent upload and private reads", async () => {
   const view = mount({ ...workspace, permissions: [] });
   expect(screen.getByText("Нет доступа к загрузке файлов.")).toBeVisible();

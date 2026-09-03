@@ -5,10 +5,11 @@ import json
 import sys
 
 # Load trusted parser modules BEFORE lockdown; input remains unread until restrict succeeds.
-from smm_gpt.parsers.documents import MAX_INPUT, PARSER_VERSION, extract
+from smm_gpt.parsers.documents import MAX_INPUT, extract, parser_version
 from smm_gpt.parsers.sandbox import restrict
 
 for encoding in (
+    "utf-8-sig",
     "utf-16-be",
     "utf-16-le",
     "utf-16",
@@ -30,7 +31,7 @@ def main() -> None:
     try:
         data = sys.stdin.buffer.read(MAX_INPUT + 1)
         value = extract(data, sys.argv[1])
-        result = {"text": value, "parser_version": PARSER_VERSION}
+        result = {"text": value, "parser_version": parser_version(sys.argv[1])}
     except Exception as exc:
         # Only our fixed error codes, never library exceptions, original bytes or paths.
         allowed = {
@@ -44,6 +45,14 @@ def main() -> None:
             "pdf_stream_limit",
             "ocr_required",
             "file_type_mismatch",
+            "text_encoding_invalid",
+            "text_controls_rejected",
+            "invalid_csv",
+            "csv_header_invalid",
+            "csv_limit_exceeded",
+            "csv_row_width_invalid",
+            "html_limit_exceeded",
+            "html_structure_invalid",
         }
         result = {
             "error": str(exc)

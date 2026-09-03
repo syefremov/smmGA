@@ -407,6 +407,11 @@ stale checks, MCP/REST/read-only web. Не меняет даты/targets/owner, 
 Никакой автоматической публикации/brief/post; наследуемые заметки не подтверждают новый текст.
 Повторы, stale context, RLS, shared/private границы и сохранность истории защищены. Фаза 7 частичная.
 
+Пятнадцатый срез: [`knowledge-text-files.md`](knowledge-text-files.md) — закрытая загрузка
+UTF-8 Markdown/CSV/пассивного HTML, immutable originals, scan/sandbox и раздельный human import/
+activation. Контракт форматов пункта 2 реализован в репозитории; реальный scanner/ingestion rollout
+и проверка на разрешённом корпусе не выполнены. Фаза 8 не начинается, defaults выключены.
+
 ### Цель
 
 Сделать генерацию и анализ grounded: каждое фактическое утверждение связано с разрешённым источником, а специализированные AI-профили работают в ограниченных границах.

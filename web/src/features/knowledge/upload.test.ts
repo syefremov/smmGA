@@ -2,6 +2,70 @@
 import { expect, test, vi } from "vitest";
 import { MAX_FILE_BYTES, prepareFile } from "./upload";
 
+async function hashBytes(bytes: ArrayBuffer) {
+  return Array.from(
+    new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+    (byte) => byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
+test.each([
+  ["brief.MD", "markdown", "\ufeff# Крем\r\nИсходный текст"],
+  ["brief.markdown", "markdown", "<script>not executable</script>"],
+  ["table.csv", "csv", '\ufeffname,note\r\nКрем,"=1+1"\r\n'],
+  ["reference.html", "html", "<p>Крем &amp; уход</p>"],
+  ["reference.HTM", "html", "<script>parser must reject on server</script>"],
+])(
+  "preserves UTF-8 originals and exact upload identity for %s",
+  async (name, format, source) => {
+    const bytes = new TextEncoder().encode(source);
+    const file = new File([bytes], name, { type: "application/octet-stream" });
+    const result = await prepareFile(file, "workspace", "brand");
+    const hash = await hashBytes(bytes.buffer);
+    expect(result.format).toBe(format);
+    expect(result.content_hash).toBe(hash);
+    expect(
+      Uint8Array.from(atob(result.content_base64), (c) => c.charCodeAt(0)),
+    ).toEqual(bytes);
+    expect(result.idempotency_key).toBe(
+      "browser-file-v1:" +
+        (await hashBytes(
+          new TextEncoder().encode(
+            JSON.stringify([
+              "browser-file-v1",
+              "workspace",
+              "brand",
+              name,
+              format,
+              hash,
+            ]),
+          ).buffer,
+        )),
+    );
+    expect(
+      await prepareFile(new File([bytes], name), "workspace", "brand"),
+    ).toEqual(result);
+  },
+);
+
+test.each([
+  ["bad.md", new Uint8Array([0xff]), "text_encoding_invalid"],
+  ["bad.csv", new Uint8Array([0xff, 0xfe, 65, 0]), "text_encoding_invalid"],
+  [
+    "bad.html",
+    new TextEncoder().encode("text\u0000"),
+    "text_controls_rejected",
+  ],
+  ["bad.md", new TextEncoder().encode("text\u007f"), "text_controls_rejected"],
+  ["bad.csv", new TextEncoder().encode("\ufeff%PDF-1.7"), "file_type_mismatch"],
+  ["bad.html", new TextEncoder().encode("\ufeff \n"), "extracted_text_empty"],
+  ["bad.constructor", new TextEncoder().encode("text"), "file_type_mismatch"],
+])("rejects invalid text envelope %s (%s)", async (name, bytes, code) => {
+  await expect(
+    prepareFile(new File([bytes], name), "workspace", "brand"),
+  ).rejects.toThrow(code);
+});
+
 test.each([
   [
     "brief.PDF",

@@ -13,6 +13,11 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Пятнадцатый срез:** [`knowledge-text-files.md`](knowledge-text-files.md) — загрузка UTF-8
+Markdown/CSV/пассивного HTML в тот же private original → scan → sandbox → exact Owner import
+→ отдельная activation workflow. CSV становится справочным текстом, не бизнес-метриками.
+Старый text endpoint и retrieval algorithm неизменны. Default disabled; реальные gates остаются.
+
 **Четырнадцатый срез:** [`planner-adoption.md`](planner-adoption.md) — личный exact preview,
 отдельное подтверждение сохранения/раскрытия notes, новая immutable draft-версия плана и
 private receipt. Shared notes сохраняют цитаты, источники, warnings и gaps; последующие версии
@@ -66,7 +71,9 @@ REST и MCP используют один сервис: текст → immutable
 - Документ привязан к workspace/brand; visibility: workspace или только Owner.
 - Отдельно хранятся оригинал, source URI/date, effective period, hashes, parser/chunking versions,
   индексы, fragments, decisions, receipts, retrieval traces. URI сохраняется, но не скачивается.
-- Markdown, CSV и пассивный HTML принимаются **как текст**, не произвольный file upload.
+- Первый срез: Markdown, CSV и пассивный HTML принимаются **как текст** через `SubmitDocument`.
+  Пятнадцатый срез отдельно добавляет bounded file upload этих форматов через scanner/sandbox;
+  его правила и provenance не подменяют старый контракт: [`knowledge-text-files.md`](knowledge-text-files.md).
   Лимиты: 100 000 символов / 200 000 UTF-8 bytes, 250 chunks, CSV 1000 строк / 30 колонок.
   Небольшие оригиналы сохраняются в PostgreSQL отдельно от индексов и входят в DB backup.
 - Нормализация NFC, абзацы/разделы, bounded chunks, отдельный Unicode casefold search_text
@@ -230,7 +237,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0017_plan_adoption` требуют privileged migration role,
+Миграции `0005_knowledge`–`0018_text_files` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -248,10 +255,11 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
 
 ## Остаток фазы 7
 
-1. Binary workflow реализован в третьем срезе, но нужны реальный ClamAV smoke/signature updates,
+1. Файловый workflow реализован в третьем срезе и расширен UTF-8 форматами в пятнадцатом,
+   но нужны реальный ClamAV smoke/signature updates,
    проверка RAM/диска/backup/recovery на разрешённом сервере. Удобный attachment client
    реализован в шестом срезе через браузер; реальный вход/загрузка с двух машин ещё не проверены.
-   Windows production fallback, OCR и полноценный DLP не реализованы.
+   Windows/in-process production fallback запрещён; OCR и полноценный DLP не реализованы.
 2. Реальный owner-approved GreenAurum корпус и eval questions/expected sources/conflicts.
    Инструмент сохранения наборов/прогонов/review реализован во втором срезе; наполнение и
    человеческая проверка реальных ожиданий ещё нужны. Принятый FTS benchmark не закрывает exit gate.
@@ -263,7 +271,8 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
    полный Planner/Copywriter/Analyst, visual provenance/image gateway, Publisher gates.
    Text-only Editor реализован девятым срезом, human triage — десятым, Copywriter proposals —
    одиннадцатым, человеческое принятие новой редакции с AI provenance — двенадцатым,
-   bounded Planner topics — тринадцатым. Остаются model evals, Planner adoption/briefs,
+   bounded Planner topics — тринадцатым, exact human Planner adoption — четырнадцатым.
+   Остаются model evals, создание briefs из плана,
    доказанное исправление между редакциями, визуальная/юридическая верификация и production-включение.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
    Седьмой срез добавил memory → отдельно подтверждаемый reference с provenance.

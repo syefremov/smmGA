@@ -25,7 +25,10 @@ def register_file_tools(
 
     @server.tool(annotations=write)
     async def knowledge_file_submit(workspace_id: UUID, command: d.SubmitFile) -> d.FileReceipt:
-        """Upload PDF/DOCX bytes from an authorized client, max 2 MiB. Base64 and SHA-256 must be
+        """Upload PDF/DOCX/Markdown/CSV/passive HTML from an authorized client, max 2 MiB.
+        Text files require UTF-8; CSV is reference text, NEVER a metrics/sales import.
+        No URL fetching or executing markup/formulas/frontmatter. Scan and sandbox remain mandatory.
+        Base64 and SHA-256 must be
         computed from actual bytes, never guessed/transcribed by a model. No local server path or
         fetching URL is accepted. Do not echo bytes. Disabled unless server ingestion is enabled.
         New files stay private to uploader/Owner until scanning, isolated extraction and separate

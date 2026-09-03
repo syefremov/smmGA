@@ -176,9 +176,7 @@ async def test_plan_queue_once_provenance_no_content_mutations(tenants: TenantFi
     with pytest.raises(DBAPIError, match="planner_history_requires_restore_plan"):
         await asyncio.to_thread(migration.downgrade, Config("alembic.ini"), "0015_copy_adoption")
     async with t.admin.transaction() as s:
-        assert (
-            await s.scalar(text("SELECT version_num FROM alembic_version")) == "0017_plan_adoption"
-        )
+        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0018_text_files"
         assert await s.scalar(select(func.count()).select_from(AIArtifact)) == 1
         stored = await s.scalar(select(AIInput).where(AIInput.run_id == run.id))
         assert stored and stored.planner_context == inputs.planner_context.model_dump(mode="json")

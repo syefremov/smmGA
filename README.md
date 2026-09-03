@@ -55,7 +55,11 @@ API/MCP сразу возвращают `queued`/`blocked`, результат �
 Общие заметки сохраняются и для последующих версий как история, не проверка нового текста.
 Команды — через чат, просмотр истории и точного плана — также в панели. Контракт —
 [`docs/planner-adoption.md`](docs/planner-adoption.md).
-**Фаза 7 пока не завершена:** ввод binary ingestion в эксплуатацию, hybrid/pgvector, полный набор AI workflows,
+Пятнадцатый срез: загрузка UTF-8 Markdown, CSV и пассивного HTML через тот же файловый контур.
+Оригиналы сохраняются неизменными, извлечение проходит scanner/Linux sandbox; затем нужны
+отдельные импорт и активация владельцем. CSV — справочный текст, не импорт продаж/метрик.
+Контракт — [`docs/knowledge-text-files.md`](docs/knowledge-text-files.md). По умолчанию выключено.
+**Фаза 7 пока не завершена:** ввод файлового ingestion в эксплуатацию, hybrid/pgvector, полный набор AI workflows,
 реальный утверждённый корпус/evals и server gates ещё впереди. Точная граница —
 [`docs/phase-7-implementation.md`](docs/phase-7-implementation.md).
 

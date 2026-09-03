@@ -9,6 +9,7 @@ from sqlalchemy import select, text
 from smm_gpt.core.config import Settings, get_settings
 from smm_gpt.domain.knowledge_files import FileFormat
 from smm_gpt.domain.operations import OperationError
+from smm_gpt.file_formats import FILE_EXTENSIONS
 from smm_gpt.infrastructure.database import Database
 from smm_gpt.infrastructure.file_models import KnowledgeExtraction, KnowledgeFile
 from smm_gpt.infrastructure.file_storage import FileStore, VolumeFileStore
@@ -52,11 +53,11 @@ async def process(
             finish(row, "failed", "attempts_exhausted")
             audit(s, actor, wid, uuid4(), "knowledge.file_blocked", "failed", fid)
             return False
-        if row.format not in ("pdf", "docx"):
+        if row.format not in FILE_EXTENSIONS:
             finish(row, "failed", "file_type_mismatch")
             audit(s, actor, wid, uuid4(), "knowledge.file_blocked", "failed", fid)
             return False
-        format: FileFormat = "pdf" if row.format == "pdf" else "docx"
+        format: FileFormat = row.format
         expected_hash = row.content_hash
         row.state, row.lease_id = "processing", token
         row.attempts += 1

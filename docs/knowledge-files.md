@@ -1,4 +1,8 @@
-# PDF/DOCX: закрытая загрузка в базу знаний
+# Файлы: закрытая загрузка в базу знаний
+
+Пятнадцатый срез расширяет этот же pipeline на UTF-8 Markdown/CSV/пассивный HTML:
+[`knowledge-text-files.md`](knowledge-text-files.md), migration `0018_text_files`.
+Прежние PDF/DOCX правила ниже неизменны; scan/sandbox и Owner gates общие для пяти форматов.
 
 Пятый срез добавляет управление jobs, отмену, историю и восстановление статусов после сбоев —
 [`ingestion-jobs.md`](ingestion-jobs.md), migration `0009_ingestion_recovery`.
@@ -11,7 +15,7 @@
 Чат и REST используют один сервис. Последовательность:
 
 1. Owner/Editor/Strategist загружает файл: filename, format, SHA-256, base64 и idempotency key.
-2. Сервер проверяет размер/расширение/magic/hash, сохраняет неизменяемый оригинал в private volume
+2. Сервер проверяет размер/расширение/magic либо UTF-8/hash, сохраняет неизменяемый оригинал в private volume
    и метаданные/queued job в PostgreSQL. Файл видят только автор и Owner workspace.
 3. Worker читает оригинал с проверкой hash, отправляет байты в private ClamAV INSTREAM,
    требует **точный clean ответ** и сигнатуры не старше 48 часов, проверяет версию до/после.

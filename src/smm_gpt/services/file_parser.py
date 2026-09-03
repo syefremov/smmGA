@@ -80,6 +80,14 @@ class SandboxedParser:
                     "pdf_stream_limit",
                     "ocr_required",
                     "file_type_mismatch",
+                    "text_encoding_invalid",
+                    "text_controls_rejected",
+                    "invalid_csv",
+                    "csv_header_invalid",
+                    "csv_limit_exceeded",
+                    "csv_row_width_invalid",
+                    "html_limit_exceeded",
+                    "html_structure_invalid",
                 }
                 raise OperationError(
                     code if isinstance(code, str) and code in allowed else "document_rejected"

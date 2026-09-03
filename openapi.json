@@ -4073,7 +4073,10 @@
           "format": {
             "enum": [
               "pdf",
-              "docx"
+              "docx",
+              "markdown",
+              "csv",
+              "html"
             ],
             "title": "Format",
             "type": "string"
@@ -4201,7 +4204,10 @@
           "format": {
             "enum": [
               "pdf",
-              "docx"
+              "docx",
+              "markdown",
+              "csv",
+              "html"
             ],
             "title": "Format",
             "type": "string"
@@ -8757,7 +8763,10 @@
           "format": {
             "enum": [
               "pdf",
-              "docx"
+              "docx",
+              "markdown",
+              "csv",
+              "html"
             ],
             "title": "Format",
             "type": "string"

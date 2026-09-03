@@ -110,8 +110,8 @@ HTML из reason не исполняется. Кнопок принятия/appr
 ## Обновление и проверка
 
 Новых зависимостей, flags, provider-контрактов или profile capabilities нет. Generated OpenAPI/TS
-обновляются вместе с кодом. Текущий schema head deployment guard — более новый `0016_planner`
-([отдельный Planner-контракт](planner-drafts.md)); adoption migration остаётся `0015_copy_adoption`.
+обновляются вместе с кодом. Текущий schema head указан в [deployment runbook](deployment.md);
+adoption migration остаётся `0015_copy_adoption`.
 Реальная миграция требует отдельного разрешения, backup/restore rehearsal, остановки старых
 API/worker writers и согласованного обновления кода. Папка сотрудника не заменяет обновление БД.
 Автоматического deploy нет. Старые миграции не переписываются.

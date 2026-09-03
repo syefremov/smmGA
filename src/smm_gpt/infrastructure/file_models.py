@@ -25,6 +25,9 @@ class KnowledgeFile(Tenant, Base):
         *tenant_args(brand_id="brands"),
         CheckConstraint("byte_size > 0 AND byte_size <= 2097152", name="knowledge_file_size"),
         CheckConstraint(
+            "format IN ('pdf','docx','markdown','csv','html')", name="knowledge_file_format"
+        ),
+        CheckConstraint(
             "state IN ('queued','processing','ready','failed','cancelled')",
             name="knowledge_file_state",
         ),

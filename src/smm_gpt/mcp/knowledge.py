@@ -190,7 +190,9 @@ def register_knowledge_tools(
         memory_document requires knowledge_note_read, exact review/context/text hashes and a
         separate human decision on text, title, visibility and dates. It creates one INACTIVE
         reference candidate, not approval. Preview/index activation remains a separate decision.
-        PDF/DOCX use knowledge_file_submit and separate Owner file_import after preview/scan.
+        File originals (PDF/DOCX/UTF-8 Markdown/CSV/passive HTML) use knowledge_file_submit
+        and separate Owner file_import after preview/scan.
+        CSV files are reference text, not metrics.
         Fetching source URLs is unavailable. Reuse idempotency key on retries.
         """
         return await core.execute(await principal(), workspace_id, command, request_id())

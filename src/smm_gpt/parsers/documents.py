@@ -9,9 +9,15 @@ from xml.etree.ElementTree import Element
 from defusedxml.ElementTree import fromstring
 from pypdf import PdfReader
 
+from smm_gpt.parsers.text_files import TEXT_PARSER_VERSIONS, extract_text_file
+
 MAX_INPUT = 2 * 1024 * 1024
 MAX_OUTPUT = 200_000
 PARSER_VERSION = "pdf-pypdf-6.16.2_docx-ooxml-v1"
+
+
+def parser_version(format: str) -> str:
+    return TEXT_PARSER_VERSIONS.get(format, PARSER_VERSION)
 
 
 def bounded(value: str) -> str:
@@ -165,6 +171,8 @@ def extract(data: bytes, format: str) -> str:
         result = pdf(data)
     elif format == "docx" and data.startswith(b"PK\x03\x04"):
         result = docx(data)
+    elif format in TEXT_PARSER_VERSIONS:
+        result = extract_text_file(data, format)
     else:
         raise ValueError("file_type_mismatch")
     if not result.strip():

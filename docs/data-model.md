@@ -1,5 +1,11 @@
 # Центральная модель данных — фаза 4
 
+Пятнадцатый срез: `0018_text_files` добавляет CHECK формата `knowledge_files`:
+pdf/docx/markdown/csv/html. Оригиналы и extraction history неизменны; `file_import` сохраняет
+извлечённый текст как markdown reference со `source_file_id`, не разбирает HTML/CSV повторно.
+Downgrade с любыми новыми форматами запрещён без restore-backed плана. Новых grants нет.
+Контракт — [`knowledge-text-files.md`](knowledge-text-files.md).
+
 Четырнадцатый срез: `0017_plan_adoption` добавляет immutable `plan_notes` (workspace-readable)
 и `plan_adoptions` (actor-private Owner). Composite tenant FKs, уникальные run/plan/notes/key,
 точные bindings artifact/input/source/new version/notes, deferred notes→receipt guard исключает
