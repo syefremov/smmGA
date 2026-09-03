@@ -12,6 +12,7 @@ from smm_gpt.domain.editor import EditorContext, EditorialReview
 from smm_gpt.domain.editor_triage import EditorialTriageView
 from smm_gpt.domain.knowledge import Citation, ShortText
 from smm_gpt.domain.operations import DTO, IdempotencyToken
+from smm_gpt.domain.plan_adoption import PlanAdoptionView
 from smm_gpt.domain.planner import PlanDraft, PlanningContext
 
 ProfileName = Literal[
@@ -200,6 +201,7 @@ class AIRunView(DTO):
     copy_draft: CopyDraft | None = None
     plan_draft: PlanDraft | None = None
     copy_adoption: CopyAdoptionView | None = None
+    plan_adoption: PlanAdoptionView | None = None
     editorial_triage: EditorialTriageView | None = None
     citations: list[Citation] = Field(default_factory=list)
     usage: dict[str, int | str | None]

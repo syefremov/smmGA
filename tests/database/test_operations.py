@@ -27,6 +27,7 @@ from smm_gpt.domain.operations import (
     TransitionWorkItem,
     WorkState,
 )
+from smm_gpt.domain.plan_adoption import PlanAdoptionPreview
 from smm_gpt.infrastructure.models import AuditEvent, Brand, Membership, WorkItem, utcnow
 from smm_gpt.services.operations import Operations
 from smm_gpt.services.sessions import SessionService
@@ -44,6 +45,7 @@ from .test_editor_triage import decision as finding_decision
 from .test_knowledge import activate as activate_knowledge
 from .test_knowledge_files import command as file_command
 from .test_memory_curation import proposal as memory_proposal
+from .test_plan_adoption import command as adopt_plan_command
 from .test_planner import PlanGateway, plan_command
 
 pytestmark = pytest.mark.integration
@@ -623,6 +625,53 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
             },
         )
         assert bad_plan.status_code == 422 and "never-echo" not in bad_plan.text
+        plan_adoption_path = ai_prefix + f"/{planner_id}/plan-adoption"
+        plan_preview = await browser.get(plan_adoption_path + "/preview")
+        assert plan_preview.status_code == 200, plan_preview.text
+        assert (
+            await call("ai_plan_adoption_preview", {"workspace_id": wid, "run_id": planner_id})
+        )["structuredContent"] == plan_preview.json()
+        plan_adopt = adopt_plan_command(
+            PlanAdoptionPreview.model_validate(plan_preview.json())
+        ).model_dump(mode="json")
+        invalid_plan_adopt = await browser.post(
+            plan_adoption_path,
+            json={
+                **plan_adopt,
+                "share_with_workspace_confirmed": False,
+                "reason": "never-echo-plan-adoption",
+            },
+        )
+        assert invalid_plan_adopt.status_code == 422 and "never-echo" not in invalid_plan_adopt.text
+        plan_receipt = await call(
+            "ai_plan_adopt", {"workspace_id": wid, "run_id": planner_id, "command": plan_adopt}
+        )
+        plan_saved = await browser.post(plan_adoption_path, json=plan_adopt)
+        assert plan_saved.status_code == 200, plan_saved.text
+        assert plan_receipt["structuredContent"] == plan_saved.json()
+        plan_history = (
+            await call("ai_plan_adoption_read", {"workspace_id": wid, "run_id": planner_id})
+        )["structuredContent"]
+        assert isinstance(plan_history, dict)
+        assert (
+            plan_history["result"]
+            == (await browser.get(plan_adoption_path)).json()
+            == plan_saved.json()
+        )
+        plan_id = plan_saved.json()["plan_id"]
+        shared_path = f"/api/v1/workspaces/{wid}/content/records/{plan_id}/plan-notes"
+        shared = await browser.get(shared_path)
+        shared_mcp = (
+            await call("content_plan_notes_read", {"workspace_id": wid, "record_id": plan_id})
+        )["structuredContent"]
+        assert isinstance(shared_mcp, dict) and shared_mcp["result"] == shared.json()
+        assert shared.status_code == 200 and shared.json()["exact_version"]
+        assert "Private human transfer reason" not in shared.text
+        final_plan_run = (await browser.get(ai_prefix + f"/{planner_id}")).json()
+        assert (
+            final_plan_run["plan_draft"] is None
+            and final_plan_run["plan_adoption"] == plan_saved.json()
+        )
         read_knowledge = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/documents")
         assert (await call("knowledge_documents", {"workspace_id": wid}))[
             "structuredContent"

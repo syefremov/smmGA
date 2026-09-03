@@ -128,6 +128,62 @@ class AIArtifact(Tenant, Base):
     content_hash: Mapped[str] = mapped_column(String(64))
 
 
+class PlanNotes(Tenant, Base):
+    __tablename__ = "plan_notes"
+    __table_args__ = (
+        *tenant_args(plan_id="content_records"),
+        UniqueConstraint("workspace_id", "plan_id"),
+    )
+    plan_id: Mapped[UUID]
+    plan_hash: Mapped[str] = mapped_column(String(64))
+    content_hash: Mapped[str] = mapped_column(String(64))
+    actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    body: Mapped[dict[str, object]] = mapped_column(JSON)
+
+
+class PlanAdoption(Tenant, Base):
+    __tablename__ = "plan_adoptions"
+    __table_args__ = (
+        *tenant_args(
+            run_id="ai_runs",
+            artifact_id="ai_artifacts",
+            input_id="ai_inputs",
+            source_plan_id="content_records",
+            plan_id="content_records",
+            notes_id="plan_notes",
+        ),
+        UniqueConstraint("workspace_id", "run_id"),
+        UniqueConstraint("workspace_id", "plan_id"),
+        UniqueConstraint("workspace_id", "notes_id"),
+        UniqueConstraint("workspace_id", "actor_id", "key_hash"),
+        CheckConstraint(
+            "source_plan_id <> plan_id AND plan_number>=2", name="plan_adoption_version"
+        ),
+        CheckConstraint(
+            "human_confirmed AND share_with_workspace_confirmed", name="plan_adoption_confirmation"
+        ),
+    )
+    run_id: Mapped[UUID]
+    artifact_id: Mapped[UUID]
+    artifact_hash: Mapped[str] = mapped_column(String(64))
+    input_id: Mapped[UUID]
+    input_hash: Mapped[str] = mapped_column(String(64))
+    source_plan_id: Mapped[UUID]
+    source_content_hash: Mapped[str] = mapped_column(String(64))
+    plan_id: Mapped[UUID]
+    content_hash: Mapped[str] = mapped_column(String(64))
+    plan_number: Mapped[int]
+    notes_id: Mapped[UUID]
+    notes_hash: Mapped[str] = mapped_column(String(64))
+    preview_hash: Mapped[str] = mapped_column(String(64))
+    actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    reason: Mapped[str] = mapped_column(Text)
+    key_hash: Mapped[str] = mapped_column(String(64))
+    request_hash: Mapped[str] = mapped_column(String(64))
+    human_confirmed: Mapped[bool] = mapped_column(Boolean)
+    share_with_workspace_confirmed: Mapped[bool] = mapped_column(Boolean)
+
+
 class CopyAdoption(Tenant, Base):
     __tablename__ = "copy_adoptions"
     __table_args__ = (

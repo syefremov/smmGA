@@ -13,6 +13,12 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Четырнадцатый срез:** [`planner-adoption.md`](planner-adoption.md) — личный exact preview,
+отдельное подтверждение сохранения/раскрытия notes, новая immutable draft-версия плана и
+private receipt. Shared notes сохраняют цитаты, источники, warnings и gaps; последующие версии
+видят ограничения предка. Новый Planner run обязан сохранить все inherited gaps. Никаких
+brief/post/work item, публикации/approval или новых прав worker. MCP/REST общие, панель read-only.
+
 **Тринадцатый срез:** [`planner-drafts.md`](planner-drafts.md) — testing Content Planner по exact
 SQL plan/campaign и selected confirmed facts/profile/policy. Темы для 1–5 заданных слотов,
 неизменные даты/targets/owner, citations/gaps, общая очередь и MCP/REST/read-only web.
@@ -224,7 +230,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0016_planner` требуют privileged migration role,
+Миграции `0005_knowledge`–`0017_plan_adoption` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.

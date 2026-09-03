@@ -212,6 +212,15 @@
   writes, adoption, scheduling or approval. Citation matching is not semantic quality evidence.
   Worker gets only the tenant-bound assignable-member boolean, no content-write authority.
   Refuse downgrade with planner history; provider/worker and real deployment remain separately gated.
+- Follow `docs/planner-adoption.md`: personal Owner/MFA only, whole exact preview and separate
+  human consent to save AND share all notes. Atomically create a new immutable draft plan,
+  shared notes/evidence links and private receipt. Preserve dates/targets/campaign, all gaps
+  and prior versions. No model call, brief/post/work item, approval or scheduling.
+  Read `content_plan_notes_read` before replanning/handoff; descendants show ancestral notes
+  as history, never validation of new text or automatic resolution. Replanning must retain all
+  inherited gaps; if contract limits cannot fit them, stop, never truncate or silently fork.
+  No worker grants or private input/decision-reason disclosure in shared notes. Historic receipt
+  replays are not current approval. Refuse downgrade with either notes or adoption history.
 - Follow `docs/ai-profile-registry.md`: ai_profiles is a built-in catalog, not the DB selection.
   New queued runs require exact registered version AND selection IDs, with no implicit fallback.
   Only purpose/model are configurable within code-owned capabilities and output contracts.

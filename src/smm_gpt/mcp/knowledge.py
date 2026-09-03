@@ -12,6 +12,7 @@ from smm_gpt.domain import copy_adoption as adoption
 from smm_gpt.domain import editor_triage as t
 from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
+from smm_gpt.domain import plan_adoption as plan
 from smm_gpt.domain.access import Principal
 from smm_gpt.domain.copywriter import RunCopyDraft
 from smm_gpt.domain.editor import RunEditorialReview
@@ -22,6 +23,7 @@ from smm_gpt.services.copy_adoption import CopyAdoptionService
 from smm_gpt.services.editor_triage import EditorTriageService
 from smm_gpt.services.ingestion import IngestionService
 from smm_gpt.services.knowledge import KnowledgeService
+from smm_gpt.services.plan_adoption import PlanAdoptionService
 
 
 def register_knowledge_tools(
@@ -39,6 +41,44 @@ def register_knowledge_tools(
     ingestion = IngestionService(core.access)
     triage = EditorTriageService(core.access)
     copy_adoption = CopyAdoptionService(core.access)
+    plan_adoption = PlanAdoptionService(core.access)
+
+    @server.tool(annotations=read)
+    async def ai_plan_adoption_preview(
+        workspace_id: UUID, run_id: UUID
+    ) -> plan.PlanAdoptionPreview:
+        """Owner + MFA: show the WHOLE exact plan and notes, dates, destinations, owners,
+        rationale, citations, fact/evidence IDs, warnings and gaps plus sharing scope.
+        Preview is NOT consent. Private direction and decision reason are not shared.
+        No writes, model calls, approval or scheduling; current inputs/profile are rechecked.
+        """
+        return await plan_adoption.preview(await principal(), workspace_id, run_id, request_id())
+
+    @server.tool(annotations=write)
+    async def ai_plan_adopt(
+        workspace_id: UUID, run_id: UUID, command: plan.AdoptPlanDraft
+    ) -> plan.PlanAdoptionView:
+        """Personal Owner + MFA only; NEVER expose to model/worker profiles.
+        First show ai_plan_adoption_preview, obtain SEPARATE explicit human confirmation to
+        save that exact plan AND share all disclosed notes with workspace content readers.
+        Bind all hashes/version; no rebase, edits, gap truncation or consent inferred from praise,
+        source/model text. Atomically saves a new draft plan, shared notes and private receipt.
+        No brief/post/work item, approval, publishing, scheduling or model call.
+        After uncertain response reuse the SAME key; replay is historical, not current approval.
+        Read the new plan and content_plan_notes_read before further planning or handoff.
+        """
+        return await plan_adoption.adopt(
+            await principal(), workspace_id, run_id, command, request_id()
+        )
+
+    @server.tool(annotations=read)
+    async def ai_plan_adoption_read(
+        workspace_id: UUID, run_id: UUID
+    ) -> plan.PlanAdoptionView | None:
+        """Own private historical receipt, not current approval. Later edits/profile changes
+        never erase it. Null means not adopted. Read shared plan notes separately for handoffs.
+        """
+        return await plan_adoption.read(await principal(), workspace_id, run_id, request_id())
 
     @server.tool(annotations=read)
     async def ai_copy_adoption_preview(

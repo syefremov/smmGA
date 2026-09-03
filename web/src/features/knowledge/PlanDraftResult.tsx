@@ -1,6 +1,56 @@
 import type { components } from "../../api/schema";
 import { time } from "../content/hooks";
 
+export function PlannerResult({
+  draft,
+  adoption,
+  workspaceId,
+  timezone,
+}: {
+  draft?: components["schemas"]["PlanDraft"] | null;
+  adoption?: components["schemas"]["PlanAdoptionView"] | null;
+  workspaceId: string;
+  timezone: string;
+}) {
+  return (
+    <>
+      {draft && <PlanDraftResult draft={draft} timezone={timezone} />}
+      {adoption && (
+        <section aria-label="История сохранения AI-плана">
+          <h3>План сохранён человеком</h3>
+          <p>{adoption.warning}</p>
+          <p>
+            Создана новая черновая версия с общими основаниями и пробелами.
+            Посты, брифы и расписание отправок не созданы.
+          </p>
+          <p>
+            Автор решения: {adoption.actor_id} ·{" "}
+            {time(adoption.created_at, timezone)} · {timezone}
+          </p>
+          <p>Личное основание решения: {adoption.reason}</p>
+          <dl className="file-metadata">
+            <dt>Новая версия плана</dt>
+            <dd>
+              {adoption.plan_id} · №{adoption.plan_number}
+            </dd>
+            <dt>Hash плана</dt>
+            <dd>{adoption.content_hash}</dd>
+            <dt>Hash общих заметок</dt>
+            <dd>{adoption.notes_hash}</dd>
+            <dt>Исходный план</dt>
+            <dd>{adoption.source_plan_id}</dd>
+          </dl>
+          <a
+            href={`/app/materials?workspace=${encodeURIComponent(workspaceId)}&record=${encodeURIComponent(adoption.plan_id)}&kind=content_plan`}
+          >
+            Открыть сохранённый план и ограничения
+          </a>
+        </section>
+      )}
+    </>
+  );
+}
+
 export function PlanDraftResult({
   draft,
   timezone,

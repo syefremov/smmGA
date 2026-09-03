@@ -204,6 +204,16 @@
             "title": "Model",
             "type": "string"
           },
+          "plan_adoption": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlanAdoptionView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "plan_draft": {
             "anyOf": [
               {
@@ -513,6 +523,78 @@
           "share_with_workspace_confirmed"
         ],
         "title": "AdoptCopyDraft",
+        "type": "object"
+      },
+      "AdoptPlanDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Artifact Hash",
+            "type": "string"
+          },
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "expected_plan_number": {
+            "minimum": 1.0,
+            "title": "Expected Plan Number",
+            "type": "integer"
+          },
+          "human_confirmed": {
+            "const": true,
+            "title": "Human Confirmed",
+            "type": "boolean"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "notes_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Notes Hash",
+            "type": "string"
+          },
+          "preview_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Preview Hash",
+            "type": "string"
+          },
+          "proposed_content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Proposed Content Hash",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Reason",
+            "type": "string"
+          },
+          "share_with_workspace_confirmed": {
+            "const": true,
+            "title": "Share With Workspace Confirmed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "artifact_id",
+          "artifact_hash",
+          "preview_hash",
+          "proposed_content_hash",
+          "notes_hash",
+          "expected_plan_number",
+          "reason",
+          "human_confirmed",
+          "share_with_workspace_confirmed"
+        ],
+        "title": "AdoptPlanDraft",
         "type": "object"
       },
       "ArchiveDocument": {
@@ -5747,6 +5829,219 @@
         "title": "Permission",
         "type": "string"
       },
+      "PlanAdoptionPreview": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Artifact Hash",
+            "type": "string"
+          },
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "body": {
+            "$ref": "#/components/schemas/ContentPlan"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "input_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "input_id": {
+            "format": "uuid",
+            "title": "Input Id",
+            "type": "string"
+          },
+          "notes": {
+            "$ref": "#/components/schemas/PlanNotesBody"
+          },
+          "notes_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Notes Hash",
+            "type": "string"
+          },
+          "preview_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Preview Hash",
+            "type": "string"
+          },
+          "proposed_content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Proposed Content Hash",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "source_content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Content Hash",
+            "type": "string"
+          },
+          "source_plan_id": {
+            "format": "uuid",
+            "title": "Source Plan Id",
+            "type": "string"
+          },
+          "source_plan_number": {
+            "title": "Source Plan Number",
+            "type": "integer"
+          },
+          "warning": {
+            "default": "Предпросмотр не является согласием. После отдельного подтверждения новая версия плана, темы, ответственный, обоснования, цитаты, fact/evidence IDs, warnings и пробелы будут доступны читателям контента workspace. Личный запрос и причины решения не раскрываются. Это черновой план, не одобрение или расписание публикации.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "artifact_id",
+          "artifact_hash",
+          "input_id",
+          "input_hash",
+          "source_plan_id",
+          "source_content_hash",
+          "source_plan_number",
+          "expires_at",
+          "proposed_content_hash",
+          "notes_hash",
+          "preview_hash",
+          "body",
+          "notes"
+        ],
+        "title": "PlanAdoptionPreview",
+        "type": "object"
+      },
+      "PlanAdoptionView": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "artifact_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Artifact Hash",
+            "type": "string"
+          },
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "historical_only": {
+            "const": true,
+            "default": true,
+            "title": "Historical Only",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "input_id": {
+            "format": "uuid",
+            "title": "Input Id",
+            "type": "string"
+          },
+          "notes_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Notes Hash",
+            "type": "string"
+          },
+          "notes_id": {
+            "format": "uuid",
+            "title": "Notes Id",
+            "type": "string"
+          },
+          "plan_id": {
+            "format": "uuid",
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "plan_number": {
+            "title": "Plan Number",
+            "type": "integer"
+          },
+          "preview_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Preview Hash",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "source_content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Content Hash",
+            "type": "string"
+          },
+          "source_plan_id": {
+            "format": "uuid",
+            "title": "Source Plan Id",
+            "type": "string"
+          },
+          "warning": {
+            "default": "История принятия, не актуальность или одобрение. Перечитайте план и ограничения.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "artifact_id",
+          "artifact_hash",
+          "input_id",
+          "input_hash",
+          "source_plan_id",
+          "source_content_hash",
+          "plan_id",
+          "content_hash",
+          "plan_number",
+          "notes_id",
+          "notes_hash",
+          "preview_hash",
+          "actor_id",
+          "created_at",
+          "reason"
+        ],
+        "title": "PlanAdoptionView",
+        "type": "object"
+      },
       "PlanDraft": {
         "additionalProperties": false,
         "properties": {
@@ -5845,6 +6140,142 @@
           "source_quote"
         ],
         "title": "PlanEvidence",
+        "type": "object"
+      },
+      "PlanNotesBody": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_record_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Evidence Record Ids",
+            "type": "array"
+          },
+          "fact_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Fact Ids",
+            "type": "array"
+          },
+          "knowledge_gaps": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Knowledge Gaps",
+            "type": "array"
+          },
+          "slots": {
+            "items": {
+              "$ref": "#/components/schemas/PlanSlot"
+            },
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Slots",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "fact_ids",
+          "evidence_record_ids",
+          "slots",
+          "warnings",
+          "knowledge_gaps"
+        ],
+        "title": "PlanNotesBody",
+        "type": "object"
+      },
+      "PlanNotesView": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "body": {
+            "$ref": "#/components/schemas/PlanNotesBody"
+          },
+          "content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "exact_version": {
+            "title": "Exact Version",
+            "type": "boolean"
+          },
+          "historical_only": {
+            "const": true,
+            "default": true,
+            "title": "Historical Only",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "plan_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Plan Hash",
+            "type": "string"
+          },
+          "plan_id": {
+            "format": "uuid",
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "requested_plan_id": {
+            "format": "uuid",
+            "title": "Requested Plan Id",
+            "type": "string"
+          },
+          "warning": {
+            "default": "Сохранённые основания и пробелы принятого AI-плана. Это история, не проверка текущих фактов или одобрение. Для последующей версии показываются ограничения предка; они не подтверждают новый текст и не считаются автоматически устранёнными.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "plan_id",
+          "plan_hash",
+          "content_hash",
+          "actor_id",
+          "created_at",
+          "body",
+          "requested_plan_id",
+          "exact_version"
+        ],
+        "title": "PlanNotesView",
         "type": "object"
       },
       "PlanSlot": {
@@ -10583,6 +11014,114 @@
           }
         },
         "summary": "Record"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/content/records/{record_id}/plan-notes": {
+      "get": {
+        "operationId": "plan_notes_api_v1_workspaces__workspace_id__content_records__record_id__plan_notes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "record_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Record Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PlanNotesView"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Plan Notes Api V1 Workspaces  Workspace Id  Content Records  Record Id  Plan Notes Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Plan Notes"
       }
     },
     "/api/v1/workspaces/{workspace_id}/content/tasks/{item_id}": {
@@ -15575,6 +16114,352 @@
           }
         },
         "summary": "Read Inputs"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/plan-adoption": {
+      "get": {
+        "operationId": "plan_adoption_read_api_v1_workspaces__workspace_id__knowledge_runs__run_id__plan_adoption_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PlanAdoptionView"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Plan Adoption Read Api V1 Workspaces  Workspace Id  Knowledge Runs  Run Id  Plan Adoption Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Plan Adoption Read"
+      },
+      "post": {
+        "operationId": "plan_adopt_api_v1_workspaces__workspace_id__knowledge_runs__run_id__plan_adoption_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdoptPlanDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanAdoptionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Plan Adopt"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/plan-adoption/preview": {
+      "get": {
+        "operationId": "plan_adoption_preview_api_v1_workspaces__workspace_id__knowledge_runs__run_id__plan_adoption_preview_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanAdoptionPreview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Plan Adoption Preview"
       }
     },
     "/api/v1/workspaces/{workspace_id}/knowledge/search": {

@@ -1,14 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { lazy, Suspense, useState, type FormEvent } from "react";
 import * as api from "../../api/content";
 import type { Context } from "./ContentWorkspace";
 import { Failure, Paging } from "./shared";
 import { time, useCommand } from "./hooks";
 
+const PlanNotes = lazy(() =>
+  import("./PlanNotes").then((module) => ({ default: module.PlanNotes })),
+);
+
 export function Library({ workspace, offline }: Context) {
-  const [kind, setKind] = useState<api.RecordKind>("brief");
+  const linkedKind = new URLSearchParams(location.search).get("kind");
+  const [kind, setKind] = useState<api.RecordKind>(
+    linkedKind && Object.hasOwn(api.recordKinds, linkedKind)
+      ? (linkedKind as api.RecordKind)
+      : "brief",
+  );
   const [cursor, setCursor] = useState<string>();
-  const [selected, setSelected] = useState<api.RecordView>();
+  const [selectedId, setSelected] = useState<string | undefined>(
+    new URLSearchParams(location.search).get("record") ?? undefined,
+  );
+  const detail = useQuery({
+    queryKey: [workspace.id, "record", selectedId],
+    queryFn: ({ signal }) => api.record(workspace.id, selectedId!, signal),
+    enabled: !!selectedId,
+    refetchInterval: 10_000,
+  });
+  const selected = !detail.error && selectedId ? detail.data : undefined;
   const [create, setCreate] = useState(false);
   const [confirm, setConfirm] = useState("");
   const query = useQuery({
@@ -72,20 +90,20 @@ export function Library({ workspace, offline }: Context) {
       {query.error && (
         <Failure error={query.error} retry={() => void query.refetch()} />
       )}
-      {query.data?.items.length === 0 && (
-        <p className="empty">
-          Материалов этого типа пока нет. Бренды, продукты и источники можно
-          создать командой catalog_create через чат.
-        </p>
-      )}
-      <div className="queue-layout">
+      <div className="queue-layout library-layout">
         <section>
+          {query.data?.items.length === 0 && (
+            <p className="empty">
+              Материалов этого типа пока нет. Бренды, продукты и источники можно
+              создать командой catalog_create через чат.
+            </p>
+          )}
           <ul className="reference-list">
             {query.data?.items.map((r) => (
               <li key={r.id}>
                 <button
                   onClick={() => {
-                    setSelected(r);
+                    setSelected(r.id);
                     setConfirm("");
                   }}
                 >
@@ -103,6 +121,12 @@ export function Library({ workspace, offline }: Context) {
           </ul>
           <Paging next={query.data?.next_cursor} set={setCursor} />
         </section>
+        {selectedId && detail.isPending && (
+          <p role="status">Загружаем точную запись…</p>
+        )}
+        {selectedId && detail.error && (
+          <Failure error={detail.error} retry={() => void detail.refetch()} />
+        )}
         {selected && (
           <aside className="inspector">
             <h2>{selected.body.name}</h2>
@@ -111,8 +135,26 @@ export function Library({ workspace, offline }: Context) {
               {selected.confirmed_by ? "Подтверждено" : "Черновая запись"}
             </p>
             <p className="content-hash">ID: {selected.id}</p>
-            <pre>{JSON.stringify(selected.body, null, 2)}</pre>
+            {selected.body.kind === "content_plan" ? (
+              <details>
+                <summary>Точная структура плана</summary>
+                <pre>{JSON.stringify(selected.body, null, 2)}</pre>
+              </details>
+            ) : (
+              <pre>{JSON.stringify(selected.body, null, 2)}</pre>
+            )}
             <p className="content-hash">SHA-256: {selected.content_hash}</p>
+            {selected.body.kind === "content_plan" && (
+              <Suspense
+                fallback={<p role="status">Загружаем заметки плана…</p>}
+              >
+                <PlanNotes
+                  workspaceId={workspace.id}
+                  planId={selected.id}
+                  timezone={workspace.timezone}
+                />
+              </Suspense>
+            )}
             {!selected.confirmed_by &&
               workspace.permissions.includes("content.approve") && (
                 <>

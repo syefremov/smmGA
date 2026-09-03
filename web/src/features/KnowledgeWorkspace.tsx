@@ -22,9 +22,9 @@ const CopywriterResult = lazy(() =>
     default: module.CopywriterResult,
   })),
 );
-const PlanDraftResult = lazy(() =>
+const PlannerResult = lazy(() =>
   import("./knowledge/PlanDraftResult").then((module) => ({
-    default: module.PlanDraftResult,
+    default: module.PlannerResult,
   })),
 );
 
@@ -437,18 +437,22 @@ function Profiles({ workspace: w }: { workspace: Workspace }) {
               timezone={w.timezone}
             />
           )}
-          {run.data.plan_draft &&
-            run.data.state === "needs_review" &&
-            !run.data.error_code && (
-              <Suspense
-                fallback={<p role="status">Загружаем предложение плана…</p>}
-              >
-                <PlanDraftResult
-                  draft={run.data.plan_draft}
-                  timezone={w.timezone}
-                />
-              </Suspense>
-            )}
+          {(run.data.plan_draft || run.data.plan_adoption) && (
+            <Suspense
+              fallback={<p role="status">Загружаем предложение плана…</p>}
+            >
+              <PlannerResult
+                draft={
+                  run.data.state === "needs_review" && !run.data.error_code
+                    ? run.data.plan_draft
+                    : null
+                }
+                adoption={run.data.plan_adoption}
+                workspaceId={w.id}
+                timezone={w.timezone}
+              />
+            </Suspense>
+          )}
           {(run.data.copy_draft || run.data.copy_adoption) && (
             <Suspense fallback={<p role="status">Загружаем предложение…</p>}>
               <CopywriterResult

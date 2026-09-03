@@ -1,9 +1,60 @@
 import { render, screen, cleanup } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
-import { PlanDraftResult } from "./PlanDraftResult";
+import { PlanDraftResult, PlannerResult } from "./PlanDraftResult";
 import type { components } from "../../api/schema";
 
 afterEach(cleanup);
+it("shows immutable private plan history without reviving a stale draft", () => {
+  const adoption: components["schemas"]["PlanAdoptionView"] = {
+    id: "receipt",
+    run_id: "run",
+    artifact_id: "artifact",
+    artifact_hash: "a".repeat(64),
+    input_id: "input",
+    input_hash: "b".repeat(64),
+    source_plan_id: "old-plan",
+    source_content_hash: "c".repeat(64),
+    plan_id: "new&plan",
+    content_hash: "d".repeat(64),
+    plan_number: 2,
+    notes_id: "notes",
+    notes_hash: "e".repeat(64),
+    preview_hash: "f".repeat(64),
+    actor_id: "owner",
+    created_at: "2026-09-03T12:00:00Z",
+    reason: "<img src=x>",
+    historical_only: true,
+    warning: "Historical receipt only",
+  };
+  const { container } = render(
+    <PlannerResult
+      adoption={adoption}
+      workspaceId="w&other"
+      timezone="Europe/Moscow"
+    />,
+  );
+  expect(
+    screen.getByRole("region", { name: "История сохранения AI-плана" }),
+  ).toBeInTheDocument();
+  expect(screen.getByText(/owner.*15:00/)).toBeInTheDocument();
+  expect(
+    screen.getByText(/Личное основание решения: <img src=x>/),
+  ).toBeInTheDocument();
+  expect(screen.getByText(adoption.notes_hash)).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", {
+      name: "Открыть сохранённый план и ограничения",
+    }),
+  ).toHaveAttribute(
+    "href",
+    "/app/materials?workspace=w%26other&record=new%26plan&kind=content_plan",
+  );
+  expect(
+    screen.queryByRole("region", { name: "Предложение контент-плана" }),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  expect(container.querySelector("img")).toBeNull();
+});
 const draft: components["schemas"]["PlanDraft"] = {
   plan_id: "synthetic-plan",
   content_hash: "a".repeat(64),

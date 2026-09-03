@@ -14,6 +14,7 @@ from smm_gpt.domain import editor_triage as t
 from smm_gpt.domain import evaluation as e
 from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
+from smm_gpt.domain import plan_adoption as plan
 from smm_gpt.domain import profiles as p
 from smm_gpt.domain.copywriter import RunCopyDraft
 from smm_gpt.domain.editor import RunEditorialReview
@@ -26,6 +27,7 @@ from smm_gpt.services.editor_triage import EditorTriageService
 from smm_gpt.services.evaluation import EvaluationService
 from smm_gpt.services.ingestion import IngestionService
 from smm_gpt.services.knowledge import KnowledgeService
+from smm_gpt.services.plan_adoption import PlanAdoptionService
 from smm_gpt.services.profiles import ProfileService
 
 router = APIRouter(
@@ -81,6 +83,38 @@ def adoption_core(request: Request) -> CopyAdoptionService:
 
 
 Adoption = Annotated[CopyAdoptionService, Depends(adoption_core)]
+
+
+def plan_adoption_core(request: Request) -> PlanAdoptionService:
+    return PlanAdoptionService(service(request).access)
+
+
+PlanningAdoption = Annotated[PlanAdoptionService, Depends(plan_adoption_core)]
+
+
+@router.get("/runs/{run_id}/plan-adoption/preview")
+async def plan_adoption_preview(
+    workspace_id: UUID, run_id: UUID, actor: Actor, service: PlanningAdoption
+) -> plan.PlanAdoptionPreview:
+    return await service.preview(actor, workspace_id, run_id, request_id())
+
+
+@router.get("/runs/{run_id}/plan-adoption")
+async def plan_adoption_read(
+    workspace_id: UUID, run_id: UUID, actor: Actor, service: PlanningAdoption
+) -> plan.PlanAdoptionView | None:
+    return await service.read(actor, workspace_id, run_id, request_id())
+
+
+@router.post("/runs/{run_id}/plan-adoption")
+async def plan_adopt(
+    workspace_id: UUID,
+    run_id: UUID,
+    command: plan.AdoptPlanDraft,
+    actor: Actor,
+    service: PlanningAdoption,
+) -> plan.PlanAdoptionView:
+    return await service.adopt(actor, workspace_id, run_id, command, request_id())
 
 
 @router.get("/runs/{run_id}/copy-adoption/preview")

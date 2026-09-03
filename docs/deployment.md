@@ -2,8 +2,15 @@
 
 ## Статус и границы
 
-Planner proposals: [`planner-drafts.md`](planner-drafts.md), migration `0016_planner` — текущий
-schema head deployment guard. Nullable private context/FK/guards, worker EXECUTE только bounded
+Human Planner adoption: [`planner-adoption.md`](planner-adoption.md), migration `0017_plan_adoption`
+— текущий schema head deployment guard. Общие immutable notes и private receipt, paired commit
+guard; никаких новых worker grants/flags/dependencies. Отдельно разрешённый deploy требует backup,
+isolated restore rehearsal, остановки writers, upgrade и согласованного обновления API/worker/web.
+Downgrade с notes/receipts отказывается до удаления данных; нужен restore-backed план. В этой
+итерации сервер не менялся, provider/worker не включались, paid/model/social actions не выполнялись.
+
+Planner proposals: [`planner-drafts.md`](planner-drafts.md), migration `0016_planner` — предыдущий
+schema head. Nullable private context/FK/guards, worker EXECUTE только bounded
 tenant-aware assignable-member boolean; content writes не добавлены. Новых зависимостей/flags нет.
 Перед отдельно разрешённым upgrade: backup/restore rehearsal, остановить старые writers,
 обновить API/worker согласованно. Нужны новая Planner definition и явная testing selection;
@@ -37,7 +44,7 @@ Downgrade удаляет registry/provenance; только согласован�
 
 Memory curation: [`memory-curation.md`](memory-curation.md), migration `0010_memory_curation`.
 Owner-only immutable ledger и composite reference constraints; текущий deployment guard ожидает
-более новый `0016_planner`. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
+более новый `0017_plan_adoption`. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
 Downgrade удаляет provenance и требует отдельно согласованного restore-backed плана.
 
 Ingestion jobs: [`ingestion-jobs.md`](ingestion-jobs.md), migration `0009_ingestion_recovery`.

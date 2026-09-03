@@ -1,5 +1,12 @@
 # Центральная модель данных — фаза 4
 
+Четырнадцатый срез: `0017_plan_adoption` добавляет immutable `plan_notes` (workspace-readable)
+и `plan_adoptions` (actor-private Owner). Composite tenant FKs, уникальные run/plan/notes/key,
+точные bindings artifact/input/source/new version/notes, deferred notes→receipt guard исключает
+частичное сохранение. Runtime SELECT/INSERT, worker без grants. Изменять/удалять историю нельзя;
+downgrade с данными отказывается. `ContentPlan`/`RecordView` и прежние AI payload hashes не меняются.
+Контракт — [`planner-adoption.md`](planner-adoption.md).
+
 Тринадцатый срез: `0016_planner` добавляет nullable private `ai_inputs.plan_id/planner_context`,
 workspace/plan FK, context pair CHECK и guards текущего SQL plan/campaign. Полная confirmed
 evidence closure/expiry проверяется сервисом. Worker получает только tenant-scoped boolean

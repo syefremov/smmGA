@@ -139,7 +139,9 @@ async def test_copy_queue_once_current_provenance_no_content_mutation(
             alembic_command.downgrade, Config("alembic.ini"), "0013_editor_triage"
         )
     async with t.admin.transaction() as s:
-        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0016_planner"
+        assert (
+            await s.scalar(text("SELECT version_num FROM alembic_version")) == "0017_plan_adoption"
+        )
         assert await s.scalar(select(func.count()).select_from(AIArtifact)) == 1
 
 

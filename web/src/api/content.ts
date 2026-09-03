@@ -108,6 +108,42 @@ export async function preflight(
     ).data,
   );
 }
+export async function record(
+  workspace_id: string,
+  record_id: string,
+  signal?: AbortSignal,
+) {
+  return required(
+    (
+      await client.GET(
+        "/api/v1/workspaces/{workspace_id}/content/records/{record_id}",
+        {
+          params: { path: { workspace_id, record_id } },
+          signal,
+        },
+      )
+    ).data,
+  );
+}
+
+export async function planNotes(
+  workspace_id: string,
+  record_id: string,
+  signal?: AbortSignal,
+) {
+  return required(
+    (
+      await client.GET(
+        "/api/v1/workspaces/{workspace_id}/content/records/{record_id}/plan-notes",
+        {
+          params: { path: { workspace_id, record_id } },
+          signal,
+        },
+      )
+    ).data,
+  );
+}
+
 export async function records(
   workspace_id: string,
   kind?: RecordKind,

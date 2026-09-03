@@ -30,6 +30,8 @@ from smm_gpt.services.model_gateway import (
     editorial_payload,
     planning_payload,
 )
+from smm_gpt.services.plan_adoption import adoption_view as plan_adoption_view
+from smm_gpt.services.plan_notes import require_inherited_gaps
 from smm_gpt.services.planner import snapshot as planning_snapshot
 from smm_gpt.services.planner import validate_draft as validate_plan
 from smm_gpt.services.profiles import assert_registered_run, compatible_profile, selected_version
@@ -118,6 +120,9 @@ class AIService:
                 planner_context = None
                 if not error and isinstance(command, RunPlanDraft):
                     try:
+                        await require_inherited_gaps(
+                            s, wid, command.plan_id, command.knowledge_gaps
+                        )
                         planner_context = await planning_snapshot(
                             s,
                             wid,
@@ -320,6 +325,8 @@ class AIService:
             view = d.AIRunView.model_validate(run)
             if run.profile == "copywriter":
                 view.copy_adoption = await adoption_view(s, wid, rid)
+            if run.profile == "content_planner":
+                view.plan_adoption = await plan_adoption_view(s, wid, rid)
             artifact = await s.scalar(
                 select(AIArtifact).where(
                     AIArtifact.workspace_id == wid,

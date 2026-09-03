@@ -3,6 +3,16 @@
   grid-template-columns: 230px minmax(0, 1fr);
   min-height: 550px;
 }
+.library-layout > .inspector,
+.plan-notes {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 1151px) {
+  .queue-layout.library-layout {
+    grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+  }
+}
 .post-list {
   border-right: 1px solid #e0e5df;
   padding: 18px 16px 0 0;

@@ -330,6 +330,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/content/records/{record_id}/plan-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plan Notes */
+        get: operations["plan_notes_api_v1_workspaces__workspace_id__content_records__record_id__plan_notes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/content/tasks/{item_id}": {
         parameters: {
             query?: never;
@@ -980,6 +997,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/plan-adoption": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plan Adoption Read */
+        get: operations["plan_adoption_read_api_v1_workspaces__workspace_id__knowledge_runs__run_id__plan_adoption_get"];
+        put?: never;
+        /** Plan Adopt */
+        post: operations["plan_adopt_api_v1_workspaces__workspace_id__knowledge_runs__run_id__plan_adoption_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/plan-adoption/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plan Adoption Preview */
+        get: operations["plan_adoption_preview_api_v1_workspaces__workspace_id__knowledge_runs__run_id__plan_adoption_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/search": {
         parameters: {
             query?: never;
@@ -1153,6 +1205,7 @@ export interface components {
             id: string;
             /** Model */
             model: string;
+            plan_adoption?: components["schemas"]["PlanAdoptionView"] | null;
             plan_draft?: components["schemas"]["PlanDraft"] | null;
             /**
              * Profile
@@ -1264,6 +1317,38 @@ export interface components {
             human_confirmed: true;
             /** Idempotency Key */
             idempotency_key: string;
+            /** Preview Hash */
+            preview_hash: string;
+            /** Proposed Content Hash */
+            proposed_content_hash: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Share With Workspace Confirmed
+             * @constant
+             */
+            share_with_workspace_confirmed: true;
+        };
+        /** AdoptPlanDraft */
+        AdoptPlanDraft: {
+            /** Artifact Hash */
+            artifact_hash: string;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Expected Plan Number */
+            expected_plan_number: number;
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Notes Hash */
+            notes_hash: string;
             /** Preview Hash */
             preview_hash: string;
             /** Proposed Content Hash */
@@ -3648,6 +3733,130 @@ export interface components {
          * @enum {string}
          */
         Permission: "workspace.read" | "members.manage" | "content.plan" | "content.edit" | "content.approve" | "content.publish" | "analytics.read" | "audit.read" | "system.job.run" | "work_item.write" | "content.comment" | "knowledge.write";
+        /** PlanAdoptionPreview */
+        PlanAdoptionPreview: {
+            /** Artifact Hash */
+            artifact_hash: string;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            body: components["schemas"]["ContentPlan"];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Input Hash */
+            input_hash: string;
+            /**
+             * Input Id
+             * Format: uuid
+             */
+            input_id: string;
+            notes: components["schemas"]["PlanNotesBody"];
+            /** Notes Hash */
+            notes_hash: string;
+            /** Preview Hash */
+            preview_hash: string;
+            /** Proposed Content Hash */
+            proposed_content_hash: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Source Content Hash */
+            source_content_hash: string;
+            /**
+             * Source Plan Id
+             * Format: uuid
+             */
+            source_plan_id: string;
+            /** Source Plan Number */
+            source_plan_number: number;
+            /**
+             * Warning
+             * @default Предпросмотр не является согласием. После отдельного подтверждения новая версия плана, темы, ответственный, обоснования, цитаты, fact/evidence IDs, warnings и пробелы будут доступны читателям контента workspace. Личный запрос и причины решения не раскрываются. Это черновой план, не одобрение или расписание публикации.
+             */
+            warning: string;
+        };
+        /** PlanAdoptionView */
+        PlanAdoptionView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Artifact Hash */
+            artifact_hash: string;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Historical Only
+             * @default true
+             * @constant
+             */
+            historical_only: true;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Hash */
+            input_hash: string;
+            /**
+             * Input Id
+             * Format: uuid
+             */
+            input_id: string;
+            /** Notes Hash */
+            notes_hash: string;
+            /**
+             * Notes Id
+             * Format: uuid
+             */
+            notes_id: string;
+            /**
+             * Plan Id
+             * Format: uuid
+             */
+            plan_id: string;
+            /** Plan Number */
+            plan_number: number;
+            /** Preview Hash */
+            preview_hash: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Source Content Hash */
+            source_content_hash: string;
+            /**
+             * Source Plan Id
+             * Format: uuid
+             */
+            source_plan_id: string;
+            /**
+             * Warning
+             * @default История принятия, не актуальность или одобрение. Перечитайте план и ограничения.
+             */
+            warning: string;
+        };
         /** PlanDraft */
         PlanDraft: {
             /** Content Hash */
@@ -3682,6 +3891,65 @@ export interface components {
             quote: string;
             /** Source Quote */
             source_quote: string;
+        };
+        /** PlanNotesBody */
+        PlanNotesBody: {
+            /** Evidence Record Ids */
+            evidence_record_ids: string[];
+            /** Fact Ids */
+            fact_ids: string[];
+            /** Knowledge Gaps */
+            knowledge_gaps: string[];
+            /** Slots */
+            slots: components["schemas"]["PlanSlot"][];
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PlanNotesView */
+        PlanNotesView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            body: components["schemas"]["PlanNotesBody"];
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Exact Version */
+            exact_version: boolean;
+            /**
+             * Historical Only
+             * @default true
+             * @constant
+             */
+            historical_only: true;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Plan Hash */
+            plan_hash: string;
+            /**
+             * Plan Id
+             * Format: uuid
+             */
+            plan_id: string;
+            /**
+             * Requested Plan Id
+             * Format: uuid
+             */
+            requested_plan_id: string;
+            /**
+             * Warning
+             * @default Сохранённые основания и пробелы принятого AI-плана. Это история, не проверка текущих фактов или одобрение. Для последующей версии показываются ограничения предка; они не подтверждают новый текст и не считаются автоматически устранёнными.
+             */
+            warning: string;
         };
         /** PlanSlot */
         PlanSlot: {
@@ -6262,6 +6530,83 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecordView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    plan_notes_api_v1_workspaces__workspace_id__content_records__record_id__plan_notes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanNotesView"] | null;
                 };
             };
             /** @description Unauthorized */
@@ -9963,6 +10308,268 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AIInputView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    plan_adoption_read_api_v1_workspaces__workspace_id__knowledge_runs__run_id__plan_adoption_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanAdoptionView"] | null;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    plan_adopt_api_v1_workspaces__workspace_id__knowledge_runs__run_id__plan_adoption_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdoptPlanDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanAdoptionView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    plan_adoption_preview_api_v1_workspaces__workspace_id__knowledge_runs__run_id__plan_adoption_preview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanAdoptionPreview"];
                 };
             };
             /** @description Unauthorized */

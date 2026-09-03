@@ -10,7 +10,9 @@ from smm_gpt.api.routes.operations import Actor
 from smm_gpt.core.request_context import request_id
 from smm_gpt.domain import content as d
 from smm_gpt.domain.operations import ErrorResponse, Page, PageSize
+from smm_gpt.domain.plan_adoption import PlanNotesView
 from smm_gpt.services.content import ContentService
+from smm_gpt.services.plan_notes import PlanNotesService
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/content",
@@ -47,6 +49,13 @@ async def records(
 @router.get("/records/{record_id}")
 async def record(workspace_id: UUID, record_id: UUID, actor: Actor, core: Core) -> d.RecordView:
     return await core.read_record(actor, workspace_id, record_id, request_id())
+
+
+@router.get("/records/{record_id}/plan-notes")
+async def plan_notes(
+    workspace_id: UUID, record_id: UUID, actor: Actor, core: Core
+) -> PlanNotesView | None:
+    return await PlanNotesService(core.access).read(actor, workspace_id, record_id, request_id())
 
 
 @router.get("/posts")
