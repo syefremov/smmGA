@@ -2,7 +2,12 @@
 
 ## Статус и границы
 
-UTF-8 file ingestion: [`knowledge-text-files.md`](knowledge-text-files.md), текущая schema
+AI reserves: текущая schema `0019_ai_costs`, [`ai-costs.md`](ai-costs.md). Новая server-only
+`SMM_AI_COST_POLICY=null` default; нет implicit price/paid enablement. Migration + API/worker
+требуют согласованного отдельно разрешённого обновления. Старые вызванные runs без финансовой
+истории требуют сверки; unknown/overrun не снимаются повышением лимита. Downgrade с ledger запрещён.
+
+UTF-8 file ingestion: [`knowledge-text-files.md`](knowledge-text-files.md), предыдущая schema
 `0018_text_files`. До отдельно разрешённого обновления остановить несовместимые старые API/worker,
 проверить backup DB+originals. Downgrade при любых Markdown/CSV/HTML originals запрещён;
 не удалять историю для обхода. Flags остаются выключены; новых dependencies/grants нет.
@@ -49,7 +54,7 @@ Downgrade удаляет registry/provenance; только согласован�
 
 Memory curation: [`memory-curation.md`](memory-curation.md), migration `0010_memory_curation`.
 Owner-only immutable ledger и composite reference constraints; текущий deployment guard ожидает
-более новый `0018_text_files`. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
+актуальную версию из начала этого runbook. Автоматического deploy/включения worker нет.
 Downgrade удаляет provenance и требует отдельно согласованного restore-backed плана.
 
 Ingestion jobs: [`ingestion-jobs.md`](ingestion-jobs.md), migration `0009_ingestion_recovery`.

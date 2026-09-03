@@ -134,12 +134,12 @@ async def test_copy_queue_once_current_provenance_no_content_mutation(
     )
     assert await service.inputs(t.owner, t.workspace, run.id, uuid4()) == inputs
     # History cannot be silently dropped by downgrade, even after the artifact goes stale.
-    with pytest.raises(DBAPIError, match="copywriter_history_requires_restore_plan"):
+    with pytest.raises(DBAPIError, match="ai_cost_history_requires_restore_plan"):
         await asyncio.to_thread(
             alembic_command.downgrade, Config("alembic.ini"), "0013_editor_triage"
         )
     async with t.admin.transaction() as s:
-        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0018_text_files"
+        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0019_ai_costs"
         assert await s.scalar(select(func.count()).select_from(AIArtifact)) == 1
 
 

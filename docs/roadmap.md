@@ -412,6 +412,11 @@ UTF-8 Markdown/CSV/пассивного HTML, immutable originals, scan/sandbox 
 activation. Контракт форматов пункта 2 реализован в репозитории; реальный scanner/ingestion rollout
 и проверка на разрешённом корпусе не выполнены. Фаза 8 не начинается, defaults выключены.
 
+Шестнадцатый срез: [`ai-costs.md`](ai-costs.md) — консервативный lifetime budget/reservations,
+immutable policy/usage estimates, fail-closed unknown/overrun gate, общий лимит нескольких Owner
+и личные receipts через MCP/REST. Нет автоматических refunds или настоящего invoice accounting;
+human reconciliation/adjustments, полная тарификация и production commissioning ещё нужны.
+
 ### Цель
 
 Сделать генерацию и анализ grounded: каждое фактическое утверждение связано с разрешённым источником, а специализированные AI-профили работают в ограниченных границах.

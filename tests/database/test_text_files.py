@@ -128,7 +128,7 @@ async def test_text_original_to_owner_import_to_separate_activation(
     with pytest.raises(DBAPIError, match="text_file_history_requires_restore_plan"):
         await asyncio.to_thread(migration.downgrade, Config("alembic.ini"), "0017_plan_adoption")
     async with t.admin.transaction() as s:
-        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0018_text_files"
+        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0019_ai_costs"
     assert (await service.download(t.owner, t.workspace, receipt.file_id, uuid4()))[0] == data
 
 

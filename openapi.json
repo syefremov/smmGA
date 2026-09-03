@@ -1998,6 +1998,228 @@
         "title": "CorpusSource",
         "type": "object"
       },
+      "CostObservationView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "estimated_microusd": {
+            "title": "Estimated Microusd",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "response_id": {
+            "title": "Response Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "created_at",
+          "input_tokens",
+          "output_tokens",
+          "estimated_microusd",
+          "model",
+          "response_id"
+        ],
+        "title": "CostObservationView",
+        "type": "object"
+      },
+      "CostPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "const": "USD",
+            "default": "USD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "input_rate_microusd_per_million": {
+            "maximum": 1000000000.0,
+            "minimum": 1.0,
+            "title": "Input Rate Microusd Per Million",
+            "type": "integer"
+          },
+          "model": {
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9._-]+$",
+            "title": "Model",
+            "type": "string"
+          },
+          "output_rate_microusd_per_million": {
+            "maximum": 1000000000.0,
+            "minimum": 1.0,
+            "title": "Output Rate Microusd Per Million",
+            "type": "integer"
+          },
+          "reserve_microusd": {
+            "maximum": 1000000000.0,
+            "minimum": 1.0,
+            "title": "Reserve Microusd",
+            "type": "integer"
+          },
+          "valid_until": {
+            "format": "date-time",
+            "title": "Valid Until",
+            "type": "string"
+          },
+          "version": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9._-]+$",
+            "title": "Version",
+            "type": "string"
+          },
+          "workspace_limit_microusd": {
+            "maximum": 1000000000000.0,
+            "minimum": 1.0,
+            "title": "Workspace Limit Microusd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "model",
+          "input_rate_microusd_per_million",
+          "output_rate_microusd_per_million",
+          "reserve_microusd",
+          "workspace_limit_microusd",
+          "valid_until"
+        ],
+        "title": "CostPolicy",
+        "type": "object"
+      },
+      "CostReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "observation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CostObservationView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "policy": {
+            "$ref": "#/components/schemas/CostPolicy"
+          },
+          "policy_hash": {
+            "title": "Policy Hash",
+            "type": "string"
+          },
+          "reserved_microusd": {
+            "title": "Reserved Microusd",
+            "type": "integer"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "warning": {
+            "default": "Historical accounting only; not current approval or a paid-call retry permit.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "created_at",
+          "input_hash",
+          "policy",
+          "policy_hash",
+          "reserved_microusd",
+          "observation"
+        ],
+        "title": "CostReceipt",
+        "type": "object"
+      },
+      "CostSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "available_microusd": {
+            "title": "Available Microusd",
+            "type": "integer"
+          },
+          "currency": {
+            "const": "USD",
+            "default": "USD",
+            "title": "Currency",
+            "type": "string"
+          },
+          "estimated_microusd": {
+            "title": "Estimated Microusd",
+            "type": "integer"
+          },
+          "in_flight_runs": {
+            "title": "In Flight Runs",
+            "type": "integer"
+          },
+          "overrun_runs": {
+            "title": "Overrun Runs",
+            "type": "integer"
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CostPolicy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reserved_microusd": {
+            "title": "Reserved Microusd",
+            "type": "integer"
+          },
+          "unresolved_runs": {
+            "title": "Unresolved Runs",
+            "type": "integer"
+          },
+          "warning": {
+            "default": "Internal lifetime reservations and tariff estimates, not a provider invoice. Reservations are not automatically refunded. Unknown spend requires owner reconciliation.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policy",
+          "reserved_microusd",
+          "estimated_microusd",
+          "unresolved_runs",
+          "overrun_runs",
+          "in_flight_runs",
+          "available_microusd"
+        ],
+        "title": "CostSummary",
+        "type": "object"
+      },
       "CreateCatalog": {
         "additionalProperties": false,
         "properties": {
@@ -11587,6 +11809,106 @@
         "summary": "Copywriter Run"
       }
     },
+    "/api/v1/workspaces/{workspace_id}/knowledge/costs": {
+      "get": {
+        "operationId": "cost_summary_api_v1_workspaces__workspace_id__knowledge_costs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CostSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Cost Summary"
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/knowledge/documents": {
       "get": {
         "operationId": "documents_api_v1_workspaces__workspace_id__knowledge_documents_get",
@@ -15658,6 +15980,116 @@
           }
         },
         "summary": "Copy Adoption Preview"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/cost": {
+      "get": {
+        "operationId": "cost_receipt_api_v1_workspaces__workspace_id__knowledge_runs__run_id__cost_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CostReceipt"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Cost Receipt"
       }
     },
     "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/editor-triage": {

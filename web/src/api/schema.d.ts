@@ -415,6 +415,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/costs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cost Summary */
+        get: operations["cost_summary_api_v1_workspaces__workspace_id__knowledge_costs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/documents": {
         parameters: {
             query?: never;
@@ -937,6 +954,23 @@ export interface paths {
         };
         /** Copy Adoption Preview */
         get: operations["copy_adoption_preview_api_v1_workspaces__workspace_id__knowledge_runs__run_id__copy_adoption_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/cost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cost Receipt */
+        get: operations["cost_receipt_api_v1_workspaces__workspace_id__knowledge_runs__run_id__cost_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2009,6 +2043,103 @@ export interface components {
              * @enum {string}
              */
             visibility: "workspace" | "owner";
+        };
+        /** CostObservationView */
+        CostObservationView: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Estimated Microusd */
+            estimated_microusd: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Model */
+            model: string;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Response Id */
+            response_id: string;
+        };
+        /** CostPolicy */
+        CostPolicy: {
+            /**
+             * Currency
+             * @default USD
+             * @constant
+             */
+            currency: "USD";
+            /** Input Rate Microusd Per Million */
+            input_rate_microusd_per_million: number;
+            /** Model */
+            model: string;
+            /** Output Rate Microusd Per Million */
+            output_rate_microusd_per_million: number;
+            /** Reserve Microusd */
+            reserve_microusd: number;
+            /**
+             * Valid Until
+             * Format: date-time
+             */
+            valid_until: string;
+            /** Version */
+            version: string;
+            /** Workspace Limit Microusd */
+            workspace_limit_microusd: number;
+        };
+        /** CostReceipt */
+        CostReceipt: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Input Hash */
+            input_hash: string;
+            observation: components["schemas"]["CostObservationView"] | null;
+            policy: components["schemas"]["CostPolicy"];
+            /** Policy Hash */
+            policy_hash: string;
+            /** Reserved Microusd */
+            reserved_microusd: number;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /**
+             * Warning
+             * @default Historical accounting only; not current approval or a paid-call retry permit.
+             */
+            warning: string;
+        };
+        /** CostSummary */
+        CostSummary: {
+            /** Available Microusd */
+            available_microusd: number;
+            /**
+             * Currency
+             * @default USD
+             * @constant
+             */
+            currency: "USD";
+            /** Estimated Microusd */
+            estimated_microusd: number;
+            /** In Flight Runs */
+            in_flight_runs: number;
+            /** Overrun Runs */
+            overrun_runs: number;
+            policy: components["schemas"]["CostPolicy"] | null;
+            /** Reserved Microusd */
+            reserved_microusd: number;
+            /** Unresolved Runs */
+            unresolved_runs: number;
+            /**
+             * Warning
+             * @default Internal lifetime reservations and tariff estimates, not a provider invoice. Reservations are not automatically refunded. Unknown spend requires owner reconciliation.
+             */
+            warning: string;
         };
         /** CreateCatalog */
         CreateCatalog: {
@@ -6993,6 +7124,91 @@ export interface operations {
             };
         };
     };
+    cost_summary_api_v1_workspaces__workspace_id__knowledge_costs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CostSummary"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     documents_api_v1_workspaces__workspace_id__knowledge_documents_get: {
         parameters: {
             query?: {
@@ -9958,6 +10174,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CopyAdoptionPreview"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    cost_receipt_api_v1_workspaces__workspace_id__knowledge_runs__run_id__cost_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CostReceipt"];
                 };
             };
             /** @description Unauthorized */

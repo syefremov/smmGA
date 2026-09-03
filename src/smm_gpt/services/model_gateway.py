@@ -1,10 +1,10 @@
 """Server-only structured text adapter. Tools absent; uncertain requests are never replayed."""
 
 import json
-from typing import Protocol
+from typing import Annotated, Protocol
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, ValidationError
 
 from smm_gpt.core.config import Settings
 from smm_gpt.domain.ai import Profile, ReferenceAssessment
@@ -16,14 +16,16 @@ from smm_gpt.domain.operations import OperationError
 from smm_gpt.domain.planner import PlanDraft, PlanningContext
 from smm_gpt.services.knowledge_text import safe_text
 
+TokenCount = Annotated[StrictInt, Field(ge=0, le=1_000_000_000)]
+
 
 class GatewayResult(BaseModel):
     model_config = ConfigDict(hide_input_in_errors=True)
     assessment: ReferenceAssessment
     model: str = Field(min_length=1, max_length=120)
     response_id: str = Field(min_length=1, max_length=160)
-    input_tokens: int = Field(ge=0)
-    output_tokens: int = Field(ge=0)
+    input_tokens: TokenCount
+    output_tokens: TokenCount
 
 
 class TextGateway(Protocol):
@@ -37,8 +39,8 @@ class EditorialGatewayResult(BaseModel):
     review: EditorialReview
     model: str = Field(min_length=1, max_length=120)
     response_id: str = Field(min_length=1, max_length=160)
-    input_tokens: int = Field(ge=0)
-    output_tokens: int = Field(ge=0)
+    input_tokens: TokenCount
+    output_tokens: TokenCount
 
 
 class EditorialGateway(Protocol):
@@ -50,8 +52,8 @@ class CopywritingGatewayResult(BaseModel):
     draft: CopyDraft
     model: str = Field(min_length=1, max_length=120)
     response_id: str = Field(min_length=1, max_length=160)
-    input_tokens: int = Field(ge=0)
-    output_tokens: int = Field(ge=0)
+    input_tokens: TokenCount
+    output_tokens: TokenCount
 
 
 class CopywritingGateway(Protocol):
@@ -65,8 +67,8 @@ class PlanningGatewayResult(BaseModel):
     draft: PlanDraft
     model: str = Field(min_length=1, max_length=120)
     response_id: str = Field(min_length=1, max_length=160)
-    input_tokens: int = Field(ge=0)
-    output_tokens: int = Field(ge=0)
+    input_tokens: TokenCount
+    output_tokens: TokenCount
 
 
 class PlanningGateway(Protocol):
@@ -84,8 +86,8 @@ class OutputItem(BaseModel):
 
 
 class Usage(BaseModel):
-    input_tokens: int = Field(ge=0)
-    output_tokens: int = Field(ge=0)
+    input_tokens: TokenCount
+    output_tokens: TokenCount
 
 
 class ModelResponse(BaseModel):

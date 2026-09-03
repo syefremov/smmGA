@@ -21,6 +21,7 @@ from smm_gpt.services.knowledge import KnowledgeService
 from smm_gpt.services.model_gateway import GatewayResult
 from smm_gpt.workers.ai import process, reconcile
 
+from ..cost_fixtures import policy
 from .conftest import TenantFixture
 from .profile_fixtures import select_profile
 from .test_knowledge import activate, seed, submit
@@ -61,6 +62,7 @@ def config(wid: UUID) -> Settings:
         ai_api_key="test-only",
         ai_allowed_workspaces=(wid,),
         ai_worker_enabled=True,
+        ai_cost_policy=policy(),
     )
 
 

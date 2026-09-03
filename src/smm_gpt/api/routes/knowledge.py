@@ -9,6 +9,7 @@ from smm_gpt.api.routes.identity import service
 from smm_gpt.api.routes.operations import Actor
 from smm_gpt.core.request_context import request_id
 from smm_gpt.domain import ai as a
+from smm_gpt.domain import ai_costs as costs
 from smm_gpt.domain import copy_adoption as adoption
 from smm_gpt.domain import editor_triage as t
 from smm_gpt.domain import evaluation as e
@@ -22,6 +23,7 @@ from smm_gpt.domain.operations import ErrorResponse, Page, PageSize
 from smm_gpt.domain.planner import RunPlanDraft
 from smm_gpt.infrastructure.file_storage import VolumeFileStore
 from smm_gpt.services.ai import AIService
+from smm_gpt.services.ai_costs import CostService
 from smm_gpt.services.copy_adoption import CopyAdoptionService
 from smm_gpt.services.editor_triage import EditorTriageService
 from smm_gpt.services.evaluation import EvaluationService
@@ -48,6 +50,22 @@ def ai_core(request: Request) -> AIService:
 
 Core = Annotated[KnowledgeService, Depends(core)]
 AI = Annotated[AIService, Depends(ai_core)]
+
+
+@router.get("/costs")
+async def cost_summary(workspace_id: UUID, actor: Actor, service: AI) -> costs.CostSummary:
+    return await CostService(service.access, service.settings).summary(
+        actor, workspace_id, request_id()
+    )
+
+
+@router.get("/runs/{run_id}/cost")
+async def cost_receipt(
+    workspace_id: UUID, run_id: UUID, actor: Actor, service: AI
+) -> costs.CostReceipt:
+    return await CostService(service.access, service.settings).receipt(
+        actor, workspace_id, run_id, request_id()
+    )
 
 
 def eval_core(request: Request) -> EvaluationService:

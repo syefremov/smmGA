@@ -14,9 +14,11 @@ from smm_gpt.domain.knowledge import SearchRequest
 from smm_gpt.domain.operations import OperationError, Page
 from smm_gpt.domain.planner import PlanDraft, PlanningContext, RunPlanDraft
 from smm_gpt.infrastructure.ai_models import AIArtifact, AICancel, AIInput, AIRun
+from smm_gpt.infrastructure.cost_models import AICostReservation
 from smm_gpt.infrastructure.knowledge_models import RetrievalRun
 from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import AccessService, audit, digest
+from smm_gpt.services.ai_costs import admission
 from smm_gpt.services.ai_queue import current_input
 from smm_gpt.services.copy_adoption import adoption_view
 from smm_gpt.services.copywriter import validate_context, validate_draft
@@ -161,6 +163,12 @@ class AIService:
                     )
                     if not citations:
                         error = "knowledge_gap_no_current_sources"
+                cost_policy = None
+                if not error:
+                    try:
+                        cost_policy = await admission(s, self.settings, wid)
+                    except OperationError as exc:
+                        error = exc.code
                 run = AIRun(
                     id=uuid4(),
                     workspace_id=wid,
@@ -241,6 +249,20 @@ class AIService:
                             planner_context=planner_context.model_dump(mode="json")
                             if planner_context
                             else None,
+                        )
+                    )
+                    await s.flush()
+                    assert cost_policy
+                    policy_data = cost_policy.model_dump(mode="json")
+                    s.add(
+                        AICostReservation(
+                            workspace_id=wid,
+                            run_id=run.id,
+                            actor_id=actor.user_id,
+                            input_hash=canonical_hash(payload),
+                            policy=policy_data,
+                            policy_hash=canonical_hash(policy_data),
+                            reserved_microusd=cost_policy.reserve_microusd,
                         )
                     )
                 audit(s, actor.user_id, wid, request, "ai.run_reserved", run.state, run.id)

@@ -22,6 +22,7 @@ from smm_gpt.services.retrieval_eval import score
 from smm_gpt.workers.ai import process as ai_process
 from smm_gpt.workers.knowledge import process
 
+from ..cost_fixtures import policy as cost_policy
 from .conftest import TenantFixture
 from .profile_fixtures import select_profile
 
@@ -238,6 +239,7 @@ async def test_ai_no_tools_replay_private_artifacts_and_memory_review(
         ai_api_key="test-only",
         ai_allowed_workspaces=(t.workspace,),
         ai_worker_enabled=True,
+        ai_cost_policy=cost_policy(),
     )
     ai = AIService(t.access, settings)
     selected = await select_profile(t)

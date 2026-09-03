@@ -33,6 +33,7 @@ from smm_gpt.services.operations import Operations
 from smm_gpt.services.sessions import SessionService
 from smm_gpt.workers.ai import process as process_ai
 
+from ..cost_fixtures import policy as cost_policy
 from ..file_fixtures import TEXT_FILES
 from ..identity_fakes import FakeIssuer
 from .conftest import TenantFixture
@@ -144,6 +145,7 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
     issuer.settings.ai_model = "synthetic-model"
     issuer.settings.ai_api_key = SecretStr("test-only")
     issuer.settings.ai_allowed_workspaces = (t.workspace,)
+    issuer.settings.ai_cost_policy = cost_policy()
     sessions = SessionService(issuer.settings, t.access, issuer.client())
     app = create_app(settings=issuer.settings, sessions=sessions)
     async with (
@@ -438,6 +440,16 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
         assert ai_rest.status_code == 200 and ai_rest.json()["state"] == "queued", ai_rest.text
         assert ai_mcp["structuredContent"] == ai_rest.json(), ai_mcp
         ai_id = ai_rest.json()["id"]
+        costs_rest = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/costs")
+        assert costs_rest.status_code == 200 and costs_rest.json()["reserved_microusd"] == 10_000
+        assert (await call("ai_cost_summary", {"workspace_id": wid}))[
+            "structuredContent"
+        ] == costs_rest.json()
+        cost_rest = await browser.get(ai_prefix + f"/{ai_id}/cost")
+        assert cost_rest.status_code == 200 and cost_rest.json()["observation"] is None
+        assert (await call("ai_run_cost", {"workspace_id": wid, "run_id": ai_id}))[
+            "structuredContent"
+        ] == cost_rest.json()
         assert (await call("ai_run_inputs", {"workspace_id": wid, "run_id": ai_id}))[
             "structuredContent"
         ] == (await browser.get(ai_prefix + f"/{ai_id}/inputs")).json()

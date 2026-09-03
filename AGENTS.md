@@ -169,6 +169,12 @@
 - AI gateway has no tools or content-service principal. Paid testing requires explicit owner
   authorization plus server provider/model/workspace allowlist; defaults remain disabled.
   Unknown/interrupted runs are not blindly retried. Memory curation is not permanent authority.
+- Follow `docs/ai-costs.md`: exact immutable policy/input-bound reservation before AI dispatch,
+  workspace-wide lifetime accounting, actor-private receipts, bounded Owner-only totals. No
+  implicit price, refund, reset or invoice claim. Missing/stale policy and unknown/overrun spend
+  fail closed; serialize in-flight calls per workspace. Record known usage with live lease and
+  snapshot rates even if the candidate is discarded. Costs never authorize spending or grant
+  AI capabilities. Preserve ledger on rollback; reconciliation/adjustments are not implemented.
 - Follow `docs/memory-curation.md`: accepted proposal is not permission to adopt it. Read exact
   note/review context, obtain separate human confirmation of text/hash/title/scope/dates, then
   create only a new inactive reference. Preserve the immutable proposal/review/version/index

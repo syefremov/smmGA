@@ -11,6 +11,7 @@ from smm_gpt.core.config import get_settings
 from smm_gpt.infrastructure import (  # noqa: F401
     ai_models,
     content_models,
+    cost_models,
     evaluation_models,
     file_models,
     knowledge_models,

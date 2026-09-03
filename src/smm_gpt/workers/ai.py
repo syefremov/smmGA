@@ -17,6 +17,8 @@ from smm_gpt.infrastructure.ai_models import AIArtifact, AIRun
 from smm_gpt.infrastructure.database import Database
 from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import audit
+from smm_gpt.services.ai_costs import dispatch as budget_dispatch
+from smm_gpt.services.ai_costs import observe
 from smm_gpt.services.ai_queue import authorized, current_input, executable
 from smm_gpt.services.copywriter import validate_draft
 from smm_gpt.services.editor import validate_review
@@ -73,6 +75,8 @@ async def process(
             record, profile, citations, context = await current_input(s, run)
             await assert_registered_run(s, run)
             executable(settings, run, record, profile, citations, context)
+            if not await budget_dispatch(s, settings, run, record.content_hash):
+                return False
             question = record.question
         except OperationError as exc:
             run.state, run.error_code = "blocked", exc.code
@@ -166,13 +170,27 @@ async def process(
             or run.lease_until <= utcnow()
         ):
             return False
-        if not await authorized(s, wid, actor, run.identity_id):
+        actor_authorized = await authorized(s, wid, actor, run.identity_id)
+        if not actor_authorized:
             error = "authorization_changed"
         else:
             try:
                 record, profile, current, context = await current_input(s, run)
                 await assert_registered_run(s, run)
                 executable(settings, run, record, profile, current, context)
+            except OperationError as exc:
+                error = exc.code
+        if generated and actor_authorized:
+            try:
+                await observe(
+                    s,
+                    run,
+                    token,
+                    generated.model,
+                    generated.response_id,
+                    generated.input_tokens,
+                    generated.output_tokens,
+                )
             except OperationError as exc:
                 error = exc.code
         if body and not error and run.state == "running":

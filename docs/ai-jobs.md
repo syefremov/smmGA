@@ -1,5 +1,10 @@
 # Фоновые AI-задания: четвёртый срез фазы 7
 
+Шестнадцатый срез: [`ai-costs.md`](ai-costs.md) добавляет обязательную server cost policy,
+immutable enqueue reservation и fail-closed денежный gate перед dispatch. Два running вызова
+одного workspace не исполняются параллельно; неизвестный расход блокирует новые runs.
+Count quota ниже сохраняется отдельно. Estimates не являются invoice, refunds не выполняются.
+
 Тринадцатый срез: `ai_plan_content` / POST `/planner-runs`, immutable `planner_context` вместо
 retrieval и отдельный `PlanDraft` artifact. Контракт — [`planner-drafts.md`](planner-drafts.md).
 Exact plan/campaign/selected facts, текущие основания и ответственный, прежняя at-most-once очередь;

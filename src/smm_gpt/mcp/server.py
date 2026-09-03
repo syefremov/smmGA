@@ -58,6 +58,8 @@ SERVER_INSTRUCTIONS = (
     "human baseline review; scores or acceptance never activate production RAG or AI profiles. "
     "AI profiles are testing/blocked, never human roles. Paid assessment needs explicit human "
     "authorization and configured server provider. Do not retry unknown outcomes with new keys. "
+    "AI cost tools show lifetime reservations and conservative tariff estimates, never invoices. "
+    "Unknown spend/overruns require owner reconciliation; budget is not spending permission. "
     "Return concise status and surface unavailable services."
 )
 

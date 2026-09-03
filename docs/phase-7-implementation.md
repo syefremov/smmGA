@@ -13,6 +13,10 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Шестнадцатый срез:** [`ai-costs.md`](ai-costs.md) — immutable shared-workspace budget reserves,
+точные policy/input bindings, actor-private usage estimates, bounded Owner summary, unknown/overrun
+stop и последовательный dispatch. Не invoice/permission/refund. Тариф unset; no paid calls/deploy.
+
 **Пятнадцатый срез:** [`knowledge-text-files.md`](knowledge-text-files.md) — загрузка UTF-8
 Markdown/CSV/пассивного HTML в тот же private original → scan → sandbox → exact Owner import
 → отдельная activation workflow. CSV становится справочным текстом, не бизнес-метриками.
@@ -237,7 +241,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0018_text_files` требуют privileged migration role,
+Миграции `0005_knowledge`–`0019_ai_costs` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -276,7 +280,8 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
    доказанное исправление между редакциями, визуальная/юридическая верификация и production-включение.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
    Седьмой срез добавил memory → отдельно подтверждаемый reference с provenance.
-   Остались строгий денежный accounting/budgets/provider reconciliation, memory → SQL facts/rules/
+   Шестнадцатый срез добавил lifetime budget reserves и консервативные usage estimates.
+   Остались invoice accounting/provider reconciliation/adjustments, memory → SQL facts/rules/
    eval cases, dependency recall и остальные типы AI jobs. Abandoned ingestion reconciliation,
    отмена и история реализованы в пятом срезе; orphan file cleanup не выполняется автоматически.
 6. Server/private HTTPS/authentik/two-machine gates, backup/recovery, явно разрешённый provider smoke.

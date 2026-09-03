@@ -8,6 +8,7 @@ from mcp.types import ToolAnnotations
 
 from smm_gpt.core.request_context import request_id
 from smm_gpt.domain import ai as a
+from smm_gpt.domain import ai_costs as costs
 from smm_gpt.domain import copy_adoption as adoption
 from smm_gpt.domain import editor_triage as t
 from smm_gpt.domain import ingestion as j
@@ -19,6 +20,7 @@ from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import Page, PageSize
 from smm_gpt.domain.planner import RunPlanDraft
 from smm_gpt.services.ai import AIService
+from smm_gpt.services.ai_costs import CostService
 from smm_gpt.services.copy_adoption import CopyAdoptionService
 from smm_gpt.services.editor_triage import EditorTriageService
 from smm_gpt.services.ingestion import IngestionService
@@ -42,6 +44,25 @@ def register_knowledge_tools(
     triage = EditorTriageService(core.access)
     copy_adoption = CopyAdoptionService(core.access)
     plan_adoption = PlanAdoptionService(core.access)
+
+    @server.tool(annotations=read)
+    async def ai_cost_summary(workspace_id: UUID) -> costs.CostSummary:
+        """Owner + MFA: workspace aggregate reservations and tariff estimates, no private inputs.
+        Never call estimates an invoice or available budget permission to spend. No refunds,
+        configuration changes or provider calls. Unresolved spend/overruns block new calls.
+        """
+        return await CostService(ai.access, ai.settings).summary(
+            await principal(), workspace_id, request_id()
+        )
+
+    @server.tool(annotations=read)
+    async def ai_run_cost(workspace_id: UUID, run_id: UUID) -> costs.CostReceipt:
+        """Initiating Owner + MFA: historical policy/input hash/reservation/usage, not approval.
+        Missing usage is unknown, never zero. No retries or changes to budget or provider state.
+        """
+        return await CostService(ai.access, ai.settings).receipt(
+            await principal(), workspace_id, run_id, request_id()
+        )
 
     @server.tool(annotations=read)
     async def ai_plan_adoption_preview(

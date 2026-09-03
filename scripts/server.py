@@ -39,7 +39,7 @@ ENV_KEYS = {
     "SMM_APP_PASSWORD",
     "SMM_WORKER_PASSWORD",
 }
-SCHEMA = "0018_text_files"
+SCHEMA = "0019_ai_costs"
 
 
 class OperationError(Exception):

@@ -8,6 +8,8 @@ from uuid import UUID
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from smm_gpt.domain.ai_costs import CostPolicy
+
 
 class Settings(BaseSettings):
     """Runtime configuration shared by API, MCP and background workers."""
@@ -41,6 +43,7 @@ class Settings(BaseSettings):
     ai_allowed_workspaces: tuple[UUID, ...] = ()
     ai_daily_run_limit: int = 5
     ai_worker_enabled: bool = False
+    ai_cost_policy: CostPolicy | None = None
 
     @model_validator(mode="after")
     def validate_ai(self) -> "Settings":

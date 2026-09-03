@@ -319,10 +319,10 @@ async def test_adoption_permissions_immutable_private_receipt_and_downgrade(
                 s.add(
                     CopyAdoption(**{**original, "id": uuid4(), "key_hash": "b" * 64, field: value})
                 )
-    with pytest.raises(DBAPIError, match="copy_adoption_history_requires_restore_plan"):
+    with pytest.raises(DBAPIError, match="ai_cost_history_requires_restore_plan"):
         await asyncio.to_thread(alembic_command.downgrade, Config("alembic.ini"), "0014_copywriter")
     async with t.admin.transaction() as s:
-        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0018_text_files"
+        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0019_ai_costs"
         await s.execute(
             update(Membership).where(Membership.user_id == t.owner.user_id).values(role="viewer")
         )

@@ -1,5 +1,10 @@
 # Центральная модель данных — фаза 4
 
+Шестнадцатый срез: `0019_ai_costs`, immutable actor-private reservations/observations,
+lease/input guards и workspace-wide Owner totals без private details. Валюта USD, суммы integer
+microusd; RLS/FKs/unique и SQL amount checks. Downgrade с ledger отказывается до любых изменений;
+runtime не пишет usage observations, worker не резервирует бюджет. Контракт — [`ai-costs.md`](ai-costs.md).
+
 Пятнадцатый срез: `0018_text_files` добавляет CHECK формата `knowledge_files`:
 pdf/docx/markdown/csv/html. Оригиналы и extraction history неизменны; `file_import` сохраняет
 извлечённый текст как markdown reference со `source_file_id`, не разбирает HTML/CSV повторно.

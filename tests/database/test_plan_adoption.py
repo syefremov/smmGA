@@ -146,10 +146,10 @@ async def test_plan_adoption_atomic_concurrent_idempotency_and_downgrade(
         )
     with pytest.raises(OperationError, match="plan_already_adopted"):
         await service.adopt(t.owner, t.workspace, preview.run_id, command(preview), uuid4())
-    with pytest.raises(DBAPIError, match="plan_adoption_history_requires_restore_plan"):
+    with pytest.raises(DBAPIError, match="ai_cost_history_requires_restore_plan"):
         await asyncio.to_thread(migration.downgrade, Config("alembic.ini"), "0016_planner")
     async with t.admin.transaction() as s:
-        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0018_text_files"
+        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0019_ai_costs"
         assert await s.scalar(select(func.count()).select_from(PlanNotes)) == 1
         assert await s.scalar(select(func.count()).select_from(PlanAdoption)) == 1
 

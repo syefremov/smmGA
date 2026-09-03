@@ -173,10 +173,10 @@ async def test_plan_queue_once_provenance_no_content_mutations(tenants: TenantFi
     assert stale.plan_draft is None and stale.error_code == "artifact_planner_stale_or_unavailable"
     with pytest.raises(OperationError, match="planner_structure_stale"):
         await service.inputs(t.owner, t.workspace, run.id, uuid4())
-    with pytest.raises(DBAPIError, match="planner_history_requires_restore_plan"):
+    with pytest.raises(DBAPIError, match="ai_cost_history_requires_restore_plan"):
         await asyncio.to_thread(migration.downgrade, Config("alembic.ini"), "0015_copy_adoption")
     async with t.admin.transaction() as s:
-        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0018_text_files"
+        assert await s.scalar(text("SELECT version_num FROM alembic_version")) == "0019_ai_costs"
         assert await s.scalar(select(func.count()).select_from(AIArtifact)) == 1
         stored = await s.scalar(select(AIInput).where(AIInput.run_id == run.id))
         assert stored and stored.planner_context == inputs.planner_context.model_dump(mode="json")
