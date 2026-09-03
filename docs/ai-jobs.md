@@ -1,5 +1,10 @@
 # Фоновые AI-задания: четвёртый срез фазы 7
 
+Тринадцатый срез: `ai_plan_content` / POST `/planner-runs`, immutable `planner_context` вместо
+retrieval и отдельный `PlanDraft` artifact. Контракт — [`planner-drafts.md`](planner-drafts.md).
+Exact plan/campaign/selected facts, текущие основания и ответственный, прежняя at-most-once очередь;
+нет записи content/schedule. Worker получает лишь tenant-aware проверку активного участника.
+
 Двенадцатый срез: [`copywriter-adoption.md`](copywriter-adoption.md) — отдельное человеческое
 принятие готового Copywriter proposal в новую редакцию с provenance. Это не AI job, не модельный
 tool и не approval; очередь/worker дополнительных полномочий не получают.

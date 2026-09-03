@@ -2,8 +2,15 @@
 
 ## Статус и границы
 
+Planner proposals: [`planner-drafts.md`](planner-drafts.md), migration `0016_planner` — текущий
+schema head deployment guard. Nullable private context/FK/guards, worker EXECUTE только bounded
+tenant-aware assignable-member boolean; content writes не добавлены. Новых зависимостей/flags нет.
+Перед отдельно разрешённым upgrade: backup/restore rehearsal, остановить старые writers,
+обновить API/worker согласованно. Нужны новая Planner definition и явная testing selection;
+старые blocked definitions не активируются. Downgrade с историей отказывается до изменений.
+
 Human Copywriter adoption: [`copywriter-adoption.md`](copywriter-adoption.md), migration
-`0015_copy_adoption` — текущий schema head deployment guard. Новая immutable private таблица;
+`0015_copy_adoption` — предыдущий schema head. Новая immutable private таблица;
 нет worker grants, зависимостей или flags. Upgrade только по отдельному разрешению после
 backup/restore rehearsal и остановки writers; код обновляется согласованно. Downgrade при наличии
 receipts отказывается до удаления истории. Перенос plugin сотруднику не мигрирует сервер.
@@ -30,7 +37,7 @@ Downgrade удаляет registry/provenance; только согласован�
 
 Memory curation: [`memory-curation.md`](memory-curation.md), migration `0010_memory_curation`.
 Owner-only immutable ledger и composite reference constraints; текущий deployment guard ожидает
-более новый `0015_copy_adoption`. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
+более новый `0016_planner`. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
 Downgrade удаляет provenance и требует отдельно согласованного restore-backed плана.
 
 Ingestion jobs: [`ingestion-jobs.md`](ingestion-jobs.md), migration `0009_ingestion_recovery`.

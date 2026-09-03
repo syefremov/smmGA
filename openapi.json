@@ -65,6 +65,16 @@
             "title": "Payload",
             "type": "object"
           },
+          "planner_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlanningContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "question": {
             "title": "Question",
             "type": "string"
@@ -193,6 +203,16 @@
           "model": {
             "title": "Model",
             "type": "string"
+          },
+          "plan_draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlanDraft"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "profile": {
             "enum": [
@@ -5727,6 +5747,235 @@
         "title": "Permission",
         "type": "string"
       },
+      "PlanDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "context_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Context Hash",
+            "type": "string"
+          },
+          "knowledge_gaps": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Knowledge Gaps",
+            "type": "array"
+          },
+          "outcome": {
+            "enum": [
+              "draft",
+              "insufficient_evidence"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "plan_id": {
+            "format": "uuid",
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "slots": {
+            "items": {
+              "$ref": "#/components/schemas/PlanSlot"
+            },
+            "maxItems": 5,
+            "title": "Slots",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "plan_id",
+          "content_hash",
+          "context_hash",
+          "outcome",
+          "slots",
+          "warnings",
+          "knowledge_gaps"
+        ],
+        "title": "PlanDraft",
+        "type": "object"
+      },
+      "PlanEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "fact_id": {
+            "format": "uuid",
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "quote": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Quote",
+            "type": "string"
+          },
+          "source_quote": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Source Quote",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fact_id",
+          "quote",
+          "source_quote"
+        ],
+        "title": "PlanEvidence",
+        "type": "object"
+      },
+      "PlanSlot": {
+        "additionalProperties": false,
+        "properties": {
+          "destination": {
+            "pattern": "^vk:group:[1-9][0-9]{0,19}$",
+            "title": "Destination",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/PlanEvidence"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Evidence",
+            "type": "array"
+          },
+          "owner_id": {
+            "format": "uuid",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "planned_at": {
+            "format": "date-time",
+            "title": "Planned At",
+            "type": "string"
+          },
+          "rationale": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Rationale",
+            "type": "string"
+          },
+          "slot_index": {
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Slot Index",
+            "type": "integer"
+          },
+          "topic": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slot_index",
+          "planned_at",
+          "destination",
+          "owner_id",
+          "topic",
+          "rationale",
+          "evidence"
+        ],
+        "title": "PlanSlot",
+        "type": "object"
+      },
+      "PlanningContext": {
+        "additionalProperties": false,
+        "properties": {
+          "brand_id": {
+            "format": "uuid",
+            "title": "Brand Id",
+            "type": "string"
+          },
+          "campaign": {
+            "$ref": "#/components/schemas/RecordView"
+          },
+          "contract": {
+            "const": "planning-context-v1",
+            "default": "planning-context-v1",
+            "title": "Contract",
+            "type": "string"
+          },
+          "direction": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Direction",
+            "type": "string"
+          },
+          "fact_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Fact Ids",
+            "type": "array"
+          },
+          "knowledge_gaps": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Knowledge Gaps",
+            "type": "array"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/RecordView"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/RecordView"
+            },
+            "maxItems": 50,
+            "title": "Records",
+            "type": "array"
+          }
+        },
+        "required": [
+          "brand_id",
+          "plan",
+          "campaign",
+          "fact_ids",
+          "records",
+          "direction",
+          "knowledge_gaps"
+        ],
+        "title": "PlanningContext",
+        "type": "object"
+      },
       "PostState": {
         "enum": [
           "draft",
@@ -6187,7 +6436,8 @@
             "enum": [
               "reference-assessment-v1",
               "editor-review-v1",
-              "copy-draft-v1"
+              "copy-draft-v1",
+              "plan-draft-v1"
             ],
             "title": "Version",
             "type": "string"
@@ -7396,6 +7646,95 @@
           "dataset_hash"
         ],
         "title": "RunEval",
+        "type": "object"
+      },
+      "RunPlanDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "brand_id": {
+            "format": "uuid",
+            "title": "Brand Id",
+            "type": "string"
+          },
+          "content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "direction": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Direction",
+            "type": "string"
+          },
+          "fact_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Fact Ids",
+            "type": "array"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "knowledge_gaps": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Knowledge Gaps",
+            "type": "array"
+          },
+          "plan_id": {
+            "format": "uuid",
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "profile": {
+            "const": "content_planner",
+            "default": "content_planner",
+            "title": "Profile",
+            "type": "string"
+          },
+          "profile_selection_id": {
+            "format": "uuid",
+            "title": "Profile Selection Id",
+            "type": "string"
+          },
+          "profile_version_id": {
+            "format": "uuid",
+            "title": "Profile Version Id",
+            "type": "string"
+          },
+          "testing_only": {
+            "const": true,
+            "title": "Testing Only",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "brand_id",
+          "plan_id",
+          "content_hash",
+          "fact_ids",
+          "direction",
+          "knowledge_gaps",
+          "profile_version_id",
+          "profile_selection_id",
+          "testing_only"
+        ],
+        "title": "RunPlanDraft",
         "type": "object"
       },
       "SaveRevision": {
@@ -13282,6 +13621,116 @@
           }
         },
         "summary": "Note Detail"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/planner-runs": {
+      "post": {
+        "operationId": "planner_run_api_v1_workspaces__workspace_id__knowledge_planner_runs_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunPlanDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIRunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Planner Run"
       }
     },
     "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry": {

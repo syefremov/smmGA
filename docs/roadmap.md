@@ -397,6 +397,11 @@ preview → новая draft-редакция с immutable provenance и preflig
 личного текста в общий пост, сброс approval, сохранение рабочих копий, защита от конфликтов;
 MCP/REST shared, web history. Фаза 7 остаётся частичной; это не автоматическое принятие/публикация.
 
+Тринадцатый срез: [`planner-drafts.md`](planner-drafts.md) — testing Content Planner предлагает
+темы exact SQL plan slots по кампании и selected confirmed facts/profile/policy. Общая очередь,
+stale checks, MCP/REST/read-only web. Не меняет даты/targets/owner, не пишет план/brief/post,
+не назначает отправки и не одобряет публикации. Реальные evals и прежние gates сохраняются.
+
 ### Цель
 
 Сделать генерацию и анализ grounded: каждое фактическое утверждение связано с разрешённым источником, а специализированные AI-профили работают в ограниченных границах.

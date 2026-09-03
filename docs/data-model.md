@@ -1,5 +1,11 @@
 # Центральная модель данных — фаза 4
 
+Тринадцатый срез: `0016_planner` добавляет nullable private `ai_inputs.plan_id/planner_context`,
+workspace/plan FK, context pair CHECK и guards текущего SQL plan/campaign. Полная confirmed
+evidence closure/expiry проверяется сервисом. Worker получает только tenant-scoped boolean
+`smm_assignable_member`, без content writes. Downgrade с planner history отказывается до удаления
+данных. Контракт — [`planner-drafts.md`](planner-drafts.md).
+
 Двенадцатый срез: `0015_copy_adoption` добавляет immutable `copy_adoptions` с точными
 run/artifact/input/source/new revision bindings и preflight snapshot. Actor-private Owner RLS,
 SELECT/INSERT runtime, без worker grants. Общая транзакция создаёт draft, снимает approval,

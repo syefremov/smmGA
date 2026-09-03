@@ -201,6 +201,12 @@ draft/latest и Owner testing selection с точной привязкой runs.
 
 ### 6.3 Content Planner
 
+Репозиторный статус: testing-only темы для **существующего** SQL plan с 1–5 future slots,
+кампанией и selected confirmed facts/profile/policy. Контракт — [`planner-drafts.md`](planner-drafts.md).
+Не меняет dates/destinations/owner, не создаёт ContentPlan, briefs, posts, work items или schedule.
+Результат — private proposal с exact bindings/citations/gaps и обязательной human review.
+Ниже — целевой полный workflow; автоматическое принятие или публикация не разрешены.
+
 Назначение: превратить цели и доказательные входы в контент-план и briefs.
 
 Входы:

@@ -16,6 +16,7 @@ from smm_gpt.domain.access import Principal
 from smm_gpt.domain.copywriter import RunCopyDraft
 from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import Page, PageSize
+from smm_gpt.domain.planner import RunPlanDraft
 from smm_gpt.services.ai import AIService
 from smm_gpt.services.copy_adoption import CopyAdoptionService
 from smm_gpt.services.editor_triage import EditorTriageService
@@ -268,6 +269,28 @@ def register_knowledge_tools(
         Candidate quotes/IDs do not establish truth or policy compliance. Human review and
         saving a new revision are separate steps; NEVER apply or approve automatically.
         Stale inputs invalidate output. Never blindly retry unknown calls with a new key.
+        """
+        return await ai.start(await principal(), workspace_id, command, request_id())
+
+    @server.tool(
+        annotations=ToolAnnotations(
+            readOnlyHint=False,
+            destructiveHint=False,
+            idempotentHint=True,
+            openWorldHint=True,
+        )
+    )
+    async def ai_plan_content(workspace_id: UUID, command: RunPlanDraft) -> a.AIRunView:
+        """Owner + MFA, separately authorized paid TESTING only; defaults disabled.
+        Read exact current SQL content_plan and campaign first. Bind plan ID/hash, 1-10
+        selected confirmed product fact IDs, and content_planner registry testing version
+        AND selection IDs. Plan must contain 1-5 future slots. Sends bounded SQL planning
+        intent/evidence/internal policy to configured provider. Direction is not evidence.
+        Returns queued/blocked; use ai_run_read/inputs/cancel. Dates/targets/owner cannot change.
+        Topics are private proposals, not approved plans or scheduled sends. No content writes,
+        briefs, work items, approval, publication or tools. Citations are not proof of truth.
+        Require human review and separate explicit content commands to use any proposal.
+        Changed planning intent/evidence/owner invalidates output. Never retry unknown calls.
         """
         return await ai.start(await principal(), workspace_id, command, request_id())
 

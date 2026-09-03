@@ -25,6 +25,7 @@ from smm_gpt.services.model_gateway import (
     assessment_payload,
     copywriting_payload,
     editorial_payload,
+    planning_payload,
 )
 
 
@@ -44,6 +45,8 @@ def execution_hash(profile: ai.Profile, provider: str, model: str) -> str:
             "profile": profile.model_dump(mode="json"),
             "payload": editorial_payload(profile, {"contract_probe": True}, model)
             if profile.name == "editor"
+            else planning_payload(profile, {"contract_probe": True}, model)
+            if profile.name == "content_planner"
             else copywriting_payload(profile, {"contract_probe": True}, model)
             if profile.name == "copywriter"
             else assessment_payload(profile, "registry-contract-probe", [], model),

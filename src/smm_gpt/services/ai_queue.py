@@ -13,6 +13,7 @@ from smm_gpt.domain.copywriter import CopywritingContext
 from smm_gpt.domain.editor import EditorContext
 from smm_gpt.domain.knowledge import Citation
 from smm_gpt.domain.operations import OperationError
+from smm_gpt.domain.planner import PlanningContext
 from smm_gpt.infrastructure.ai_models import AIInput, AIRun
 from smm_gpt.infrastructure.models import Identity, Membership, User
 from smm_gpt.services.copywriter import validate_context
@@ -23,7 +24,10 @@ from smm_gpt.services.model_gateway import (
     assessment_payload,
     copywriting_payload,
     editorial_payload,
+    planning_payload,
 )
+from smm_gpt.services.planner import snapshot as planning_snapshot
+from smm_gpt.services.planner import validate_context as validate_planning_context
 
 
 async def authorized(s: AsyncSession, wid: UUID, actor: UUID, identity: UUID | None) -> bool:
@@ -50,7 +54,9 @@ async def current_input(
     run: AIRun,
     *,
     require_latest: bool = True,
-) -> tuple[AIInput, Profile, list[Citation], EditorContext | CopywritingContext | None]:
+) -> tuple[
+    AIInput, Profile, list[Citation], EditorContext | CopywritingContext | PlanningContext | None
+]:
     record = await s.scalar(
         select(AIInput).where(
             AIInput.workspace_id == run.workspace_id,
@@ -64,8 +70,38 @@ async def current_input(
         citations = [Citation.model_validate(c) for c in record.citations]
     except (ValidationError, ValueError, TypeError):
         raise OperationError("run_input_invalid") from None
-    context: EditorContext | CopywritingContext | None = None
-    if run.profile in {"editor", "copywriter"}:
+    context: EditorContext | CopywritingContext | PlanningContext | None = None
+    if run.profile == "content_planner":
+        try:
+            context = PlanningContext.model_validate(record.planner_context)
+            validate_planning_context(context)
+        except ValidationError:
+            raise OperationError("planner_input_invalid") from None
+        if (
+            citations
+            or record.post_id is not None
+            or record.revision_id is not None
+            or record.editor_context is not None
+            or record.copy_context is not None
+            or record.plan_id != context.plan.id
+            or record.question != context.direction
+            or context.brand_id != run.brand_id
+            or record.actor_id != run.actor_id
+        ):
+            raise OperationError("planner_input_invalid")
+        fresh_plan = await planning_snapshot(
+            s,
+            run.workspace_id,
+            run.brand_id,
+            context.plan.id,
+            context.plan.content_hash,
+            context.fact_ids,
+            context.direction,
+            context.knowledge_gaps,
+        )
+        if fresh_plan != context:
+            raise OperationError("planner_context_changed")
+    elif run.profile in {"editor", "copywriter"}:
         try:
             if run.profile == "copywriter":
                 context = CopywritingContext.model_validate(record.copy_context)
@@ -86,6 +122,8 @@ async def current_input(
             or source.revision.id != record.revision_id
             or source.brand_id != run.brand_id
             or record.actor_id != run.actor_id
+            or record.plan_id is not None
+            or record.planner_context is not None
         ):
             raise OperationError("editor_input_invalid")
         fresh = await snapshot(
@@ -102,6 +140,8 @@ async def current_input(
     elif (
         record.editor_context is not None
         or record.copy_context is not None
+        or record.plan_id is not None
+        or record.planner_context is not None
         or not 1 <= len(citations) <= 5
     ):
         raise OperationError("run_input_invalid")
@@ -124,7 +164,7 @@ def executable(
     record: AIInput,
     profile: Profile,
     citations: list[Citation],
-    context: EditorContext | CopywritingContext | None = None,
+    context: EditorContext | CopywritingContext | PlanningContext | None = None,
 ) -> None:
     if (
         settings.ai_provider == "disabled"
@@ -144,7 +184,9 @@ def executable(
     ):
         raise OperationError("profile_contract_changed")
     payload = (
-        copywriting_payload(profile, context.model_dump(mode="json"), run.model)
+        planning_payload(profile, context.model_dump(mode="json"), run.model)
+        if isinstance(context, PlanningContext)
+        else copywriting_payload(profile, context.model_dump(mode="json"), run.model)
         if isinstance(context, CopywritingContext)
         else editorial_payload(profile, context.model_dump(mode="json"), run.model)
         if context

@@ -52,6 +52,8 @@ def test_contracts_and_capabilities_are_closed() -> None:
             if profile.name == "editor"
             else {"content.snapshot.read", "copy_draft.propose"}
             if profile.name == "copywriter"
+            else {"content.snapshot.read", "plan_draft.propose"}
+            if profile.name == "content_planner"
             else {"knowledge.search", "assessment.propose"}
         )
         assert set(profile.allowed_capabilities) == expected

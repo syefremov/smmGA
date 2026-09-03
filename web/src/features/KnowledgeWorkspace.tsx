@@ -22,6 +22,11 @@ const CopywriterResult = lazy(() =>
     default: module.CopywriterResult,
   })),
 );
+const PlanDraftResult = lazy(() =>
+  import("./knowledge/PlanDraftResult").then((module) => ({
+    default: module.PlanDraftResult,
+  })),
+);
 
 const states: Record<string, string> = {
   queued: "В очереди",
@@ -415,6 +420,13 @@ function Profiles({ workspace: w }: { workspace: Workspace }) {
           <h2>{states[run.data.state] ?? run.data.state}</h2>
           <p>{run.data.warning}</p>
           <p>{run.data.error_code}</p>
+          {run.data.error_code === "artifact_planner_stale_or_unavailable" && (
+            <p role="status">
+              Предложение плана устарело или его основания недоступны.
+              Перечитайте план, кампанию и факты через чат; история запуска
+              сохранена.
+            </p>
+          )}
           <p>
             {run.data.provider} · {run.data.model || "Модель не выбрана"}
           </p>
@@ -425,6 +437,18 @@ function Profiles({ workspace: w }: { workspace: Workspace }) {
               timezone={w.timezone}
             />
           )}
+          {run.data.plan_draft &&
+            run.data.state === "needs_review" &&
+            !run.data.error_code && (
+              <Suspense
+                fallback={<p role="status">Загружаем предложение плана…</p>}
+              >
+                <PlanDraftResult
+                  draft={run.data.plan_draft}
+                  timezone={w.timezone}
+                />
+              </Suspense>
+            )}
           {(run.data.copy_draft || run.data.copy_adoption) && (
             <Suspense fallback={<p role="status">Загружаем предложение…</p>}>
               <CopywriterResult

@@ -124,7 +124,7 @@ SELECT под tenant RLS. Inputs/artifacts остаются private и append-on
 
 Реальный upgrade требует отдельного разрешения, backup/restore rehearsal, остановки старых
 API/worker writers и согласованного обновления кода. Текущий deployment guard ожидает более
-новую `0015_copy_adoption`; её отдельный rollback guard описан в документе adoption.
+новую `0016_planner`; её отдельный rollback guard описан в [Planner-контракте](planner-drafts.md).
 Никаких автоматических selections, ключей, flags или deploy. Старому Copywriter нужны
 новый draft и явный выбор. Downgrade при наличии copy inputs **отказывается до удаления полей**
 (`copywriter_history_requires_restore_plan`); это не команда очистки истории. Forward-only

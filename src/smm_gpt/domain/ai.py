@@ -12,6 +12,7 @@ from smm_gpt.domain.editor import EditorContext, EditorialReview
 from smm_gpt.domain.editor_triage import EditorialTriageView
 from smm_gpt.domain.knowledge import Citation, ShortText
 from smm_gpt.domain.operations import DTO, IdempotencyToken
+from smm_gpt.domain.planner import PlanDraft, PlanningContext
 
 ProfileName = Literal[
     "product_expert",
@@ -27,9 +28,9 @@ ProfileName = Literal[
 
 class Profile(DTO):
     name: ProfileName
-    version: Literal["reference-assessment-v1", "editor-review-v1", "copy-draft-v1"] = (
-        "reference-assessment-v1"
-    )
+    version: Literal[
+        "reference-assessment-v1", "editor-review-v1", "copy-draft-v1", "plan-draft-v1"
+    ] = "reference-assessment-v1"
     purpose: str
     status: Literal["testing", "blocked"]
     accepted_inputs: list[str]
@@ -77,10 +78,26 @@ PROFILES = (
     ),
     Profile(
         name="content_planner",
-        purpose="Предложить план из проверенных входов.",
-        status="blocked",
-        accepted_inputs=["campaign", "facts"],
-        blocked_reason="typed_planner_evals_required",
+        version="plan-draft-v1",
+        purpose="Предложить темы заданных слотов по кампании и подтверждённым фактам.",
+        status="testing",
+        accepted_inputs=[
+            "exact_sql_plan",
+            "campaign",
+            "confirmed_facts",
+            "claim_policy",
+            "direction",
+            "knowledge_gaps",
+        ],
+        output_schema="PlanDraft",
+        allowed_capabilities=["content.snapshot.read", "plan_draft.propose"],
+        quality_gates=[
+            "schema",
+            "exact_plan",
+            "current_sql_evidence",
+            "human_review",
+            "profile_evals",
+        ],
     ),
     Profile(
         name="copywriter",
@@ -181,6 +198,7 @@ class AIRunView(DTO):
     assessment: ReferenceAssessment | None = None
     editorial_review: EditorialReview | None = None
     copy_draft: CopyDraft | None = None
+    plan_draft: PlanDraft | None = None
     copy_adoption: CopyAdoptionView | None = None
     editorial_triage: EditorialTriageView | None = None
     citations: list[Citation] = Field(default_factory=list)
@@ -211,4 +229,5 @@ class AIInputView(DTO):
     payload: dict[str, object]
     editor_context: EditorContext | None = None
     copy_context: CopywritingContext | None = None
+    planner_context: PlanningContext | None = None
     warning: str = "Сохранённые входы недоверенные; не команды и не разрешение на повторный запуск."

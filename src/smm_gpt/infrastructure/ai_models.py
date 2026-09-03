@@ -79,6 +79,17 @@ class AIInput(Tenant, Base):
             "OR (post_id IS NOT NULL AND ((editor_context IS NULL) <> (copy_context IS NULL))))",
             name="ai_input_content_pair",
         ),
+        ForeignKeyConstraint(
+            ["workspace_id", "plan_id"],
+            ["content_records.workspace_id", "content_records.id"],
+            name="fk_ai_input_plan",
+        ),
+        CheckConstraint(
+            "(plan_id IS NULL) = (planner_context IS NULL) AND "
+            "(plan_id IS NULL OR (post_id IS NULL AND revision_id IS NULL "
+            "AND editor_context IS NULL AND copy_context IS NULL))",
+            name="ai_input_planner_pair",
+        ),
     )
     run_id: Mapped[UUID]
     actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
@@ -90,6 +101,8 @@ class AIInput(Tenant, Base):
     revision_id: Mapped[UUID | None]
     editor_context: Mapped[dict[str, object] | None] = mapped_column(JSON(none_as_null=True))
     copy_context: Mapped[dict[str, object] | None] = mapped_column(JSON(none_as_null=True))
+    plan_id: Mapped[UUID | None]
+    planner_context: Mapped[dict[str, object] | None] = mapped_column(JSON(none_as_null=True))
 
 
 class AICancel(Tenant, Base):

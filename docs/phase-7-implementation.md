@@ -13,6 +13,11 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Тринадцатый срез:** [`planner-drafts.md`](planner-drafts.md) — testing Content Planner по exact
+SQL plan/campaign и selected confirmed facts/profile/policy. Темы для 1–5 заданных слотов,
+неизменные даты/targets/owner, citations/gaps, общая очередь и MCP/REST/read-only web.
+Нет записи плана/brief/post/work item, adoption, расписания или approval; gates сохраняются.
+
 **Двенадцатый срез:** [`copywriter-adoption.md`](copywriter-adoption.md) — личный exact preview,
 явное человеческое подтверждение текста/передачи в общий пост, новая immutable редакция и
 provenance receipt. Старое approval снято, рабочие копии сохранены, preflight нового текста;
@@ -112,7 +117,7 @@ versions/chunks/receipts/decisions/artifacts append-only.
 | Product Expert | Тестовая оценка источников, наблюдения/гипотезы/gaps, без verified facts |
 | Research Scout | Аналогичная оценка уже разрешённых материалов, без интернет-сбора |
 | Analyst | Blocked: нужны metric snapshots |
-| Content Planner | Blocked: нужны typed planning workflow и eval |
+| Content Planner | Testing: темы exact SQL plan slots по кампании/confirmed facts; не запись плана или расписания |
 | Copywriter | Testing: exact SQL revision/brief/facts/policy → отдельное text proposal; не запись редакции |
 | Visual Creator | Blocked: нужны media rights/provenance и image pipeline |
 | Editor | Testing: exact SQL revision review, без edits/approval; реальные profile evals ещё нужны |
@@ -127,6 +132,8 @@ Editor отдельно возвращает `EditorialReview`: точные rev
 цитаты/locations, findings и рекомендацию. Его evidence — SQL, не RAG; контекст проверяется повторно.
 Copywriter возвращает `CopyDraft`: exact revision/context hashes, текстовые варианты, fact IDs,
 цитаты из предложенного текста и факта, warnings/gaps. Это отдельный artifact, не PostRevision.
+Content Planner возвращает `PlanDraft`: exact plan/context hashes и темы заданных слотов,
+даты/destinations/owner не меняются; selected fact quotes, warnings/gaps. Не ContentPlan/brief.
 
 Gateway: Protocol + OpenAI Responses structured text, fake HTTP tests. Нет embeddings/image adapters,
 генерации файлов, post revisions, tool loop, model-directed network или автоактивации памяти.
@@ -172,6 +179,8 @@ REST prefix `/api/v1/workspaces/{wid}/knowledge`:
   результат через общие run endpoints; веб показывает замечания без действий approval.
 - POST `/copywriter-runs`, MCP `ai_draft_revision`: exact SQL inputs + direction → text proposal,
   общий run lifecycle, без сохранения/применения текста в пост.
+- POST `/planner-runs`, MCP `ai_plan_content`: exact plan/campaign/selected facts → предложения тем,
+  общий run lifecycle, без content writes или назначения отправок.
 - GET `/runs/{rid}/copy-adoption/preview`, GET/POST `/runs/{rid}/copy-adoption`:
   exact preview, человеческое принятие новой редакции и private receipt; MCP
   `ai_copy_adoption_preview`, `ai_copy_adopt`, `ai_copy_adoption_read`. Не approval и не AI job.
@@ -215,7 +224,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0015_copy_adoption` требуют privileged migration role,
+Миграции `0005_knowledge`–`0016_planner` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -247,7 +256,8 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
    activation, typed specialist inputs/outputs/handoff/work items;
    полный Planner/Copywriter/Analyst, visual provenance/image gateway, Publisher gates.
    Text-only Editor реализован девятым срезом, human triage — десятым, Copywriter proposals —
-   одиннадцатым, человеческое принятие новой редакции с AI provenance — двенадцатым. Остаются model evals,
+   одиннадцатым, человеческое принятие новой редакции с AI provenance — двенадцатым,
+   bounded Planner topics — тринадцатым. Остаются model evals, Planner adoption/briefs,
    доказанное исправление между редакциями, визуальная/юридическая верификация и production-включение.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
    Седьмой срез добавил memory → отдельно подтверждаемый reference с provenance.

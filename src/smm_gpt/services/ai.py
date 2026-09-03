@@ -12,6 +12,7 @@ from smm_gpt.domain.copywriter import CopyDraft, CopywritingContext, RunCopyDraf
 from smm_gpt.domain.editor import EditorContext, EditorialReview, RunEditorialReview
 from smm_gpt.domain.knowledge import SearchRequest
 from smm_gpt.domain.operations import OperationError, Page
+from smm_gpt.domain.planner import PlanDraft, PlanningContext, RunPlanDraft
 from smm_gpt.infrastructure.ai_models import AIArtifact, AICancel, AIInput, AIRun
 from smm_gpt.infrastructure.knowledge_models import RetrievalRun
 from smm_gpt.infrastructure.models import utcnow
@@ -27,7 +28,10 @@ from smm_gpt.services.model_gateway import (
     assessment_payload,
     copywriting_payload,
     editorial_payload,
+    planning_payload,
 )
+from smm_gpt.services.planner import snapshot as planning_snapshot
+from smm_gpt.services.planner import validate_draft as validate_plan
 from smm_gpt.services.profiles import assert_registered_run, compatible_profile, selected_version
 
 
@@ -43,14 +47,14 @@ class AIService:
         self,
         actor: Principal,
         wid: UUID,
-        command: d.RunAssessment | RunEditorialReview | RunCopyDraft,
+        command: d.RunAssessment | RunEditorialReview | RunCopyDraft | RunPlanDraft,
         request: UUID,
     ) -> d.AIRunView:
         question = (
             command.question
             if isinstance(command, d.RunAssessment)
             else command.direction
-            if isinstance(command, RunCopyDraft)
+            if isinstance(command, (RunCopyDraft, RunPlanDraft))
             else "Review exact stored revision"
         )
         safe_text(question)
@@ -83,6 +87,8 @@ class AIService:
                     error = "editor_revision_request_required"
                 if command.profile == "copywriter" and isinstance(command, d.RunAssessment):
                     error = "copywriter_revision_request_required"
+                if command.profile == "content_planner" and isinstance(command, d.RunAssessment):
+                    error = "planner_plan_request_required"
                 selected = None
                 if not error and (
                     self.settings.ai_provider == "disabled"
@@ -109,6 +115,21 @@ class AIService:
                 citations = []
                 context = None
                 copy_context = None
+                planner_context = None
+                if not error and isinstance(command, RunPlanDraft):
+                    try:
+                        planner_context = await planning_snapshot(
+                            s,
+                            wid,
+                            command.brand_id,
+                            command.plan_id,
+                            command.content_hash,
+                            command.fact_ids,
+                            command.direction,
+                            command.knowledge_gaps,
+                        )
+                    except OperationError as exc:
+                        error = exc.code
                 if not error and isinstance(command, (RunEditorialReview, RunCopyDraft)):
                     try:
                         context = await snapshot(
@@ -177,7 +198,11 @@ class AIService:
                 await s.flush()
                 if not error:
                     payload = (
-                        copywriting_payload(
+                        planning_payload(
+                            profile, planner_context.model_dump(mode="json"), self.settings.ai_model
+                        )
+                        if planner_context
+                        else copywriting_payload(
                             profile, copy_context.model_dump(mode="json"), self.settings.ai_model
                         )
                         if copy_context
@@ -206,6 +231,10 @@ class AIService:
                             else None,
                             copy_context=copy_context.model_dump(mode="json")
                             if copy_context
+                            else None,
+                            plan_id=planner_context.plan.id if planner_context else None,
+                            planner_context=planner_context.model_dump(mode="json")
+                            if planner_context
                             else None,
                         )
                     )
@@ -280,6 +309,7 @@ class AIService:
                 payload=record.payload,
                 editor_context=context if isinstance(context, EditorContext) else None,
                 copy_context=context if isinstance(context, CopywritingContext) else None,
+                planner_context=context if isinstance(context, PlanningContext) else None,
             )
 
     async def read(self, actor: Principal, wid: UUID, rid: UUID, request: UUID) -> d.AIRunView:
@@ -300,6 +330,16 @@ class AIService:
                 try:
                     await lock(s, wid)
                     await assert_registered_run(s, run)
+                    if run.profile == "content_planner":
+                        _, _, _, context = await current_input(s, run)
+                        if not isinstance(context, PlanningContext):
+                            raise OperationError("planner_input_invalid")
+                        draft_plan = PlanDraft.model_validate(artifact.body)
+                        if canonical_hash(artifact.body) != artifact.content_hash:
+                            raise OperationError("planner_artifact_invalid")
+                        validate_plan(draft_plan, context)
+                        view.plan_draft = draft_plan
+                        return view
                     if run.profile == "copywriter":
                         _, _, _, context = await current_input(s, run)
                         if not isinstance(context, CopywritingContext):
@@ -331,6 +371,8 @@ class AIService:
                     view.error_code = (
                         "artifact_profile_stale_or_unavailable"
                         if exc.code.startswith("profile_")
+                        else "artifact_planner_stale_or_unavailable"
+                        if run.profile == "content_planner"
                         else "artifact_copywriter_stale_or_unavailable"
                         if run.profile == "copywriter"
                         else "artifact_editor_stale_or_unavailable"

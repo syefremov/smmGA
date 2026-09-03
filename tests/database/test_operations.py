@@ -44,6 +44,7 @@ from .test_editor_triage import decision as finding_decision
 from .test_knowledge import activate as activate_knowledge
 from .test_knowledge_files import command as file_command
 from .test_memory_curation import proposal as memory_proposal
+from .test_planner import PlanGateway, plan_command
 
 pytestmark = pytest.mark.integration
 
@@ -587,6 +588,41 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
             adopted_run["copy_draft"] is None
             and adopted_run["copy_adoption"] == adopted_rest.json()
         )
+        planner_command = (await plan_command(content)).model_dump(mode="json")
+        planner_path = f"/api/v1/workspaces/{wid}/knowledge/planner-runs"
+        planned = await call("ai_plan_content", {"workspace_id": wid, "command": planner_command})
+        planned_rest = await browser.post(planner_path, json=planner_command)
+        assert planned_rest.status_code == 200 and planned_rest.json()["state"] == "queued", (
+            planned_rest.text
+        )
+        assert planned["structuredContent"] == planned_rest.json()
+        planner_id = planned_rest.json()["id"]
+        assert (await call("ai_run_inputs", {"workspace_id": wid, "run_id": planner_id}))[
+            "structuredContent"
+        ] == (await browser.get(ai_prefix + f"/{planner_id}/inputs")).json()
+        assert await process_ai(
+            t.worker,
+            ai_test_config(t.workspace),
+            Gateway(),
+            t.workspace,
+            UUID(planner_id),
+            t.owner.user_id,
+            planning_gateway=PlanGateway(),
+        )
+        planner_result = await browser.get(ai_prefix + f"/{planner_id}")
+        assert planner_result.json()["plan_draft"] and not planner_result.json()["copy_draft"]
+        assert (await call("ai_run_read", {"workspace_id": wid, "run_id": planner_id}))[
+            "structuredContent"
+        ] == planner_result.json()
+        bad_plan = await browser.post(
+            planner_path,
+            json={
+                **planner_command,
+                "direction": "never-echo-planner",
+                "approved": True,
+            },
+        )
+        assert bad_plan.status_code == 422 and "never-echo" not in bad_plan.text
         read_knowledge = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/documents")
         assert (await call("knowledge_documents", {"workspace_id": wid}))[
             "structuredContent"

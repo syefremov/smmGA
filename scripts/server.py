@@ -39,7 +39,7 @@ ENV_KEYS = {
     "SMM_APP_PASSWORD",
     "SMM_WORKER_PASSWORD",
 }
-SCHEMA = "0015_copy_adoption"
+SCHEMA = "0016_planner"
 
 
 class OperationError(Exception):

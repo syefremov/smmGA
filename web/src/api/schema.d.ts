@@ -739,6 +739,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/planner-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Planner Run */
+        post: operations["planner_run_api_v1_workspaces__workspace_id__knowledge_planner_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry": {
         parameters: {
             query?: never;
@@ -1100,6 +1117,7 @@ export interface components {
             payload: {
                 [key: string]: unknown;
             };
+            planner_context?: components["schemas"]["PlanningContext"] | null;
             /** Question */
             question: string;
             /**
@@ -1135,6 +1153,7 @@ export interface components {
             id: string;
             /** Model */
             model: string;
+            plan_draft?: components["schemas"]["PlanDraft"] | null;
             /**
              * Profile
              * @enum {string}
@@ -3629,6 +3648,88 @@ export interface components {
          * @enum {string}
          */
         Permission: "workspace.read" | "members.manage" | "content.plan" | "content.edit" | "content.approve" | "content.publish" | "analytics.read" | "audit.read" | "system.job.run" | "work_item.write" | "content.comment" | "knowledge.write";
+        /** PlanDraft */
+        PlanDraft: {
+            /** Content Hash */
+            content_hash: string;
+            /** Context Hash */
+            context_hash: string;
+            /** Knowledge Gaps */
+            knowledge_gaps: string[];
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "draft" | "insufficient_evidence";
+            /**
+             * Plan Id
+             * Format: uuid
+             */
+            plan_id: string;
+            /** Slots */
+            slots: components["schemas"]["PlanSlot"][];
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PlanEvidence */
+        PlanEvidence: {
+            /**
+             * Fact Id
+             * Format: uuid
+             */
+            fact_id: string;
+            /** Quote */
+            quote: string;
+            /** Source Quote */
+            source_quote: string;
+        };
+        /** PlanSlot */
+        PlanSlot: {
+            /** Destination */
+            destination: string;
+            /** Evidence */
+            evidence: components["schemas"]["PlanEvidence"][];
+            /**
+             * Owner Id
+             * Format: uuid
+             */
+            owner_id: string;
+            /**
+             * Planned At
+             * Format: date-time
+             */
+            planned_at: string;
+            /** Rationale */
+            rationale: string;
+            /** Slot Index */
+            slot_index: number;
+            /** Topic */
+            topic: string;
+        };
+        /** PlanningContext */
+        PlanningContext: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            campaign: components["schemas"]["RecordView"];
+            /**
+             * Contract
+             * @default planning-context-v1
+             * @constant
+             */
+            contract: "planning-context-v1";
+            /** Direction */
+            direction: string;
+            /** Fact Ids */
+            fact_ids: string[];
+            /** Knowledge Gaps */
+            knowledge_gaps: string[];
+            plan: components["schemas"]["RecordView"];
+            /** Records */
+            records: components["schemas"]["RecordView"][];
+        };
         /** @enum {string} */
         PostState: "draft" | "in_review" | "rejected" | "approved" | "package_ready";
         /** PostSummary */
@@ -3842,7 +3943,7 @@ export interface components {
              * @default reference-assessment-v1
              * @enum {string}
              */
-            version: "reference-assessment-v1" | "editor-review-v1" | "copy-draft-v1";
+            version: "reference-assessment-v1" | "editor-review-v1" | "copy-draft-v1" | "plan-draft-v1";
         };
         /** ProfileDecisionView */
         ProfileDecisionView: {
@@ -4382,6 +4483,50 @@ export interface components {
             dataset_id: string;
             /** Idempotency Key */
             idempotency_key: string;
+        };
+        /** RunPlanDraft */
+        RunPlanDraft: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Direction */
+            direction: string;
+            /** Fact Ids */
+            fact_ids: string[];
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Knowledge Gaps */
+            knowledge_gaps: string[];
+            /**
+             * Plan Id
+             * Format: uuid
+             */
+            plan_id: string;
+            /**
+             * Profile
+             * @default content_planner
+             * @constant
+             */
+            profile: "content_planner";
+            /**
+             * Profile Selection Id
+             * Format: uuid
+             */
+            profile_selection_id: string;
+            /**
+             * Profile Version Id
+             * Format: uuid
+             */
+            profile_version_id: string;
+            /**
+             * Testing Only
+             * @constant
+             */
+            testing_only: true;
         };
         /** SaveRevision */
         SaveRevision: {
@@ -8333,6 +8478,95 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NoteDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    planner_run_api_v1_workspaces__workspace_id__knowledge_planner_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunPlanDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunView"];
                 };
             };
             /** @description Unauthorized */

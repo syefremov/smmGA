@@ -247,17 +247,17 @@ async def test_no_fallback_wrong_model_unsupported_profile_and_exact_hash(
         await service.start(t.owner, t.workspace, c, uuid4())
     ).error_code == "profile_model_changed"
     unsupported = await core.execute(
-        t.owner, t.workspace, draft().model_copy(update={"profile": "content_planner"}), uuid4()
+        t.owner, t.workspace, draft().model_copy(update={"profile": "visual_creator"}), uuid4()
     )
     definition = await core.read_version(t.owner, t.workspace, unsupported.version_id, uuid4())
-    assert definition.blocked_reason == "typed_planner_evals_required"
+    assert definition.blocked_reason == "media_rights_pipeline_required"
     with pytest.raises(OperationError, match="profile_implementation_unavailable"):
         await core.execute(
             t.owner,
             t.workspace,
             d.SelectTesting(
                 idempotency_key=uuid4().hex,
-                profile="content_planner",
+                profile="visual_creator",
                 expected_revision=1,
                 version_id=unsupported.version_id,
                 content_hash=definition.content_hash,

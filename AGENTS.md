@@ -203,6 +203,15 @@
   Historical receipt/replay is not current approval. Recheck current post before any next decision.
   Never give models/workers this service or personal command. Decline destructive downgrade
   with adoption history; actual deployment still needs separate authorization.
+- Follow `docs/planner-drafts.md`: testing Planner proposes topics for 1–5 exact future SQL plan
+  slots, with selected confirmed facts and current profile/policy closure. Plan/campaign are
+  intent, not evidence; their latest drafts supersede intent, unlike unconfirmed evidence drafts.
+  Preserve dates/destinations/campaign owner and original gaps; bound facts/quotes/context hashes.
+  Recheck evidence through the last slot, active assignee and exact registry selection before
+  dispatch/finalize/read. Hide stale proposals without deleting history. No plan/brief/post/work
+  writes, adoption, scheduling or approval. Citation matching is not semantic quality evidence.
+  Worker gets only the tenant-bound assignable-member boolean, no content-write authority.
+  Refuse downgrade with planner history; provider/worker and real deployment remain separately gated.
 - Follow `docs/ai-profile-registry.md`: ai_profiles is a built-in catalog, not the DB selection.
   New queued runs require exact registered version AND selection IDs, with no implicit fallback.
   Only purpose/model are configurable within code-owned capabilities and output contracts.

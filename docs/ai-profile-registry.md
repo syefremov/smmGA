@@ -64,8 +64,9 @@
 Черновики можно хранить для всех восьми профилей, но выбрать для тестирования можно только
 реализованные reference assessments: Product Expert и Research Scout, а с девятого среза —
 текстовый Editor ([контракт](editor-review.md)), с одиннадцатого — Copywriter proposals
-([контракт](copywriter-drafts.md)). Planner/Analyst/Visual Creator/Publisher остаются blocked.
-Старые Copywriter definitions несовместимы с `copy-draft-v1`, Editor — с `editor-review-v1`:
+([контракт](copywriter-drafts.md)), с тринадцатого — Content Planner topics
+([контракт](planner-drafts.md)). Analyst/Visual Creator/Publisher остаются blocked.
+Старые Planner definitions несовместимы с `plan-draft-v1`, Copywriter — с `copy-draft-v1`, Editor — с `editor-review-v1`:
 требуются новый draft и отдельная testing selection, без автоматической миграции разрешений.
 Создание записи с именем специалиста не реализует его workflow.
 

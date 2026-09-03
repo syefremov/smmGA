@@ -12,6 +12,7 @@ from smm_gpt.domain.content import canonical_hash
 from smm_gpt.domain.copywriter import CopyDraft, CopywritingContext
 from smm_gpt.domain.editor import EditorContext, EditorialReview
 from smm_gpt.domain.operations import OperationError
+from smm_gpt.domain.planner import PlanDraft, PlanningContext
 from smm_gpt.infrastructure.ai_models import AIArtifact, AIRun
 from smm_gpt.infrastructure.database import Database
 from smm_gpt.infrastructure.models import utcnow
@@ -28,8 +29,11 @@ from smm_gpt.services.model_gateway import (
     EditorialGatewayResult,
     GatewayResult,
     OpenAITextGateway,
+    PlanningGateway,
+    PlanningGatewayResult,
     TextGateway,
 )
+from smm_gpt.services.planner import validate_draft as validate_plan
 from smm_gpt.services.profiles import assert_registered_run
 
 
@@ -43,6 +47,7 @@ async def process(
     *,
     editorial_gateway: EditorialGateway | None = None,
     copywriting_gateway: CopywritingGateway | None = None,
+    planning_gateway: PlanningGateway | None = None,
 ) -> bool:
     token = uuid4()
     async with database.transaction(actor, wid) as s:
@@ -82,14 +87,30 @@ async def process(
         run.usage = {**run.usage, "attempts": 1, "cost_status": "unknown"}
         audit(s, actor, wid, uuid4(), "ai.dispatch_reserved", "running", rid)
     # Durable dispatch reservation commits BEFORE network I/O. A crash may lose work, not replay it.
-    generated: GatewayResult | EditorialGatewayResult | CopywritingGatewayResult | None = None
-    body: ReferenceAssessment | EditorialReview | CopyDraft | None = None
+    generated: (
+        GatewayResult
+        | EditorialGatewayResult
+        | CopywritingGatewayResult
+        | PlanningGatewayResult
+        | None
+    ) = None
+    body: ReferenceAssessment | EditorialReview | CopyDraft | PlanDraft | None = None
     error: str | None = None
     unknown = False
     try:
         async with asyncio.timeout(60):
-            candidate: GatewayResult | EditorialGatewayResult | CopywritingGatewayResult
-            if isinstance(context, CopywritingContext):
+            candidate: (
+                GatewayResult
+                | EditorialGatewayResult
+                | CopywritingGatewayResult
+                | PlanningGatewayResult
+            )
+            if isinstance(context, PlanningContext):
+                planned = await (planning_gateway or OpenAITextGateway(settings)).plan(
+                    profile, context
+                )
+                candidate = PlanningGatewayResult.model_validate(planned.model_dump())
+            elif isinstance(context, CopywritingContext):
                 drafted = await (copywriting_gateway or OpenAITextGateway(settings)).draft(
                     profile, context
                 )
@@ -105,7 +126,11 @@ async def process(
         safe_text(candidate.model)
         safe_text(candidate.response_id)
         generated = candidate
-        if isinstance(generated, CopywritingGatewayResult):
+        if isinstance(generated, PlanningGatewayResult):
+            assert isinstance(context, PlanningContext)
+            body = PlanDraft.model_validate(generated.draft.model_dump())
+            validate_plan(body, context)
+        elif isinstance(generated, CopywritingGatewayResult):
             assert isinstance(context, CopywritingContext)
             body = CopyDraft.model_validate(generated.draft.model_dump())
             validate_draft(body, context)
