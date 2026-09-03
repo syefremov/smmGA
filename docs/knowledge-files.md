@@ -1,5 +1,8 @@
 # PDF/DOCX: закрытая загрузка в базу знаний
 
+Пятый срез добавляет управление jobs, отмену, историю и восстановление статусов после сбоев —
+[`ingestion-jobs.md`](ingestion-jobs.md), migration `0009_ingestion_recovery`.
+
 2026-09-03, третий репозиторный срез фазы 7. Фаза не завершена. Реальные документы,
 антивирус на сервере и production ingestion в этой итерации не подключались.
 
@@ -70,10 +73,12 @@ Base64 и SHA-256 должен вычислять клиент из реальн
   не исключает неизвестные угрозы. ClamAV требует обслуживаемых актуальных сигнатур.
 - PostgreSQL queue, lease 120 секунд + fencing token, max 3 attempts. Beat каждые 30 секунд,
   максимум 5 IDs за poll. Redis не хранит бинарные файлы/текст/личные credentials.
-- Явный retry только для scanner unavailable/stale, sandbox unavailable, timeout/resource limit.
+- Явный retry только для scanner unavailable/stale, sandbox unavailable, timeout/resource limit
+  и processing_interrupted, до 3 попыток в пределах 24 часов от создания job.
   Malware/invalid format не обходятся retry. Rescan создаёт новый scan, не меняет старый verdict.
-- До и после работы проверяются действующие user/membership/identity. Отозванная identity не
-  завершает работу; abandoned jobs могут остаться queued/processing, reconciler ещё не реализован.
+- До и после работы проверяются действующие user/membership/identity. Reconciler закрывает
+  прерванные/просроченные/отозванные jobs как failed. Автоматического повторного захвата
+  processing больше нет; ручной retry сохраняет историю и снова выполняет scan/sandbox.
 - После 48 часов от даты сигнатур импорт/скачивание блокируются; просмотр истории разрешён.
   Нужен rescan. Уже активированный **текстовый** индекс автоматически не снимается; это не
   механизм retroactive malware recall. При выявлении проблемы Owner архивирует документ.

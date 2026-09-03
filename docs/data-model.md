@@ -1,5 +1,11 @@
 # Центральная модель данных — фаза 4
 
+Пятый срез фазы 7: `0009_ingestion_recovery` добавляет version/start/finish и cancelled
+для text/file jobs, actor-private cancel receipts и DB-triggered immutable transition events.
+RLS ограничивает историю Owner/автором видимого parent; worker получает только служебные
+переходы и bounded reconciler. Старые jobs не получают вымышленную историю задним числом.
+Контракт и миграционная совместимость — [`ingestion-jobs.md`](ingestion-jobs.md).
+
 Четвёртый срез фазы 7: `0008_ai_queue` добавляет actor/Owner-private immutable `ai_inputs`
 (question, citations, semantic request payload/hash), `ai_cancel_receipts` и поля очереди
 в `ai_runs`: originating identity, version, lease/token, start/finish timestamps.

@@ -89,7 +89,8 @@ class KnowledgeIndex(Tenant, Base):
             ],
         ),
         CheckConstraint(
-            "state IN ('queued','processing','ready','failed')", name="knowledge_index_state"
+            "state IN ('queued','processing','ready','failed','cancelled')",
+            name="knowledge_index_state",
         ),
     )
     document_id: Mapped[UUID]
@@ -104,6 +105,41 @@ class KnowledgeIndex(Tenant, Base):
     parser_version: Mapped[str] = mapped_column(String(80), default="safe-text-v1")
     chunking_version: Mapped[str] = mapped_column(String(80), default="paragraph-v1")
     content_hash: Mapped[str] = mapped_column(String(64))
+    version: Mapped[int] = mapped_column(default=1, server_default="1")
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class KnowledgeJobReceipt(Tenant, Base):
+    __tablename__ = "knowledge_job_receipts"
+    __table_args__ = (
+        *tenant_args(index_id="knowledge_indexes", file_id="knowledge_files"),
+        UniqueConstraint("workspace_id", "actor_id", "key_hash"),
+        CheckConstraint("(index_id IS NULL) <> (file_id IS NULL)", name="knowledge_job_target"),
+    )
+    actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    index_id: Mapped[UUID | None]
+    file_id: Mapped[UUID | None]
+    key_hash: Mapped[str] = mapped_column(String(64))
+    request_hash: Mapped[str] = mapped_column(String(64))
+    result: Mapped[dict[str, object]] = mapped_column(JSON)
+
+
+class KnowledgeJobEvent(Tenant, Base):
+    __tablename__ = "knowledge_job_events"
+    __table_args__ = (
+        *tenant_args(index_id="knowledge_indexes", file_id="knowledge_files"),
+        CheckConstraint("(index_id IS NULL) <> (file_id IS NULL)", name="knowledge_event_target"),
+        UniqueConstraint("workspace_id", "index_id", "version"),
+        UniqueConstraint("workspace_id", "file_id", "version"),
+    )
+    actor_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    index_id: Mapped[UUID | None]
+    file_id: Mapped[UUID | None]
+    version: Mapped[int]
+    state: Mapped[str] = mapped_column(String(24))
+    attempts: Mapped[int]
+    error_code: Mapped[str | None] = mapped_column(String(80))
 
 
 class KnowledgeChunk(Tenant, Base):

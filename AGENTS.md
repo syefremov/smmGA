@@ -152,6 +152,10 @@
   No OCR or source URL fetching; regex checks are not malware scanning or full DLP.
 - Knowledge worker may prepare chunks, never activate an index. Preserve ready indexes and
   immutable versions. Recheck actor/identity/visibility and lease fencing before completion.
+- Follow `docs/ingestion-jobs.md`: only queued ingestion is claimed; expired/revoked processing
+  is reconciled to failed, never silently reclaimed. Cancel exact job version without deleting
+  originals or active indexes. Preserve DB-triggered event history; retry files only through
+  allowlisted transient failures and fresh scan/sandbox, text through a new index job.
 - AI gateway has no tools or content-service principal. Paid testing requires explicit owner
   authorization plus server provider/model/workspace allowlist; defaults remain disabled.
   Unknown/interrupted runs are not blindly retried. Memory curation is not permanent authority.

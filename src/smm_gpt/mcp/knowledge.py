@@ -8,10 +8,12 @@ from mcp.types import ToolAnnotations
 
 from smm_gpt.core.request_context import request_id
 from smm_gpt.domain import ai as a
+from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
 from smm_gpt.domain.access import Principal
 from smm_gpt.domain.operations import Page, PageSize
 from smm_gpt.services.ai import AIService
+from smm_gpt.services.ingestion import IngestionService
 from smm_gpt.services.knowledge import KnowledgeService
 
 
@@ -27,6 +29,39 @@ def register_knowledge_tools(
     write = ToolAnnotations(
         readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=False
     )
+    ingestion = IngestionService(core.access)
+
+    @server.tool(annotations=read)
+    async def knowledge_jobs(
+        workspace_id: UUID,
+        kind: j.JobKind,
+        limit: PageSize = 25,
+        cursor: UUID | None = None,
+    ) -> Page[j.IngestionJob]:
+        """List own ingestion jobs (Owner: workspace jobs). No originals or text are returned."""
+        return await ingestion.jobs(
+            await principal(), workspace_id, kind, request_id(), limit, cursor
+        )
+
+    @server.tool(annotations=write)
+    async def knowledge_job_cancel(
+        workspace_id: UUID,
+        command: j.CancelIngestion,
+    ) -> j.IngestionReceipt:
+        """Cancel exact queued/processing ingestion version. Does not delete originals,
+        deactivate ready knowledge or kill a parser process. Late output cannot commit.
+        Receipt is historical; read knowledge_jobs again. This does not cancel AI runs.
+        """
+        return await ingestion.cancel(await principal(), workspace_id, command, request_id())
+
+    @server.tool(annotations=read)
+    async def knowledge_job_history(
+        workspace_id: UUID, kind: j.JobKind, job_id: UUID
+    ) -> j.IngestionHistory:
+        """Immutable last 50 ingestion transitions. System reconciliation has no human actor.
+        History starts with this schema; old jobs may have no earlier events. No original text.
+        """
+        return await ingestion.history(await principal(), workspace_id, kind, job_id, request_id())
 
     @server.tool(annotations=write)
     async def knowledge_execute(

@@ -237,6 +237,31 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
             "structuredContent"
         ] == (await browser.get(file_prefix + "/" + file_id)).json()
         assert (await browser.get(file_prefix + "/" + file_id + "/original")).status_code == 409
+        jobs_prefix = f"/api/v1/workspaces/{wid}/knowledge/jobs"
+        jobs_rest = await browser.get(jobs_prefix, params={"kind": "file"})
+        assert jobs_rest.status_code == 200
+        assert (await call("knowledge_jobs", {"workspace_id": wid, "kind": "file"}))[
+            "structuredContent"
+        ] == jobs_rest.json()
+        cancel_job = {
+            "idempotency_key": uuid4().hex,
+            "kind": "file",
+            "job_id": file_id,
+            "expected_version": 1,
+        }
+        cancel_job_mcp = await call(
+            "knowledge_job_cancel", {"workspace_id": wid, "command": cancel_job}
+        )
+        cancel_job_rest = await browser.post(jobs_prefix + "/cancel", json=cancel_job)
+        assert cancel_job_rest.status_code == 200 and cancel_job_rest.json()["state"] == "cancelled"
+        assert cancel_job_mcp["structuredContent"] == cancel_job_rest.json()
+        history_rest = await browser.get(jobs_prefix + "/file/" + file_id + "/history")
+        assert history_rest.status_code == 200
+        assert (
+            await call(
+                "knowledge_job_history", {"workspace_id": wid, "kind": "file", "job_id": file_id}
+            )
+        )["structuredContent"] == history_rest.json()
         malformed_file = await browser.post(
             file_prefix, json={**upload, "content_base64": "never-echo-file-input"}
         )

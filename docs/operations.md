@@ -4,6 +4,11 @@
 
 ## Правила операций
 
+Обработка знаний: [`ingestion-jobs.md`](ingestion-jobs.md). `knowledge_jobs` и
+`knowledge_job_history` показывают состояние/историю без исходных текстов. Отмена только exact
+job version. Reconciler закрывает старые processing, но не делает повтор автоматически;
+использовать разрешённые retry/rescan/reindex, не SQL reset и не удаление оригиналов.
+
 AI assessment queue: [`ai-jobs.md`](ai-jobs.md). При истёкшем lease reconciler фиксирует
 unknown, не выполняет повторный платный вызов. Unknown требует ручной сверки, не SQL reset.
 Остановка worker или выключение flag не обещает остановку уже отправленного провайдеру запроса.

@@ -25,7 +25,8 @@ class KnowledgeFile(Tenant, Base):
         *tenant_args(brand_id="brands"),
         CheckConstraint("byte_size > 0 AND byte_size <= 2097152", name="knowledge_file_size"),
         CheckConstraint(
-            "state IN ('queued','processing','ready','failed')", name="knowledge_file_state"
+            "state IN ('queued','processing','ready','failed','cancelled')",
+            name="knowledge_file_state",
         ),
         UniqueConstraint("workspace_id", "actor_id", "key_hash"),
     )
@@ -43,6 +44,9 @@ class KnowledgeFile(Tenant, Base):
     lease_id: Mapped[UUID | None]
     lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error_code: Mapped[str | None] = mapped_column(String(80))
+    version: Mapped[int] = mapped_column(default=1, server_default="1")
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class KnowledgeExtraction(Tenant, Base):

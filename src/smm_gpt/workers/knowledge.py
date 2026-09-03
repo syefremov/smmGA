@@ -5,7 +5,6 @@ from datetime import timedelta
 from uuid import UUID, uuid4
 
 from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from smm_gpt.core.config import Settings, get_settings
 from smm_gpt.domain.operations import OperationError
@@ -16,28 +15,10 @@ from smm_gpt.infrastructure.knowledge_models import (
     KnowledgeIndex,
     KnowledgeVersion,
 )
-from smm_gpt.infrastructure.models import Identity, Membership, User, utcnow
+from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import audit, digest
+from smm_gpt.services.ingestion_state import allowed, finish, reconcile
 from smm_gpt.services.knowledge_text import chunks, normalize
-
-
-async def allowed(s: AsyncSession, wid: UUID, actor: UUID, identity: UUID) -> bool:
-    return bool(
-        await s.scalar(
-            select(Identity.id)
-            .join(User)
-            .join(Membership, Membership.user_id == User.id)
-            .where(
-                Identity.id == identity,
-                Identity.user_id == actor,
-                Identity.active.is_(True),
-                User.active.is_(True),
-                Membership.workspace_id == wid,
-                Membership.active.is_(True),
-                Membership.role.in_(["owner", "editor", "strategist"]),
-            )
-        )
-    )
 
 
 async def process(database: Database, wid: UUID, iid: UUID, actor: UUID) -> bool:
@@ -53,23 +34,38 @@ async def process(database: Database, wid: UUID, iid: UUID, actor: UUID) -> bool
             )
             .with_for_update(skip_locked=True)
         )
-        if index is None or index.state in {"ready", "failed"}:
+        if index is None or index.state != "queued":
             return False
         if index.lease_until and index.lease_until > utcnow():
             return False
         doc = await s.get(KnowledgeDocument, index.document_id)
-        if doc is None or doc.archived or not await allowed(s, wid, actor, index.identity_id):
-            index.state, index.error_code = "failed", "authorization_or_document_changed"
+        if not await allowed(s, wid, actor, index.identity_id):
+            return False  # Privileged reconciler can close jobs hidden by revoked RLS.
+        if doc is None or doc.archived:
+            finish(index, "failed", "authorization_or_document_changed")
+            audit(s, actor, wid, uuid4(), "knowledge.index_blocked", "failed", iid)
+            return False
+        if index.created_at <= utcnow() - timedelta(hours=24):
+            finish(index, "failed", "queue_expired")
+            audit(s, actor, wid, uuid4(), "knowledge.index_blocked", "failed", iid)
             return False
         if index.attempts >= 3:
-            index.state, index.error_code = "failed", "attempts_exhausted"
+            finish(index, "failed", "attempts_exhausted")
+            audit(s, actor, wid, uuid4(), "knowledge.index_blocked", "failed", iid)
             return False
         version = await s.get(KnowledgeVersion, index.document_version_id)
         if version is None:
             raise OperationError("source_unavailable")
+        if version.effective_to <= utcnow():
+            finish(index, "failed", "source_expired")
+            audit(s, actor, wid, uuid4(), "knowledge.index_blocked", "failed", iid)
+            return False
         original, format, expected_hash = version.original, version.format, version.content_hash
         index.state, index.lease_id = "processing", lease
         index.lease_until, index.attempts = utcnow() + timedelta(seconds=120), index.attempts + 1
+        index.version += 1
+        index.started_at, index.finished_at = utcnow(), None
+        audit(s, actor, wid, uuid4(), "knowledge.index_started", "processing", iid)
     error: str | None = None
     prepared: list[tuple[str, str]] = []
     try:
@@ -92,10 +88,15 @@ async def process(database: Database, wid: UUID, iid: UUID, actor: UUID) -> bool
         if index is None or index.lease_id != lease or index.state != "processing":
             return False
         doc = await s.get(KnowledgeDocument, index.document_id)
-        if doc is None or doc.archived or not await allowed(s, wid, actor, index.identity_id):
+        if not await allowed(s, wid, actor, index.identity_id):
+            return False
+        if doc is None or doc.archived:
             error = "authorization_or_document_changed"
         if index.lease_until is None or index.lease_until <= utcnow():
             return False
+        current = await s.get(KnowledgeVersion, index.document_version_id)
+        if current is None or current.effective_to <= utcnow():
+            error = "source_expired"
         if error is None:
             s.add_all(
                 [
@@ -112,10 +113,10 @@ async def process(database: Database, wid: UUID, iid: UUID, actor: UUID) -> bool
                     for ordinal, (section, body) in enumerate(prepared)
                 ]
             )
-            index.state = "ready"
+            await s.flush()
+            finish(index, "ready", None)
         else:
-            index.state = "failed"
-        index.error_code, index.lease_until = error, None
+            finish(index, "failed", error)
         audit(s, actor, wid, uuid4(), "knowledge.index", index.state, iid)
     return error is None
 
@@ -127,6 +128,7 @@ async def poll(settings: Settings | None = None) -> int:
     database = Database(settings.database_url.get_secret_value(), 5)
     try:
         await database.require_restricted_role()
+        await reconcile(database, "index")
         async with database.transaction() as s:
             rows = (await s.execute(text("SELECT * FROM public.smm_knowledge_pending()"))).all()
         completed = 0

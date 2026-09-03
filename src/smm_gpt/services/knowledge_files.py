@@ -19,6 +19,7 @@ from smm_gpt.infrastructure.file_models import FileRetryReceipt, KnowledgeExtrac
 from smm_gpt.infrastructure.file_storage import FileStore, VolumeFileStore
 from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import AccessService, audit, digest
+from smm_gpt.services.ingestion_state import allowed
 from smm_gpt.services.knowledge import brand_exists, lock
 from smm_gpt.services.knowledge_text import safe_text
 
@@ -29,6 +30,7 @@ RETRYABLE = frozenset(
         "sandbox_unavailable",
         "parser_timeout",
         "parser_resource_limit",
+        "processing_interrupted",
     }
 )
 
@@ -191,14 +193,20 @@ class KnowledgeFileService:
                     raise OperationError("idempotency_conflict")
                 return d.FileReceipt.model_validate(receipt.result)
             row = await file_row(s, wid, c.file_id)
+            # Same row/actor/identity; Owner must use rescan to create a new authorized job.
+            if not await allowed(s, wid, row.actor_id, row.identity_id):
+                raise OperationError("file_retry_authorization_changed")
             if (
                 row.state != "failed"
                 or row.attempts != c.expected_attempts
                 or row.attempts >= 3
                 or row.error_code not in RETRYABLE
+                or row.created_at <= utcnow() - timedelta(hours=24)
             ):
                 raise OperationError("file_retry_not_allowed")
             row.state, row.error_code = "queued", None
+            row.version += 1
+            row.finished_at, row.lease_until = None, None
             result = d.FileReceipt(file_id=row.id)
             s.add(
                 FileRetryReceipt(

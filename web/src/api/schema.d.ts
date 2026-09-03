@@ -603,6 +603,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ingestion Jobs */
+        get: operations["ingestion_jobs_api_v1_workspaces__workspace_id__knowledge_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/jobs/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ingestion Cancel */
+        post: operations["ingestion_cancel_api_v1_workspaces__workspace_id__knowledge_jobs_cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/jobs/{kind}/{job_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ingestion History */
+        get: operations["ingestion_history_api_v1_workspaces__workspace_id__knowledge_jobs__kind___job_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/notes": {
         parameters: {
             query?: never;
@@ -1135,6 +1186,23 @@ export interface components {
             expected_version: number;
             /** Idempotency Key */
             idempotency_key: string;
+        };
+        /** CancelIngestion */
+        CancelIngestion: {
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "index" | "file";
         };
         /** CancelPackage */
         CancelPackage: {
@@ -2002,6 +2070,8 @@ export interface components {
             extraction?: components["schemas"]["ExtractionView"] | null;
             /** Filename */
             filename: string;
+            /** Finished At */
+            finished_at?: string | null;
             /**
              * Format
              * @enum {string}
@@ -2012,8 +2082,15 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Started At */
+            started_at?: string | null;
             /** State */
             state: string;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Warning
              * @default Unreviewed extraction; not active knowledge, verified facts or malware-free guarantee.
@@ -2055,6 +2132,8 @@ export interface components {
             error_code: string | null;
             /** Filename */
             filename: string;
+            /** Finished At */
+            finished_at?: string | null;
             /**
              * Format
              * @enum {string}
@@ -2065,8 +2144,15 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Started At */
+            started_at?: string | null;
             /** State */
             state: string;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
         };
         /** Finding */
         Finding: {
@@ -2212,6 +2298,8 @@ export interface components {
             document_version_id: string;
             /** Error Code */
             error_code: string | null;
+            /** Finished At */
+            finished_at?: string | null;
             /**
              * Id
              * Format: uuid
@@ -2219,8 +2307,108 @@ export interface components {
             id: string;
             /** Parser Version */
             parser_version: string;
+            /** Started At */
+            started_at?: string | null;
             /** State */
             state: string;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+        };
+        /** IngestionEvent */
+        IngestionEvent: {
+            /** Actor Id */
+            actor_id: string | null;
+            /** Attempts */
+            attempts: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Code */
+            error_code: string | null;
+            /** State */
+            state: string;
+            /** Version */
+            version: number;
+        };
+        /** IngestionHistory */
+        IngestionHistory: {
+            /** Events */
+            events: components["schemas"]["IngestionEvent"][];
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "index" | "file";
+            /** Truncated */
+            truncated: boolean;
+        };
+        /** IngestionJob */
+        IngestionJob: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Attempts */
+            attempts: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Document Id */
+            document_id?: string | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "index" | "file";
+            /** Started At */
+            started_at: string | null;
+            /** State */
+            state: string;
+            /** Version */
+            version: number;
+        };
+        /** IngestionReceipt */
+        IngestionReceipt: {
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "index" | "file";
+            /**
+             * State
+             * @default cancelled
+             * @constant
+             */
+            state: "cancelled";
+            /** Version */
+            version: number;
         };
         /** KnowledgeResult */
         KnowledgeResult: {
@@ -2423,6 +2611,13 @@ export interface components {
         Page_HistoryEntry_: {
             /** Items */
             items: components["schemas"]["HistoryEntry"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** Page[IngestionJob] */
+        Page_IngestionJob_: {
+            /** Items */
+            items: components["schemas"]["IngestionJob"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -6220,6 +6415,271 @@ export interface operations {
             };
             /** @description Content Too Large */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ingestion_jobs_api_v1_workspaces__workspace_id__knowledge_jobs_get: {
+        parameters: {
+            query: {
+                kind: "index" | "file";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_IngestionJob_"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ingestion_cancel_api_v1_workspaces__workspace_id__knowledge_jobs_cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelIngestion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngestionReceipt"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ingestion_history_api_v1_workspaces__workspace_id__knowledge_jobs__kind___job_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                kind: "index" | "file";
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngestionHistory"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

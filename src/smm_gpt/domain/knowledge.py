@@ -145,6 +145,9 @@ class IndexView(DTO):
     chunking_version: str
     content_hash: str
     created_at: datetime
+    version: int = 1
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
 
 
 class DocumentView(DTO):

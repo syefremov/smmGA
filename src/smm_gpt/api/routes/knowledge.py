@@ -10,11 +10,13 @@ from smm_gpt.api.routes.operations import Actor
 from smm_gpt.core.request_context import request_id
 from smm_gpt.domain import ai as a
 from smm_gpt.domain import evaluation as e
+from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
 from smm_gpt.domain.operations import ErrorResponse, Page, PageSize
 from smm_gpt.infrastructure.file_storage import VolumeFileStore
 from smm_gpt.services.ai import AIService
 from smm_gpt.services.evaluation import EvaluationService
+from smm_gpt.services.ingestion import IngestionService
 from smm_gpt.services.knowledge import KnowledgeService
 
 router = APIRouter(
@@ -42,6 +44,46 @@ def eval_core(request: Request) -> EvaluationService:
 
 
 Evals = Annotated[EvaluationService, Depends(eval_core)]
+
+
+def ingestion_core(request: Request) -> IngestionService:
+    return IngestionService(service(request).access)
+
+
+Jobs = Annotated[IngestionService, Depends(ingestion_core)]
+
+
+@router.get("/jobs")
+async def ingestion_jobs(
+    workspace_id: UUID,
+    kind: j.JobKind,
+    actor: Actor,
+    service: Jobs,
+    limit: PageSize = 25,
+    cursor: UUID | None = None,
+) -> Page[j.IngestionJob]:
+    return await service.jobs(actor, workspace_id, kind, request_id(), limit, cursor)
+
+
+@router.post("/jobs/cancel")
+async def ingestion_cancel(
+    workspace_id: UUID,
+    command: j.CancelIngestion,
+    actor: Actor,
+    service: Jobs,
+) -> j.IngestionReceipt:
+    return await service.cancel(actor, workspace_id, command, request_id())
+
+
+@router.get("/jobs/{kind}/{job_id}/history")
+async def ingestion_history(
+    workspace_id: UUID,
+    kind: j.JobKind,
+    job_id: UUID,
+    actor: Actor,
+    service: Jobs,
+) -> j.IngestionHistory:
+    return await service.history(actor, workspace_id, kind, job_id, request_id())
 
 
 @router.post("/evaluations/commands")

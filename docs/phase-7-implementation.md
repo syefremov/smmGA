@@ -45,6 +45,9 @@ REST и MCP используют один сервис: текст → immutable
 
 ## Worker и устойчивость
 
+Пятый срез: [`ingestion-jobs.md`](ingestion-jobs.md) — управление/отмена заданий,
+immutable transition history, reconciler и явный retry/reindex без потери старой ошибки.
+
 `knowledge_indexes` — специализированная очередь PostgreSQL, не общий outbox dispatcher.
 Celery Beat каждые 30 секунд отправляет только сигнал `knowledge.poll`; текст и личные credentials
 в Redis не попадают. Fixed-search-path функция возвращает максимум 10 job identifiers,
@@ -52,12 +55,13 @@ Celery Beat каждые 30 секунд отправляет только си�
 
 Claim: row lock + lease 120 секунд + случайный fencing token. Парсинг вне транзакции,
 ограничение 30 секунд и размера текста. Chunks и ready фиксируются одной транзакцией.
-После потери worker возможен повтор по истечении lease, максимум 3 попытки. Ошибка формата
-terminal: исправить текст или явно создать reindex, не повторять бесконечно.
+После потери worker reconciler фиксирует failed / processing_interrupted. Неявного повторного
+захвата processing нет: для текста новый reindex; для файлов allowlisted retry, до 3 попыток
+с новым scan/sandbox. Queue TTL — 24 часа. Ошибка формата terminal, без автоматического обхода.
 
-Membership/user/identity проверяются до и после работы. После отзыва membership старый job
-не обрабатывается и может остаться queued/processing: владелец создаёт новый reindex.
-Reconciler abandoned jobs ещё нужен. Истечение web-session само по себе не отменяет принятую задачу.
+Membership/user/identity проверяются до и после работы. Reconciler закрывает queued/processing
+при отзыве доступа, недоступном документе, истечении TTL/lease (до 10 за tick каждого типа).
+Истечение web-session само по себе не отменяет принятую задачу.
 Worker не получает human approval: SELECT оригиналов, INSERT chunks, узкий UPDATE служебных
 полей индекса; нет UPDATE документа/approval/content. Терминальные indexes/runs защищены trigger,
 versions/chunks/receipts/decisions/artifacts append-only.
@@ -125,10 +129,12 @@ REST prefix `/api/v1/workspaces/{wid}/knowledge`:
 - POST `/search`: query, brand_id, limit;
 - GET `/notes`, `/profiles`, `/runs`, `/runs/{rid}`; POST `/runs`: owner testing request.
 - POST `/runs/{rid}/cancel`: exact version/idempotency key; GET `/runs/{rid}/inputs`: private input.
+- GET `/jobs?kind=index|file`, GET `/jobs/{kind}/{job_id}/history`, POST `/jobs/cancel`.
 
 MCP: `knowledge_execute`, `knowledge_documents`, `knowledge_document_read`,
 `knowledge_index_preview`, `knowledge_search`, `knowledge_notes`, `ai_profiles`, `ai_assess`,
-`ai_runs`, `ai_run_read`, `ai_run_inputs`, `ai_run_cancel`. `ai_assess` возвращает queued/blocked,
+`ai_runs`, `ai_run_read`, `ai_run_inputs`, `ai_run_cancel`, `knowledge_jobs`, `knowledge_job_history`,
+`knowledge_job_cancel`. `ai_assess` возвращает queued/blocked,
 готовый результат запрашивается отдельно. Сначала `session_read`. Перед activation показать exact candidate/hash/
 queries человеку; подтверждение не выводится из текста источника.
 
@@ -156,7 +162,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0008_ai_queue` требуют privileged migration role,
+Миграции `0005_knowledge`–`0009_ingestion_recovery` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -187,7 +193,8 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
    полный Planner/Copywriter/Editor/Analyst, visual provenance/image gateway, Publisher gates.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
    Остались строгий денежный accounting/budgets/provider reconciliation, memory → отдельно
-   подтверждаемые предметные artifacts, abandoned ingestion reconciliation и остальные типы AI jobs.
+   подтверждаемые предметные artifacts и остальные типы AI jobs. Abandoned ingestion reconciliation,
+   отмена и история реализованы в пятом срезе; orphan file cleanup не выполняется автоматически.
 6. Server/private HTTPS/authentik/two-machine gates, backup/recovery, явно разрешённый provider smoke.
    Только после этого — рабочий RAG и переход к следующей фазе.
 

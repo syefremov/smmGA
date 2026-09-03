@@ -2,6 +2,11 @@
 
 ## Статус и границы
 
+Ingestion jobs: [`ingestion-jobs.md`](ingestion-jobs.md), migration `0009_ingestion_recovery`.
+Перед разрешённым deploy остановить старые API/worker writers: они не поддерживают версии
+переходов. Downgrade удаляет историю/receipts и новые поля, а cancelled переводит в failed;
+нужен restore-backed план, не rolling rollback. Изменения сами по себе не включают flags.
+
 AI queue фазы 7 — [`ai-jobs.md`](ai-jobs.md), migration `0008_ai_queue`.
 Перед разрешённым обновлением остановить старые API/worker writers: старый синхронный
 AI-код несовместим с новыми column grants/state transitions. Downgrade не является безопасным

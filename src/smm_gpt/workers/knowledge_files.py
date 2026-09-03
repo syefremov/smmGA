@@ -16,8 +16,8 @@ from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import audit, digest
 from smm_gpt.services.file_parser import ParsedFile, Parser, SandboxedParser
 from smm_gpt.services.file_scanner import ClamScanner, ScanEvidence, Scanner
+from smm_gpt.services.ingestion_state import allowed, finish, reconcile
 from smm_gpt.services.knowledge_text import safe_text
-from smm_gpt.workers.knowledge import allowed
 
 
 async def process(
@@ -40,26 +40,30 @@ async def process(
             )
             .with_for_update(skip_locked=True)
         )
-        if (
-            row is None
-            or row.state not in {"queued", "processing"}
-            or (row.lease_until and row.lease_until > utcnow())
-        ):
+        if row is None or row.state != "queued" or (row.lease_until and row.lease_until > utcnow()):
             return False
         if not await allowed(s, wid, actor, row.identity_id):
-            row.state, row.error_code = "failed", "authorization_changed"
+            return False
+        if row.created_at <= utcnow() - timedelta(hours=24):
+            finish(row, "failed", "queue_expired")
+            audit(s, actor, wid, uuid4(), "knowledge.file_blocked", "failed", fid)
             return False
         if row.attempts >= 3:
-            row.state, row.error_code = "failed", "attempts_exhausted"
+            finish(row, "failed", "attempts_exhausted")
+            audit(s, actor, wid, uuid4(), "knowledge.file_blocked", "failed", fid)
             return False
         if row.format not in ("pdf", "docx"):
-            row.state, row.error_code = "failed", "file_type_mismatch"
+            finish(row, "failed", "file_type_mismatch")
+            audit(s, actor, wid, uuid4(), "knowledge.file_blocked", "failed", fid)
             return False
         format: FileFormat = "pdf" if row.format == "pdf" else "docx"
         expected_hash = row.content_hash
         row.state, row.lease_id = "processing", token
         row.attempts += 1
         row.lease_until = utcnow() + timedelta(seconds=120)
+        row.version += 1
+        row.started_at, row.finished_at = utcnow(), None
+        audit(s, actor, wid, uuid4(), "knowledge.file_started", "processing", fid)
     evidence: ScanEvidence | None = None
     parsed: ParsedFile | None = None
     error: str | None = None
@@ -93,7 +97,7 @@ async def process(
         ):
             return False
         if not await allowed(s, wid, actor, row.identity_id):
-            error = "authorization_changed"
+            return False  # Reconciler can finish jobs no longer visible through actor RLS.
         if not error and evidence and parsed:
             s.add(
                 KnowledgeExtraction(
@@ -109,10 +113,9 @@ async def process(
                 )
             )
             await s.flush()
-            row.state = "ready"
+            finish(row, "ready", None)
         else:
-            row.state = "failed"
-        row.error_code, row.lease_until = error, None
+            finish(row, "failed", error)
         audit(s, actor, wid, uuid4(), "knowledge.file_processed", row.state, fid)
     return error is None
 
@@ -124,6 +127,7 @@ async def poll(settings: Settings | None = None) -> int:
     database = Database(settings.database_url.get_secret_value(), 5)
     try:
         await database.require_restricted_role()
+        await reconcile(database, "file")
         async with database.transaction() as s:
             pending = (await s.execute(text("SELECT * FROM public.smm_files_pending()"))).all()
         count = 0
