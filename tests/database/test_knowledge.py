@@ -23,6 +23,7 @@ from smm_gpt.workers.ai import process as ai_process
 from smm_gpt.workers.knowledge import process
 
 from .conftest import TenantFixture
+from .profile_fixtures import select_profile
 
 pytestmark = pytest.mark.integration
 
@@ -239,12 +240,15 @@ async def test_ai_no_tools_replay_private_artifacts_and_memory_review(
         ai_worker_enabled=True,
     )
     ai = AIService(t.access, settings)
+    selected = await select_profile(t)
     cmd = RunAssessment(
         idempotency_key=str(uuid4()),
         profile="product_expert",
         brand_id=bid,
         question="крем",
         testing_only=True,
+        profile_version_id=selected.version_id,
+        profile_selection_id=selected.decision_id,
     )
     run = await ai.start(t.owner, t.workspace, cmd, uuid4())
     assert run.state == "queued" and fake.calls == 0

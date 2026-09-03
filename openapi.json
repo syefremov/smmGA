@@ -148,9 +148,33 @@
             "title": "Profile",
             "type": "string"
           },
+          "profile_selection_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Selection Id"
+          },
           "profile_version": {
             "title": "Profile Version",
             "type": "string"
+          },
+          "profile_version_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Version Id"
           },
           "provider": {
             "title": "Provider",
@@ -1928,6 +1952,75 @@
         "title": "DiagnosticRequest",
         "type": "object"
       },
+      "DisableProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "const": "profile_disable",
+            "default": "profile_disable",
+            "title": "Action",
+            "type": "string"
+          },
+          "content_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "human_confirmed": {
+            "const": true,
+            "title": "Human Confirmed",
+            "type": "boolean"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "profile": {
+            "enum": [
+              "product_expert",
+              "research_scout",
+              "analyst",
+              "content_planner",
+              "copywriter",
+              "visual_creator",
+              "editor",
+              "publisher"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Reason",
+            "type": "string"
+          },
+          "version_id": {
+            "format": "uuid",
+            "title": "Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "profile",
+          "expected_revision",
+          "version_id",
+          "content_hash",
+          "reason",
+          "human_confirmed"
+        ],
+        "title": "DisableProfile",
+        "type": "object"
+      },
       "DocumentDetail": {
         "additionalProperties": false,
         "properties": {
@@ -2095,6 +2188,77 @@
           "created_at"
         ],
         "title": "DocumentView",
+        "type": "object"
+      },
+      "DraftProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "const": "profile_draft",
+            "default": "profile_draft",
+            "title": "Action",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "model": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$",
+            "title": "Model",
+            "type": "string"
+          },
+          "profile": {
+            "enum": [
+              "product_expert",
+              "research_scout",
+              "analyst",
+              "content_planner",
+              "copywriter",
+              "visual_creator",
+              "editor",
+              "publisher"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "provider": {
+            "const": "openai",
+            "default": "openai",
+            "title": "Provider",
+            "type": "string"
+          },
+          "purpose": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Purpose",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "profile",
+          "expected_revision",
+          "purpose",
+          "model",
+          "reason"
+        ],
+        "title": "DraftProfile",
         "type": "object"
       },
       "ErrorInfo": {
@@ -4995,6 +5159,316 @@
         "title": "Profile",
         "type": "object"
       },
+      "ProfileDecisionView": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "profile_select_testing",
+              "profile_disable"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "version_id": {
+            "format": "uuid",
+            "title": "Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "action",
+          "version_id",
+          "revision",
+          "content_hash",
+          "reason",
+          "created_at"
+        ],
+        "title": "ProfileDecisionView",
+        "type": "object"
+      },
+      "ProfileDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileDecisionView"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "decisions_truncated": {
+            "title": "Decisions Truncated",
+            "type": "boolean"
+          },
+          "latest": {
+            "$ref": "#/components/schemas/ProfileVersionView"
+          },
+          "latest_version_id": {
+            "format": "uuid",
+            "title": "Latest Version Id",
+            "type": "string"
+          },
+          "profile": {
+            "enum": [
+              "product_expert",
+              "research_scout",
+              "analyst",
+              "content_planner",
+              "copywriter",
+              "visual_creator",
+              "editor",
+              "publisher"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "testing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileVersionView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "testing_selection_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Testing Selection Id"
+          },
+          "testing_version_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Testing Version Id"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileVersionView"
+            },
+            "title": "Versions",
+            "type": "array"
+          },
+          "versions_truncated": {
+            "title": "Versions Truncated",
+            "type": "boolean"
+          },
+          "warning": {
+            "default": "Testing selection does not enable a provider, authorize spending or approve content.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile",
+          "revision",
+          "latest_version_id",
+          "testing_version_id",
+          "testing_selection_id",
+          "latest",
+          "testing",
+          "versions",
+          "decisions",
+          "versions_truncated",
+          "decisions_truncated"
+        ],
+        "title": "ProfileDetail",
+        "type": "object"
+      },
+      "ProfileReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Id"
+          },
+          "profile": {
+            "enum": [
+              "product_expert",
+              "research_scout",
+              "analyst",
+              "content_planner",
+              "copywriter",
+              "visual_creator",
+              "editor",
+              "publisher"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "version_id": {
+            "format": "uuid",
+            "title": "Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile",
+          "revision",
+          "version_id"
+        ],
+        "title": "ProfileReceipt",
+        "type": "object"
+      },
+      "ProfileVersionView": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "blocked_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocked Reason"
+          },
+          "compatible": {
+            "default": false,
+            "title": "Compatible",
+            "type": "boolean"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_hash": {
+            "title": "Execution Hash",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "profile": {
+            "enum": [
+              "product_expert",
+              "research_scout",
+              "analyst",
+              "content_planner",
+              "copywriter",
+              "visual_creator",
+              "editor",
+              "publisher"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "profile_snapshot": {
+            "additionalProperties": true,
+            "title": "Profile Snapshot",
+            "type": "object"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "warning": {
+            "default": "Immutable testing configuration, not evaluated production authority.",
+            "title": "Warning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "profile",
+          "number",
+          "actor_id",
+          "provider",
+          "model",
+          "profile_snapshot",
+          "execution_hash",
+          "content_hash",
+          "reason",
+          "created_at"
+        ],
+        "title": "ProfileVersionView",
+        "type": "object"
+      },
       "ProposeNote": {
         "additionalProperties": false,
         "properties": {
@@ -5186,6 +5660,67 @@
           "knowledge_gaps"
         ],
         "title": "ReferenceAssessment",
+        "type": "object"
+      },
+      "RegisteredProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "latest_version_id": {
+            "format": "uuid",
+            "title": "Latest Version Id",
+            "type": "string"
+          },
+          "profile": {
+            "enum": [
+              "product_expert",
+              "research_scout",
+              "analyst",
+              "content_planner",
+              "copywriter",
+              "visual_creator",
+              "editor",
+              "publisher"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "testing_selection_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Testing Selection Id"
+          },
+          "testing_version_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Testing Version Id"
+          }
+        },
+        "required": [
+          "profile",
+          "revision",
+          "latest_version_id",
+          "testing_version_id",
+          "testing_selection_id"
+        ],
+        "title": "RegisteredProfile",
         "type": "object"
       },
       "ReindexDocument": {
@@ -5603,6 +6138,30 @@
             "title": "Profile",
             "type": "string"
           },
+          "profile_selection_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Selection Id"
+          },
+          "profile_version_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Version Id"
+          },
           "question": {
             "maxLength": 500,
             "minLength": 1,
@@ -5810,6 +6369,75 @@
           "citations"
         ],
         "title": "SearchResult",
+        "type": "object"
+      },
+      "SelectTesting": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "const": "profile_select_testing",
+            "default": "profile_select_testing",
+            "title": "Action",
+            "type": "string"
+          },
+          "content_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "human_confirmed": {
+            "const": true,
+            "title": "Human Confirmed",
+            "type": "boolean"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "profile": {
+            "enum": [
+              "product_expert",
+              "research_scout",
+              "analyst",
+              "content_planner",
+              "copywriter",
+              "visual_creator",
+              "editor",
+              "publisher"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Reason",
+            "type": "string"
+          },
+          "version_id": {
+            "format": "uuid",
+            "title": "Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "profile",
+          "expected_revision",
+          "version_id",
+          "content_hash",
+          "reason",
+          "human_confirmed"
+        ],
+        "title": "SelectTesting",
         "type": "object"
       },
       "ServiceState": {
@@ -11255,6 +11883,468 @@
           }
         },
         "summary": "Note Detail"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry": {
+      "get": {
+        "operationId": "profile_registry_api_v1_workspaces__workspace_id__knowledge_profile_registry_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RegisteredProfile"
+                  },
+                  "title": "Response Profile Registry Api V1 Workspaces  Workspace Id  Knowledge Profile Registry Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Profile Registry"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry/commands": {
+      "post": {
+        "operationId": "profile_execute_api_v1_workspaces__workspace_id__knowledge_profile_registry_commands_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "profile_disable": "#/components/schemas/DisableProfile",
+                    "profile_draft": "#/components/schemas/DraftProfile",
+                    "profile_select_testing": "#/components/schemas/SelectTesting"
+                  },
+                  "propertyName": "action"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/DraftProfile"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SelectTesting"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DisableProfile"
+                  }
+                ],
+                "title": "Command"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileReceipt"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Profile Execute"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry/versions/{version_id}": {
+      "get": {
+        "operationId": "profile_version_api_v1_workspaces__workspace_id__knowledge_profile_registry_versions__version_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileVersionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Profile Version"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry/{profile}": {
+      "get": {
+        "operationId": "profile_detail_api_v1_workspaces__workspace_id__knowledge_profile_registry__profile__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "profile",
+            "required": true,
+            "schema": {
+              "enum": [
+                "product_expert",
+                "research_scout",
+                "analyst",
+                "content_planner",
+                "copywriter",
+                "visual_creator",
+                "editor",
+                "publisher"
+              ],
+              "title": "Profile",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Profile Detail"
       }
     },
     "/api/v1/workspaces/{workspace_id}/knowledge/profiles": {

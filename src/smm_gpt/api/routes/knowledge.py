@@ -12,12 +12,14 @@ from smm_gpt.domain import ai as a
 from smm_gpt.domain import evaluation as e
 from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
+from smm_gpt.domain import profiles as p
 from smm_gpt.domain.operations import ErrorResponse, Page, PageSize
 from smm_gpt.infrastructure.file_storage import VolumeFileStore
 from smm_gpt.services.ai import AIService
 from smm_gpt.services.evaluation import EvaluationService
 from smm_gpt.services.ingestion import IngestionService
 from smm_gpt.services.knowledge import KnowledgeService
+from smm_gpt.services.profiles import ProfileService
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/knowledge",
@@ -51,6 +53,41 @@ def ingestion_core(request: Request) -> IngestionService:
 
 
 Jobs = Annotated[IngestionService, Depends(ingestion_core)]
+
+
+def profile_core(request: Request) -> ProfileService:
+    return ProfileService(service(request).access)
+
+
+Profiles = Annotated[ProfileService, Depends(profile_core)]
+
+
+@router.post("/profile-registry/commands")
+async def profile_execute(
+    workspace_id: UUID, command: p.ProfileCommand, actor: Actor, service: Profiles
+) -> p.ProfileReceipt:
+    return await service.execute(actor, workspace_id, command, request_id())
+
+
+@router.get("/profile-registry")
+async def profile_registry(
+    workspace_id: UUID, actor: Actor, service: Profiles
+) -> list[p.RegisteredProfile]:
+    return await service.registry(actor, workspace_id, request_id())
+
+
+@router.get("/profile-registry/versions/{version_id}")
+async def profile_version(
+    workspace_id: UUID, version_id: UUID, actor: Actor, service: Profiles
+) -> p.ProfileVersionView:
+    return await service.read_version(actor, workspace_id, version_id, request_id())
+
+
+@router.get("/profile-registry/{profile}")
+async def profile_detail(
+    workspace_id: UUID, profile: a.ProfileName, actor: Actor, service: Profiles
+) -> p.ProfileDetail:
+    return await service.read(actor, workspace_id, profile, request_id())
 
 
 @router.get("/jobs")

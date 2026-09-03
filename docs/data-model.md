@@ -1,5 +1,11 @@
 # Центральная модель данных — фаза 4
 
+Восьмой срез фазы 7: `0011_profile_registry` добавляет immutable `ai_profile_versions`,
+`ai_profile_decisions`, `ai_profile_receipts` и guarded `ai_profile_heads`. FORCE RLS Owner-only,
+worker SELECT без registry writes, composite version/selection links из `ai_runs`, DB transition guards.
+Legacy refs nullable, новые queued runs без выбранной версии блокируются. Автоматического
+наполнения/выбора нет. Контракт и совместимость — [`ai-profile-registry.md`](ai-profile-registry.md).
+
 Седьмой срез фазы 7: `0010_memory_curation` добавляет append-only `knowledge_memory_documents`:
 proposal/review → точная initial document version/index, context/text hashes и evidence snapshot.
 Unique proposal/document на workspace, composite review/version/index FK, Owner-only FORCE RLS,

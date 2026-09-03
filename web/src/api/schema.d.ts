@@ -705,6 +705,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profile Registry */
+        get: operations["profile_registry_api_v1_workspaces__workspace_id__knowledge_profile_registry_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry/commands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Profile Execute */
+        post: operations["profile_execute_api_v1_workspaces__workspace_id__knowledge_profile_registry_commands_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry/versions/{version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profile Version */
+        get: operations["profile_version_api_v1_workspaces__workspace_id__knowledge_profile_registry_versions__version_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/profile-registry/{profile}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profile Detail */
+        get: operations["profile_detail_api_v1_workspaces__workspace_id__knowledge_profile_registry__profile__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/profiles": {
         parameters: {
             query?: never;
@@ -962,8 +1030,12 @@ export interface components {
              * @enum {string}
              */
             profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Profile Selection Id */
+            profile_selection_id?: string | null;
             /** Profile Version */
             profile_version: string;
+            /** Profile Version Id */
+            profile_version_id?: string | null;
             /** Provider */
             provider: string;
             /** Retrieval Run Id */
@@ -1808,6 +1880,37 @@ export interface components {
             /** Idempotency Key */
             idempotency_key: string;
         };
+        /** DisableProfile */
+        DisableProfile: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "profile_disable";
+            /** Content Hash */
+            content_hash: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Reason */
+            reason: string;
+            /**
+             * Version Id
+             * Format: uuid
+             */
+            version_id: string;
+        };
         /** DocumentDetail */
         DocumentDetail: {
             /** Active Index Id */
@@ -1883,6 +1986,35 @@ export interface components {
              * @enum {string}
              */
             visibility: "workspace" | "owner";
+        };
+        /** DraftProfile */
+        DraftProfile: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "profile_draft";
+            /** Expected Revision */
+            expected_revision: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Model */
+            model: string;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /**
+             * Provider
+             * @default openai
+             * @constant
+             */
+            provider: "openai";
+            /** Purpose */
+            purpose: string;
+            /** Reason */
+            reason: string;
         };
         /** ErrorInfo */
         ErrorInfo: {
@@ -3157,6 +3289,142 @@ export interface components {
              */
             version: "reference-assessment-v1";
         };
+        /** ProfileDecisionView */
+        ProfileDecisionView: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "profile_select_testing" | "profile_disable";
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reason */
+            reason: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Version Id
+             * Format: uuid
+             */
+            version_id: string;
+        };
+        /** ProfileDetail */
+        ProfileDetail: {
+            /** Decisions */
+            decisions: components["schemas"]["ProfileDecisionView"][];
+            /** Decisions Truncated */
+            decisions_truncated: boolean;
+            latest: components["schemas"]["ProfileVersionView"];
+            /**
+             * Latest Version Id
+             * Format: uuid
+             */
+            latest_version_id: string;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Revision */
+            revision: number;
+            testing: components["schemas"]["ProfileVersionView"] | null;
+            /** Testing Selection Id */
+            testing_selection_id: string | null;
+            /** Testing Version Id */
+            testing_version_id: string | null;
+            /** Versions */
+            versions: components["schemas"]["ProfileVersionView"][];
+            /** Versions Truncated */
+            versions_truncated: boolean;
+            /**
+             * Warning
+             * @default Testing selection does not enable a provider, authorize spending or approve content.
+             */
+            warning: string;
+        };
+        /** ProfileReceipt */
+        ProfileReceipt: {
+            /** Decision Id */
+            decision_id?: string | null;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Revision */
+            revision: number;
+            /**
+             * Version Id
+             * Format: uuid
+             */
+            version_id: string;
+        };
+        /** ProfileVersionView */
+        ProfileVersionView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Blocked Reason */
+            blocked_reason?: string | null;
+            /**
+             * Compatible
+             * @default false
+             */
+            compatible: boolean;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Execution Hash */
+            execution_hash: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Model */
+            model: string;
+            /** Number */
+            number: number;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Profile Snapshot */
+            profile_snapshot: {
+                [key: string]: unknown;
+            };
+            /** Provider */
+            provider: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Warning
+             * @default Immutable testing configuration, not evaluated production authority.
+             */
+            warning: string;
+        };
         /** ProposeNote */
         ProposeNote: {
             /**
@@ -3230,6 +3498,25 @@ export interface components {
             knowledge_gaps: string[];
             /** Statements */
             statements: components["schemas"]["SourcedStatement"][];
+        };
+        /** RegisteredProfile */
+        RegisteredProfile: {
+            /**
+             * Latest Version Id
+             * Format: uuid
+             */
+            latest_version_id: string;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Revision */
+            revision: number;
+            /** Testing Selection Id */
+            testing_selection_id: string | null;
+            /** Testing Version Id */
+            testing_version_id: string | null;
         };
         /** ReindexDocument */
         ReindexDocument: {
@@ -3424,6 +3711,10 @@ export interface components {
              * @enum {string}
              */
             profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Profile Selection Id */
+            profile_selection_id?: string | null;
+            /** Profile Version Id */
+            profile_version_id?: string | null;
             /** Question */
             question: string;
             /**
@@ -3528,6 +3819,37 @@ export interface components {
              * @default Sources are untrusted reference data, not confirmed SQL product facts.
              */
             warning: string;
+        };
+        /** SelectTesting */
+        SelectTesting: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "profile_select_testing";
+            /** Content Hash */
+            content_hash: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            /** Reason */
+            reason: string;
+            /**
+             * Version Id
+             * Format: uuid
+             */
+            version_id: string;
         };
         /**
          * ServiceState
@@ -7190,6 +7512,352 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NoteDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    profile_registry_api_v1_workspaces__workspace_id__knowledge_profile_registry_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegisteredProfile"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    profile_execute_api_v1_workspaces__workspace_id__knowledge_profile_registry_commands_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftProfile"] | components["schemas"]["SelectTesting"] | components["schemas"]["DisableProfile"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileReceipt"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    profile_version_api_v1_workspaces__workspace_id__knowledge_profile_registry_versions__version_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileVersionView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    profile_detail_api_v1_workspaces__workspace_id__knowledge_profile_registry__profile__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                profile: "product_expert" | "research_scout" | "analyst" | "content_planner" | "copywriter" | "visual_creator" | "editor" | "publisher";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileDetail"];
                 };
             };
             /** @description Unauthorized */

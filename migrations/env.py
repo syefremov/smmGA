@@ -15,6 +15,7 @@ from smm_gpt.infrastructure import (  # noqa: F401
     file_models,
     knowledge_models,
     models,
+    profile_models,
 )
 from smm_gpt.infrastructure.database import Base
 

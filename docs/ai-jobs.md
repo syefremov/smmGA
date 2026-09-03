@@ -4,6 +4,12 @@
 а не готовые Planner/Copywriter/Editor или публикация. Реальные модели, ключи, данные
 и сервер в этой итерации не подключались. Фаза 7 остаётся частичной.
 
+**Обновление восьмого среза:** [`ai-profile-registry.md`](ai-profile-registry.md) добавляет
+обязательную DB testing selection. В `ai_assess`/POST runs передаются exact `profile_version_id`
+и `profile_selection_id` после чтения реестра; без них новый вызов не выполняется.
+Смена/отключение selection блокирует queued и отбрасывает in-flight output при checkpoint.
+Это не разрешение на расходы. Legacy runs не привязываются к новой версии автоматически.
+
 ## Для пользователя
 
 После отдельно разрешённого включения провайдера и worker:
@@ -78,6 +84,8 @@ Restricted worker сначала вызывает bounded reconciler, затем
 Каждый run проверяется в транзакции: текущие user/membership/исходная identity, роль Owner,
 TTL очереди 24 часа, sources/lifecycle/visibility/hash, неизменённый profile contract,
 точные provider/model/allowlist и совпадение payload с текущим gateway.
+Дополнительно проверяются выбранная DB version, selection ID и execution hash; новый draft
+не меняет selection. Старый artifact после переключения сохраняется, но скрывается как stale.
 
 Row lock + workspace lock + version переводят **только queued** в running.
 Lease 120 секунд и `attempts=1` коммитятся **до** внешнего вызова. Сбой между commit и запросом

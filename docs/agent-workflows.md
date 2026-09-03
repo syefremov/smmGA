@@ -83,6 +83,11 @@ AI-профиль не является пользователем и не по�
 
 ## 4. Контракт профиля
 
+**Текущая реализация:** восьмой срез фазы 7 добавил DB registry, immutable versions/decisions,
+draft/latest и Owner testing selection с точной привязкой runs. Детали —
+[`ai-profile-registry.md`](ai-profile-registry.md). Настройка ограничена purpose/model и
+кодовым контрактом. Production active/eval gate и полные typed специалисты ниже остаются целевыми.
+
 Каждая версия `agent_profile` содержит:
 
 - `name` — стабильное машинное имя;

@@ -374,6 +374,11 @@ visibility/expiry, immutable proposal/review/version provenance, unique/idempote
 Автоматической записи правил/фактов и рекурсивного отзыва активированных документов нет.
 Остальные предметные преобразования памяти и прежние exit gates сохраняются.
 
+Восьмой срез: [`ai-profile-registry.md`](ai-profile-registry.md) — immutable DB profile versions,
+Owner testing selection/disable, bounded purpose/model, точные run version/selection IDs,
+compatibility/hash checks до/после dispatch. Legacy очередь не получает неявных разрешений.
+Production activation/eval suite, остальные typed специалисты и финансовые gates ещё не закрыты.
+
 ### Цель
 
 Сделать генерацию и анализ grounded: каждое фактическое утверждение связано с разрешённым источником, а специализированные AI-профили работают в ограниченных границах.

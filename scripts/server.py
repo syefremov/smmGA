@@ -39,7 +39,7 @@ ENV_KEYS = {
     "SMM_APP_PASSWORD",
     "SMM_WORKER_PASSWORD",
 }
-SCHEMA = "0010_memory_curation"
+SCHEMA = "0011_profile_registry"
 
 
 class OperationError(Exception):

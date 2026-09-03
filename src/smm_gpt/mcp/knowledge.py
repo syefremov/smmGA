@@ -149,6 +149,8 @@ def register_knowledge_tools(
         Obtain explicit human authorization for paid testing first. Disabled by default.
         No tools, publication, content edits, approvals or permanent memory. Never blindly retry
         an unknown outcome with a NEW key; read the existing run instead.
+        First read ai_profile_read and bind both testing_version_id and testing_selection_id
+        as profile_version_id/profile_selection_id. A registry selection is not paid consent.
         """
         return await ai.start(await principal(), workspace_id, command, request_id())
 

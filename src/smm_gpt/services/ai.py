@@ -18,6 +18,7 @@ from smm_gpt.services.ai_queue import current_input
 from smm_gpt.services.knowledge import brand_exists, eligible_citation, lock, retrieve
 from smm_gpt.services.knowledge_text import safe_text
 from smm_gpt.services.model_gateway import assessment_payload
+from smm_gpt.services.profiles import assert_registered_run, compatible_profile, selected_version
 
 
 class AIService:
@@ -33,7 +34,10 @@ class AIService:
     ) -> d.AIRunView:
         safe_text(command.question)
         profile = next(p for p in d.PROFILES if p.name == command.profile)
-        fingerprint = canonical_hash(command.model_dump(mode="json", exclude={"idempotency_key"}))
+        # Nullable registry fields must not change pre-registry idempotency identities.
+        fingerprint = canonical_hash(
+            command.model_dump(mode="json", exclude={"idempotency_key"}, exclude_none=True)
+        )
         existing_id: UUID | None = None
         async with self.access.authorized(actor, wid, Permission.APPROVE, request) as s:
             await lock(s, wid)
@@ -54,11 +58,29 @@ class AIService:
                 if (count or 0) >= self.settings.ai_daily_run_limit:
                     raise OperationError("ai_run_quota_exceeded", 429)
                 error = profile.blocked_reason
+                selected = None
                 if not error and (
                     self.settings.ai_provider == "disabled"
                     or wid not in self.settings.ai_allowed_workspaces
                 ):
                     error = "model_provider_disabled"
+                if not error:
+                    try:
+                        selected = await selected_version(
+                            s,
+                            wid,
+                            command.profile,
+                            command.profile_version_id,
+                            command.profile_selection_id,
+                        )
+                        profile = compatible_profile(selected)
+                        if (selected.provider, selected.model) != (
+                            self.settings.ai_provider,
+                            self.settings.ai_model,
+                        ):
+                            raise OperationError("profile_model_changed")
+                    except OperationError as exc:
+                        error = exc.code
                 citations = []
                 if not error:
                     citations = await retrieve(
@@ -80,6 +102,8 @@ class AIService:
                     profile=profile.name,
                     profile_version=profile.version,
                     profile_snapshot=profile.model_dump(mode="json"),
+                    profile_version_id=selected.id if selected else None,
+                    profile_selection_id=command.profile_selection_id if selected else None,
                     state="blocked" if error else "queued",
                     error_code=error,
                     provider=self.settings.ai_provider,
@@ -207,14 +231,19 @@ class AIService:
             )
             if artifact and run.state == "needs_review":
                 try:
+                    await assert_registered_run(s, run)
                     view.citations = [
                         await eligible_citation(s, wid, UUID(cid), run.brand_id)
                         for cid in artifact.citation_ids
                     ]
                     view.assessment = d.ReferenceAssessment.model_validate(artifact.body)
-                except OperationError:
+                except OperationError as exc:
                     view.citations = []
-                    view.error_code = "artifact_sources_stale_or_unavailable"
+                    view.error_code = (
+                        "artifact_profile_stale_or_unavailable"
+                        if exc.code.startswith("profile_")
+                        else "artifact_sources_stale_or_unavailable"
+                    )
             return view
 
     async def runs(

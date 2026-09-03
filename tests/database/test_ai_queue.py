@@ -3,21 +3,26 @@ from datetime import timedelta
 from uuid import UUID, uuid4
 
 import pytest
+from alembic import command as migration
+from alembic.config import Config
 from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError
 
 from smm_gpt.core.config import Settings
 from smm_gpt.domain.ai import CancelAssessment, Profile, ReferenceAssessment, RunAssessment
+from smm_gpt.domain.content import canonical_hash
 from smm_gpt.domain.knowledge import ArchiveDocument, Citation
 from smm_gpt.domain.operations import OperationError
 from smm_gpt.infrastructure.ai_models import AIArtifact, AIInput, AIRun
 from smm_gpt.infrastructure.models import Identity, Membership, utcnow
+from smm_gpt.services.access import digest
 from smm_gpt.services.ai import AIService
 from smm_gpt.services.knowledge import KnowledgeService
 from smm_gpt.services.model_gateway import GatewayResult
 from smm_gpt.workers.ai import process, reconcile
 
 from .conftest import TenantFixture
+from .profile_fixtures import select_profile
 from .test_knowledge import activate, seed, submit
 
 pytestmark = pytest.mark.integration
@@ -74,7 +79,14 @@ async def prepare(t: TenantFixture) -> tuple[Settings, AIService, RunAssessment,
     doc, _ = await submit(t, bid)
     await activate(t, doc)
     settings = config(t.workspace)
-    return settings, AIService(t.access, settings), command(bid), doc.entity_id
+    selected = await select_profile(t)
+    request = command(bid).model_copy(
+        update={
+            "profile_version_id": selected.version_id,
+            "profile_selection_id": selected.decision_id,
+        }
+    )
+    return settings, AIService(t.access, settings), request, doc.entity_id
 
 
 async def test_queue_provenance_once_and_restricted_roles(tenants: TenantFixture) -> None:
@@ -296,25 +308,37 @@ async def test_legacy_interrupted_run_never_dispatched(tenants: TenantFixture) -
     t = tenants
     bid = await seed(t)
     rid = uuid4()
-    async with t.admin.transaction() as s:
-        s.add(
-            AIRun(
-                id=rid,
-                workspace_id=t.workspace,
-                actor_id=t.owner.user_id,
-                brand_id=bid,
-                key_hash="a" * 64,
-                request_hash="b" * 64,
-                profile="product_expert",
-                profile_version="reference-assessment-v1",
-                profile_snapshot={},
-                state="running",
-                provider="openai",
-                model="synthetic-model",
-                usage={"attempts": 1},
-                created_at=utcnow() - timedelta(minutes=3),
-            )
+    original = command(bid)
+    original_hash = canonical_hash(
+        original.model_dump(
+            mode="json",
+            exclude={
+                "idempotency_key",
+                "profile_version_id",
+                "profile_selection_id",
+            },
         )
+    )
+    # Construct an actual previous-schema row on THIS disposable database, then upgrade it.
+    await asyncio.to_thread(migration.downgrade, Config("alembic.ini"), "0010_memory_curation")
+    async with t.admin.transaction() as s:
+        await s.execute(
+            text("""INSERT INTO ai_runs (id,workspace_id,actor_id,brand_id,key_hash,request_hash,
+                profile,profile_version,profile_snapshot,state,provider,model,usage,created_at)
+                VALUES (:id,:wid,:actor,:brand,:key,:hash,
+                'product_expert','reference-assessment-v1',
+                '{}','running','openai','synthetic-model','{"attempts": 1}',:created)"""),
+            {
+                "id": rid,
+                "wid": t.workspace,
+                "actor": t.owner.user_id,
+                "brand": bid,
+                "key": digest(original.idempotency_key),
+                "hash": original_hash,
+                "created": utcnow() - timedelta(minutes=3),
+            },
+        )
+    await asyncio.to_thread(migration.upgrade, Config("alembic.ini"), "head")
     assert await reconcile(t.worker) == 1
     assert (
         await AIService(t.access, config(t.workspace)).read(t.owner, t.workspace, rid, uuid4())
@@ -324,6 +348,10 @@ async def test_legacy_interrupted_run_never_dispatched(tenants: TenantFixture) -
         t.worker, config(t.workspace), gateway, t.workspace, rid, t.owner.user_id
     )
     assert gateway.calls == 0
+    replay = await AIService(t.access, config(t.workspace)).start(
+        t.owner, t.workspace, original, uuid4()
+    )
+    assert replay.id == rid and replay.state == "unknown" and replay.profile_version_id is None
 
 
 @pytest.mark.parametrize("field", ["model", "response_id"])

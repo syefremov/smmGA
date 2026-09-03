@@ -126,12 +126,17 @@ class RunAssessment(DTO):
     brand_id: UUID
     question: Annotated[str, Field(min_length=1, max_length=500, pattern=r"\S")]
     testing_only: Literal[True]
+    # Old clients fail closed with a blocked run; never silently choose another version.
+    profile_version_id: UUID | None = None
+    profile_selection_id: UUID | None = None
 
 
 class AIRunView(DTO):
     id: UUID
     profile: ProfileName
     profile_version: str
+    profile_version_id: UUID | None = None
+    profile_selection_id: UUID | None = None
     state: str
     error_code: str | None
     provider: str

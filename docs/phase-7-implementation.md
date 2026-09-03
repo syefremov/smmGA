@@ -13,6 +13,10 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Восьмой срез:** [`ai-profile-registry.md`](ai-profile-registry.md) — DB registry, immutable
+версии/решения, Owner testing selection/disable и точная привязка runs. Произвольных capabilities,
+production activation и новых реализованных специалистов нет; paid defaults сохраняются.
+
 **Седьмой срез:** [`memory-curation.md`](memory-curation.md) — отдельное человеческое принятие
 memory proposal в новый неактивный reference. Exact context/review/text hashes, union evidence,
 Owner-default visibility, ограниченный expiry и immutable initial version/index provenance.
@@ -82,8 +86,9 @@ versions/chunks/receipts/decisions/artifacts append-only.
 Четвёртый срез переводит существующие testing assessments в серверную очередь.
 Полный контракт — [`ai-jobs.md`](ai-jobs.md). Это не активация новых специалистов.
 
-Есть versioned catalog восьми профилей в коде и immutable snapshot контракта в каждом run.
-Это пока не DB registry с созданием/активацией произвольных profile versions. `testing` не `active`.
+Есть каталог восьми профилей в коде и DB registry версий purpose/model с immutable snapshot.
+Новый queued run требует exact version/selection IDs; старый клиент без них получает blocked.
+Произвольные capabilities/production activation недоступны. `testing` не `active`.
 
 | Профиль | Сейчас |
 |---|---|
@@ -143,6 +148,9 @@ REST prefix `/api/v1/workspaces/{wid}/knowledge`:
 - GET `/notes`, `/profiles`, `/runs`, `/runs/{rid}`; POST `/runs`: owner testing request.
 - POST `/runs/{rid}/cancel`: exact version/idempotency key; GET `/runs/{rid}/inputs`: private input.
 - GET `/jobs?kind=index|file`, GET `/jobs/{kind}/{job_id}/history`, POST `/jobs/cancel`.
+- POST `/profile-registry/commands`, GET `/profile-registry`, `/profile-registry/{profile}`,
+  `/profile-registry/versions/{vid}`; MCP `ai_profile_execute`, `ai_profile_registry`,
+  `ai_profile_read`, `ai_profile_version_read`.
 
 MCP: `knowledge_execute`, `knowledge_documents`, `knowledge_document_read`,
 `knowledge_index_preview`, `knowledge_search`, `knowledge_notes`, `ai_profiles`, `ai_assess`,
@@ -176,7 +184,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0010_memory_curation` требуют privileged migration role,
+Миграции `0005_knowledge`–`0011_profile_registry` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -204,7 +212,8 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
    Автоматического обнаружения противоречий пока нет; model finding — только предположение.
 3. После baseline: pgvector, embedding provider/model/dimension/version, hybrid fusion,
    corpus-level parallel reindex/eval switch, сравнение с FTS. Нынешний switch per-document.
-4. DB profile registry/eval activation, typed specialist inputs/outputs/handoff/work items;
+4. DB profile registry/testing selection реализован в восьмом срезе; остались production eval
+   activation, typed specialist inputs/outputs/handoff/work items;
    полный Planner/Copywriter/Editor/Analyst, visual provenance/image gateway, Publisher gates.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
    Седьмой срез добавил memory → отдельно подтверждаемый reference с provenance.

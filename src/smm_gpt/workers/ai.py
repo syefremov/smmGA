@@ -18,6 +18,7 @@ from smm_gpt.services.ai_queue import authorized, current_input, executable
 from smm_gpt.services.knowledge import lock
 from smm_gpt.services.knowledge_text import safe_text
 from smm_gpt.services.model_gateway import GatewayResult, OpenAITextGateway, TextGateway
+from smm_gpt.services.profiles import assert_registered_run
 
 
 async def process(
@@ -50,6 +51,7 @@ async def process(
             if run.created_at < utcnow() - timedelta(hours=24):
                 raise OperationError("queue_expired")
             record, profile, citations = await current_input(s, run)
+            await assert_registered_run(s, run)
             executable(settings, run, record, profile, citations)
             question = record.question
         except OperationError as exc:
@@ -108,6 +110,7 @@ async def process(
         else:
             try:
                 record, profile, current = await current_input(s, run)
+                await assert_registered_run(s, run)
                 executable(settings, run, record, profile, current)
             except OperationError as exc:
                 error = exc.code

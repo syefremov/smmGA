@@ -3,7 +3,16 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from smm_gpt.infrastructure.content_models import Tenant, tenant_args
@@ -15,6 +24,20 @@ class AIRun(Tenant, Base):
     __table_args__ = (
         *tenant_args(brand_id="brands", retrieval_run_id="retrieval_runs"),
         UniqueConstraint("workspace_id", "actor_id", "key_hash"),
+        ForeignKeyConstraint(
+            ["workspace_id", "profile", "profile_version_id", "profile_selection_id"],
+            [
+                "ai_profile_decisions.workspace_id",
+                "ai_profile_decisions.profile",
+                "ai_profile_decisions.version_id",
+                "ai_profile_decisions.id",
+            ],
+            name="fk_ai_run_profile_selection",
+        ),
+        CheckConstraint(
+            "(profile_version_id IS NULL) = (profile_selection_id IS NULL)",
+            name="ai_run_profile_pair",
+        ),
     )
     actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     brand_id: Mapped[UUID]
@@ -23,6 +46,8 @@ class AIRun(Tenant, Base):
     profile: Mapped[str] = mapped_column(String(32))
     profile_version: Mapped[str] = mapped_column(String(80))
     profile_snapshot: Mapped[dict[str, object]] = mapped_column(JSON)
+    profile_version_id: Mapped[UUID | None]
+    profile_selection_id: Mapped[UUID | None]
     state: Mapped[str] = mapped_column(String(24))
     error_code: Mapped[str | None] = mapped_column(String(80))
     provider: Mapped[str] = mapped_column(String(32))

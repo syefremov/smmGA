@@ -74,6 +74,9 @@ def executable(
     ):
         raise OperationError("model_configuration_changed")
     current = next(p for p in PROFILES if p.name == run.profile)
+    if run.profile_version_id is not None:
+        # Registry permits only the bounded purpose; capabilities/schema remain code-owned.
+        current = current.model_copy(update={"purpose": profile.purpose})
     if (
         profile != current
         or run.profile_version != profile.version

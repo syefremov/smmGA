@@ -178,6 +178,14 @@
   Queued cancellation prevents dispatch; in-flight cancellation discards output, not necessarily
   provider computation or charges. Reconciliation changes state only, never replays a run.
 - Use real corpus evaluations before adding pgvector or activating specialist profiles.
+- Follow `docs/ai-profile-registry.md`: ai_profiles is a built-in catalog, not the DB selection.
+  New queued runs require exact registered version AND selection IDs, with no implicit fallback.
+  Only purpose/model are configurable within code-owned capabilities and output contracts.
+  New drafts preserve selection; select/disable requires exact hash/revision and separate Owner
+  confirmation. Recheck selection and contract before dispatch/finalize; disable/re-enable must
+  never revive old bindings. Preserve historical inputs/receipts, hide stale profile artifacts.
+  Testing selection never enables a provider, authorizes spending or grants production approval.
+  Worker can read registry only; AI profiles never receive personal registry tools or Principal.
   Synthetic fixture scores and exact citation IDs do not establish semantic truth or readiness.
 - Follow `docs/retrieval-evaluations.md` for phase 7 corpus benchmarks. Keep dataset/report/review
   history immutable and owner-only. Exact report hash, fresh corpus, latest dataset and explicit

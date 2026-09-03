@@ -31,12 +31,14 @@ from smm_gpt.mcp.evaluation import register_evaluation_tools
 from smm_gpt.mcp.knowledge import register_knowledge_tools
 from smm_gpt.mcp.knowledge_files import register_file_tools
 from smm_gpt.mcp.privacy import PrivateMCPServer
+from smm_gpt.mcp.profiles import register_profile_tools
 from smm_gpt.services.ai import AIService
 from smm_gpt.services.content import ContentService
 from smm_gpt.services.evaluation import EvaluationService
 from smm_gpt.services.knowledge import KnowledgeService
 from smm_gpt.services.knowledge_files import KnowledgeFileService
 from smm_gpt.services.operations import Operations
+from smm_gpt.services.profiles import ProfileService
 from smm_gpt.services.system_status import SystemStatusService
 
 SERVER_INSTRUCTIONS = (
@@ -139,6 +141,7 @@ def create_mcp_server(
             return {"job_id": str(job)}
 
         core = Operations(verifier.access)
+        register_profile_tools(server, ProfileService(verifier.access), current_principal)
         register_content_tools(server, ContentService(verifier.access), current_principal)
         register_evaluation_tools(server, EvaluationService(verifier.access), current_principal)
         register_file_tools(

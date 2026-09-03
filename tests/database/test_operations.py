@@ -14,6 +14,7 @@ from sqlalchemy import func, select, update
 from smm_gpt.application import create_app
 from smm_gpt.domain import content as content_dto
 from smm_gpt.domain import knowledge as knowledge_dto
+from smm_gpt.domain import profiles as profile_dto
 from smm_gpt.domain.access import AccessDenied
 from smm_gpt.domain.operations import (
     CatalogKind,
@@ -329,12 +330,80 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
             },
         )
         assert denied_memory.status_code == 422 and "never-echo" not in denied_memory.text
+        registry_prefix = f"/api/v1/workspaces/{wid}/knowledge/profile-registry"
+        assert (await browser.get(registry_prefix)).json() == []
+        profile_draft = profile_dto.DraftProfile(
+            idempotency_key=uuid4().hex,
+            profile="product_expert",
+            expected_revision=0,
+            purpose="Synthetic transport-specific purpose",
+            model="synthetic-model",
+            reason="Synthetic registry transport test",
+        ).model_dump(mode="json")
+        draft_mcp = await call(
+            "ai_profile_execute", {"workspace_id": wid, "command": profile_draft}
+        )
+        draft_rest = await browser.post(registry_prefix + "/commands", json=profile_draft)
+        assert draft_rest.status_code == 200, draft_rest.text
+        assert draft_mcp["structuredContent"] == draft_rest.json()
+        profile_version_id = draft_rest.json()["version_id"]
+        profile_version = await browser.get(registry_prefix + f"/versions/{profile_version_id}")
+        assert profile_version.status_code == 200
+        assert (
+            await call(
+                "ai_profile_version_read",
+                {
+                    "workspace_id": wid,
+                    "version_id": profile_version_id,
+                },
+            )
+        )["structuredContent"] == profile_version.json()
+        select_profile = {
+            "action": "profile_select_testing",
+            "idempotency_key": uuid4().hex,
+            "profile": "product_expert",
+            "expected_revision": 1,
+            "version_id": profile_version_id,
+            "content_hash": profile_version.json()["content_hash"],
+            "reason": "Exact synthetic test selection",
+            "human_confirmed": True,
+        }
+        selected_rest = await browser.post(registry_prefix + "/commands", json=select_profile)
+        assert selected_rest.status_code == 200, selected_rest.text
+        assert (
+            await call(
+                "ai_profile_execute",
+                {
+                    "workspace_id": wid,
+                    "command": select_profile,
+                },
+            )
+        )["structuredContent"] == selected_rest.json()
+        registry_mcp = await call("ai_profile_registry", {"workspace_id": wid})
+        # MCP list results are wrapped by the SDK under result.
+        assert registry_mcp["structuredContent"] == {
+            "result": (await browser.get(registry_prefix)).json()
+        }
+        assert (await call("ai_profile_read", {"workspace_id": wid, "profile": "product_expert"}))[
+            "structuredContent"
+        ] == (await browser.get(registry_prefix + "/product_expert")).json()
+        malformed_profile = await browser.post(
+            registry_prefix + "/commands",
+            json={
+                **select_profile,
+                "human_confirmed": False,
+                "reason": "never-echo-profile-input",
+            },
+        )
+        assert malformed_profile.status_code == 422 and "never-echo" not in malformed_profile.text
         ai_command = {
             "idempotency_key": uuid4().hex,
             "profile": "product_expert",
             "brand_id": str(content.brand),
             "question": "Synthetic",
             "testing_only": True,
+            "profile_version_id": profile_version_id,
+            "profile_selection_id": selected_rest.json()["decision_id"],
         }
         ai_prefix = f"/api/v1/workspaces/{wid}/knowledge/runs"
         ai_mcp = await call("ai_assess", {"workspace_id": wid, "command": ai_command})
