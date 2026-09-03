@@ -318,6 +318,10 @@ draft/latest и Owner testing selection с точной привязкой runs.
 
 ### 6.7 Editor / Compliance Reviewer
 
+Текстовый testing-срез реализован: [`editor-review.md`](editor-review.md). Exact SQL revision,
+immutable evidence snapshot, закрытые findings и private очередь; без редактирования/approval.
+Визуальная/юридическая верификация, разрешение findings и production quality gates ниже — целевые.
+
 Назначение: провести независимую проверку конкретной revision.
 
 Категории checks:

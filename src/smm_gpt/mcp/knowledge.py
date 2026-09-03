@@ -11,6 +11,7 @@ from smm_gpt.domain import ai as a
 from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
 from smm_gpt.domain.access import Principal
+from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import Page, PageSize
 from smm_gpt.services.ai import AIService
 from smm_gpt.services.ingestion import IngestionService
@@ -151,6 +152,26 @@ def register_knowledge_tools(
         an unknown outcome with a NEW key; read the existing run instead.
         First read ai_profile_read and bind both testing_version_id and testing_selection_id
         as profile_version_id/profile_selection_id. A registry selection is not paid consent.
+        """
+        return await ai.start(await principal(), workspace_id, command, request_id())
+
+    @server.tool(
+        annotations=ToolAnnotations(
+            readOnlyHint=False,
+            destructiveHint=False,
+            idempotentHint=True,
+            openWorldHint=True,
+        )
+    )
+    async def ai_review_revision(workspace_id: UUID, command: RunEditorialReview) -> a.AIRunView:
+        """Owner + MFA, separately authorized paid TESTING only. Defaults disabled.
+        Read content_post_read and bind the exact stored revision ID/hash, not a working copy.
+        Read ai_profile_read for editor and bind its exact testing version AND selection IDs.
+        Transmits bounded SQL revision/brief/evidence/policy text to the configured provider.
+        Returns queued/blocked; read ai_run_read/inputs and cancel with normal queue tools.
+        Recommendations are NOT approval or legal advice.
+        No edits, publish, tools or image inspection.
+        Changed revision/evidence/profile invalidates output. Never blindly retry unknown calls.
         """
         return await ai.start(await principal(), workspace_id, command, request_id())
 

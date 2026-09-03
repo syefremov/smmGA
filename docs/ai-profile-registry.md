@@ -62,8 +62,10 @@
 | Capabilities, output schema, gates | Только из кода; поля для их изменения команда не принимает |
 
 Черновики можно хранить для всех восьми профилей, но выбрать для тестирования можно только
-реализованные reference assessments: Product Expert и Research Scout. Copywriter/Planner/
-Analyst/Editor/Visual Creator/Publisher остаются blocked с прежними причинами.
+реализованные reference assessments: Product Expert и Research Scout, а с девятого среза —
+текстовый Editor ([контракт](editor-review.md)). Copywriter/Planner/Analyst/Visual Creator/Publisher
+остаются blocked. Старые Editor definitions несовместимы с новым `editor-review-v1`:
+требуются новый draft и отдельная testing selection, без автоматической миграции разрешений.
 Создание записи с именем специалиста не реализует его workflow.
 
 Редактируемый `purpose` попадает в инструкции тестового запроса. Остальные инструкции,

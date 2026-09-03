@@ -47,7 +47,12 @@ def test_contracts_and_capabilities_are_closed() -> None:
     for profile in PROFILES:
         assert "tools.call" in profile.denied_capabilities
         assert "content.approve" in profile.denied_capabilities
-        assert set(profile.allowed_capabilities) <= {"knowledge.search", "assessment.propose"}
+        expected = (
+            {"content.snapshot.read", "editorial_review.propose"}
+            if profile.name == "editor"
+            else {"knowledge.search", "assessment.propose"}
+        )
+        assert set(profile.allowed_capabilities) == expected
     with pytest.raises(ValidationError):
         ReferenceAssessment.model_validate(
             {"statements": [], "hypotheses": [], "knowledge_gaps": [], "approve": True}

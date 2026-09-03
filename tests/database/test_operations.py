@@ -16,6 +16,7 @@ from smm_gpt.domain import content as content_dto
 from smm_gpt.domain import knowledge as knowledge_dto
 from smm_gpt.domain import profiles as profile_dto
 from smm_gpt.domain.access import AccessDenied
+from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import (
     CatalogKind,
     CreateWorkItem,
@@ -424,6 +425,39 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
         assert (await call("ai_run_read", {"workspace_id": wid, "run_id": ai_id}))[
             "structuredContent"
         ] == (await browser.get(ai_prefix + f"/{ai_id}")).json()
+        from .profile_fixtures import select_profile as register_editor
+
+        editor_selection = await register_editor(t, "editor")
+        revision = (await content.post()).revisions[0]
+        editor_command = RunEditorialReview(
+            idempotency_key=uuid4().hex,
+            brand_id=content.brand,
+            post_id=content.post_id,
+            revision_id=revision.id,
+            content_hash=revision.content_hash,
+            profile_version_id=editor_selection.version_id,
+            profile_selection_id=editor_selection.decision_id,
+            testing_only=True,
+        ).model_dump(mode="json")
+        editorial_mcp = await call(
+            "ai_review_revision", {"workspace_id": wid, "command": editor_command}
+        )
+        editorial_rest = await browser.post(
+            f"/api/v1/workspaces/{wid}/knowledge/editor-runs", json=editor_command
+        )
+        assert editorial_rest.status_code == 200 and editorial_rest.json()["state"] == "queued", (
+            editorial_rest.text
+        )
+        assert editorial_mcp["structuredContent"] == editorial_rest.json()
+        editorial_id = editorial_rest.json()["id"]
+        assert (await call("ai_run_inputs", {"workspace_id": wid, "run_id": editorial_id}))[
+            "structuredContent"
+        ] == (await browser.get(ai_prefix + f"/{editorial_id}/inputs")).json()
+        denied_editorial = await browser.post(
+            f"/api/v1/workspaces/{wid}/knowledge/editor-runs",
+            json={**editor_command, "approved": True, "text": "never-echo-editor-input"},
+        )
+        assert denied_editorial.status_code == 422 and "never-echo" not in denied_editorial.text
         read_knowledge = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/documents")
         assert (await call("knowledge_documents", {"workspace_id": wid}))[
             "structuredContent"

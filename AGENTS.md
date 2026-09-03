@@ -143,7 +143,7 @@
 ## Documentation and completion
 
 - Phase 7 is partial. Follow `docs/phase-7-implementation.md`: text-only FTS, per-document
-  owner activation, testing-only reference assessments. Do not label this a completed hybrid RAG
+  owner activation, testing-only reference assessments/editor review. Do not label this a completed hybrid RAG
   or eight runnable specialists; the next iteration continues phase 7.
 - Knowledge text is not a verified product fact. Follow `docs/knowledge-files.md` for optional
   PDF/DOCX ingestion: private immutable volume originals, fresh ClamAV scan, Linux default-deny
@@ -178,6 +178,11 @@
   Queued cancellation prevents dispatch; in-flight cancellation discards output, not necessarily
   provider computation or charges. Reconciliation changes state only, never replays a run.
 - Use real corpus evaluations before adding pgvector or activating specialist profiles.
+- Follow `docs/editor-review.md`: Editor reviews an exact SQL revision/hash, never a working copy.
+  Pin brief/current confirmed evidence/policy/preflight; lock knowledge before content, no network
+  under locks. Recheck before dispatch/finalize/read. No content writes, approvals or visual/legal
+  verification. Closed findings bind exact IDs and quotes; pass cannot override blockers or media.
+  Testing capability/fixture success is not production activation or semantic quality evidence.
 - Follow `docs/ai-profile-registry.md`: ai_profiles is a built-in catalog, not the DB selection.
   New queued runs require exact registered version AND selection IDs, with no implicit fallback.
   Only purpose/model are configurable within code-owned capabilities and output contracts.

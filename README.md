@@ -32,6 +32,9 @@ API/MCP сразу возвращают `queued`/`blocked`, результат �
 Задание связано с точными version/selection IDs; переключение не подменяет входы старых заданий.
 Настройки не включают провайдера и не разрешают расходы. Контракт —
 [`docs/ai-profile-registry.md`](docs/ai-profile-registry.md).
+Девятый срез: тестовый AI-редактор проверяет точную сохранённую редакцию по SQL-фактам и правилам,
+возвращает замечания через чат и существующую панель. Не правит и не одобряет пост; stale inputs
+блокируют результат. Контракт — [`docs/editor-review.md`](docs/editor-review.md).
 **Фаза 7 пока не завершена:** ввод binary ingestion в эксплуатацию, hybrid/pgvector, полный набор AI workflows,
 реальный утверждённый корпус/evals и server gates ещё впереди. Точная граница —
 [`docs/phase-7-implementation.md`](docs/phase-7-implementation.md).

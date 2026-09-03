@@ -9,13 +9,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from smm_gpt.core.config import Settings
 from smm_gpt.domain.ai import PROFILES, Profile
 from smm_gpt.domain.content import canonical_hash
+from smm_gpt.domain.editor import EditorContext
 from smm_gpt.domain.knowledge import Citation
 from smm_gpt.domain.operations import OperationError
 from smm_gpt.infrastructure.ai_models import AIInput, AIRun
 from smm_gpt.infrastructure.models import Identity, Membership, User
+from smm_gpt.services.editor import snapshot
 from smm_gpt.services.knowledge import eligible_citation
 from smm_gpt.services.knowledge_text import safe_text
-from smm_gpt.services.model_gateway import assessment_payload
+from smm_gpt.services.model_gateway import assessment_payload, editorial_payload
 
 
 async def authorized(s: AsyncSession, wid: UUID, actor: UUID, identity: UUID | None) -> bool:
@@ -37,7 +39,12 @@ async def authorized(s: AsyncSession, wid: UUID, actor: UUID, identity: UUID | N
     )
 
 
-async def current_input(s: AsyncSession, run: AIRun) -> tuple[AIInput, Profile, list[Citation]]:
+async def current_input(
+    s: AsyncSession,
+    run: AIRun,
+    *,
+    require_latest: bool = True,
+) -> tuple[AIInput, Profile, list[Citation], EditorContext | None]:
     record = await s.scalar(
         select(AIInput).where(
             AIInput.workspace_id == run.workspace_id,
@@ -51,7 +58,33 @@ async def current_input(s: AsyncSession, run: AIRun) -> tuple[AIInput, Profile, 
         citations = [Citation.model_validate(c) for c in record.citations]
     except (ValidationError, ValueError, TypeError):
         raise OperationError("run_input_invalid") from None
-    if not 1 <= len(citations) <= 5 or not 1 <= len(record.question) <= 500:
+    context = None
+    if run.profile == "editor":
+        try:
+            context = EditorContext.model_validate(record.editor_context)
+        except ValidationError:
+            raise OperationError("editor_input_invalid") from None
+        if (
+            citations
+            or context.post_id != record.post_id
+            or context.revision.id != record.revision_id
+            or context.brand_id != run.brand_id
+        ):
+            raise OperationError("editor_input_invalid")
+        fresh = await snapshot(
+            s,
+            run.workspace_id,
+            run.brand_id,
+            context.post_id,
+            context.revision.id,
+            context.revision.content_hash,
+            require_latest=require_latest,
+        )
+        if fresh != context:
+            raise OperationError("editor_context_changed")
+    elif record.editor_context is not None or not 1 <= len(citations) <= 5:
+        raise OperationError("run_input_invalid")
+    if not 1 <= len(record.question) <= 500:
         raise OperationError("run_input_invalid")
     safe_text(record.question)
     for c in citations:
@@ -61,11 +94,16 @@ async def current_input(s: AsyncSession, run: AIRun) -> tuple[AIInput, Profile, 
             raise OperationError("run_sources_changed")
     if canonical_hash(record.payload) != record.content_hash:
         raise OperationError("run_input_hash_mismatch")
-    return record, profile, citations
+    return record, profile, citations, context
 
 
 def executable(
-    settings: Settings, run: AIRun, record: AIInput, profile: Profile, citations: list[Citation]
+    settings: Settings,
+    run: AIRun,
+    record: AIInput,
+    profile: Profile,
+    citations: list[Citation],
+    context: EditorContext | None = None,
 ) -> None:
     if (
         settings.ai_provider == "disabled"
@@ -84,6 +122,10 @@ def executable(
         or current.blocked_reason
     ):
         raise OperationError("profile_contract_changed")
-    payload = assessment_payload(profile, record.question, citations, run.model)
+    payload = (
+        editorial_payload(profile, context.model_dump(mode="json"), run.model)
+        if context
+        else assessment_payload(profile, record.question, citations, run.model)
+    )
     if payload != record.payload:
         raise OperationError("execution_contract_changed")

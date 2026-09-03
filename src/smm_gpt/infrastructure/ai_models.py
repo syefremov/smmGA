@@ -64,13 +64,29 @@ class AIRun(Tenant, Base):
 
 class AIInput(Tenant, Base):
     __tablename__ = "ai_inputs"
-    __table_args__ = (*tenant_args(run_id="ai_runs"), UniqueConstraint("workspace_id", "run_id"))
+    __table_args__ = (
+        *tenant_args(run_id="ai_runs"),
+        UniqueConstraint("workspace_id", "run_id"),
+        ForeignKeyConstraint(
+            ["workspace_id", "post_id", "revision_id"],
+            ["post_revisions.workspace_id", "post_revisions.post_id", "post_revisions.id"],
+            name="fk_ai_input_editor_revision",
+        ),
+        CheckConstraint(
+            "(post_id IS NULL) = (revision_id IS NULL) "
+            "AND (post_id IS NULL) = (editor_context IS NULL)",
+            name="ai_input_editor_pair",
+        ),
+    )
     run_id: Mapped[UUID]
     actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     question: Mapped[str] = mapped_column(Text)
     citations: Mapped[list[dict[str, object]]] = mapped_column(JSON)
     payload: Mapped[dict[str, object]] = mapped_column(JSON)
     content_hash: Mapped[str] = mapped_column(String(64))
+    post_id: Mapped[UUID | None]
+    revision_id: Mapped[UUID | None]
+    editor_context: Mapped[dict[str, object] | None] = mapped_column(JSON(none_as_null=True))
 
 
 class AICancel(Tenant, Base):

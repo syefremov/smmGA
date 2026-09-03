@@ -379,6 +379,11 @@ Owner testing selection/disable, bounded purpose/model, точные run version
 compatibility/hash checks до/после dispatch. Legacy очередь не получает неявных разрешений.
 Production activation/eval suite, остальные typed специалисты и финансовые gates ещё не закрыты.
 
+Девятый срез: [`editor-review.md`](editor-review.md) — testing text-only Editor поверх ручных
+SQL-редакций фазы 6. Exact revision/context, confirmed evidence, structured findings, shared queue,
+stale-result fencing и чтение через MCP/REST/web. Не редактирует и не одобряет посты.
+Синтетические контрактные тесты не заменяют профильные model evals; production порядок неизменён.
+
 ### Цель
 
 Сделать генерацию и анализ grounded: каждое фактическое утверждение связано с разрешённым источником, а специализированные AI-профили работают в ограниченных границах.

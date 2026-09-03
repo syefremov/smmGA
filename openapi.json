@@ -40,6 +40,16 @@
             "title": "Content Hash",
             "type": "string"
           },
+          "editor_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EditorContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "payload": {
             "additionalProperties": true,
             "title": "Payload",
@@ -101,6 +111,16 @@
               }
             ],
             "title": "Created At"
+          },
+          "editorial_review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EditorialReview"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "error_code": {
             "anyOf": [
@@ -2259,6 +2279,202 @@
           "reason"
         ],
         "title": "DraftProfile",
+        "type": "object"
+      },
+      "EditorContext": {
+        "additionalProperties": false,
+        "properties": {
+          "brand_id": {
+            "format": "uuid",
+            "title": "Brand Id",
+            "type": "string"
+          },
+          "brief": {
+            "$ref": "#/components/schemas/RecordView"
+          },
+          "contract": {
+            "const": "editor-context-v1",
+            "default": "editor-context-v1",
+            "title": "Contract",
+            "type": "string"
+          },
+          "post_id": {
+            "format": "uuid",
+            "title": "Post Id",
+            "type": "string"
+          },
+          "preflight_findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "maxItems": 250,
+            "title": "Preflight Findings",
+            "type": "array"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/RecordView"
+            },
+            "maxItems": 100,
+            "title": "Records",
+            "type": "array"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/RevisionView"
+          }
+        },
+        "required": [
+          "post_id",
+          "brand_id",
+          "revision",
+          "brief",
+          "records",
+          "preflight_findings"
+        ],
+        "title": "EditorContext",
+        "type": "object"
+      },
+      "EditorialFinding": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "enum": [
+              "facts",
+              "claims",
+              "tone",
+              "format",
+              "accessibility",
+              "privacy"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Description",
+            "type": "string"
+          },
+          "location": {
+            "enum": [
+              "revision",
+              "variant",
+              "brief",
+              "evidence"
+            ],
+            "title": "Location",
+            "type": "string"
+          },
+          "quote": {
+            "maxLength": 500,
+            "title": "Quote",
+            "type": "string"
+          },
+          "record_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Record Ids",
+            "type": "array"
+          },
+          "severity": {
+            "enum": [
+              "info",
+              "warning",
+              "blocking"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "suggestion": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Suggestion",
+            "type": "string"
+          },
+          "variant_index": {
+            "anyOf": [
+              {
+                "maximum": 2.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variant Index"
+          }
+        },
+        "required": [
+          "category",
+          "severity",
+          "location",
+          "variant_index",
+          "quote",
+          "description",
+          "suggestion",
+          "record_ids"
+        ],
+        "title": "EditorialFinding",
+        "type": "object"
+      },
+      "EditorialReview": {
+        "additionalProperties": false,
+        "properties": {
+          "content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "context_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Context Hash",
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/EditorialFinding"
+            },
+            "maxItems": 20,
+            "title": "Findings",
+            "type": "array"
+          },
+          "recommendation": {
+            "enum": [
+              "pass",
+              "needs_changes",
+              "needs_human_decision"
+            ],
+            "title": "Recommendation",
+            "type": "string"
+          },
+          "revision_id": {
+            "format": "uuid",
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision_id",
+          "content_hash",
+          "context_hash",
+          "recommendation",
+          "summary",
+          "findings"
+        ],
+        "title": "EditorialReview",
         "type": "object"
       },
       "ErrorInfo": {
@@ -5144,8 +5360,11 @@
             "type": "string"
           },
           "version": {
-            "const": "reference-assessment-v1",
             "default": "reference-assessment-v1",
+            "enum": [
+              "reference-assessment-v1",
+              "editor-review-v1"
+            ],
             "title": "Version",
             "type": "string"
           }
@@ -6183,6 +6402,70 @@
           "testing_only"
         ],
         "title": "RunAssessment",
+        "type": "object"
+      },
+      "RunEditorialReview": {
+        "additionalProperties": false,
+        "properties": {
+          "brand_id": {
+            "format": "uuid",
+            "title": "Brand Id",
+            "type": "string"
+          },
+          "content_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "post_id": {
+            "format": "uuid",
+            "title": "Post Id",
+            "type": "string"
+          },
+          "profile": {
+            "const": "editor",
+            "default": "editor",
+            "title": "Profile",
+            "type": "string"
+          },
+          "profile_selection_id": {
+            "format": "uuid",
+            "title": "Profile Selection Id",
+            "type": "string"
+          },
+          "profile_version_id": {
+            "format": "uuid",
+            "title": "Profile Version Id",
+            "type": "string"
+          },
+          "revision_id": {
+            "format": "uuid",
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "testing_only": {
+            "const": true,
+            "title": "Testing Only",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "brand_id",
+          "post_id",
+          "revision_id",
+          "content_hash",
+          "profile_version_id",
+          "profile_selection_id",
+          "testing_only"
+        ],
+        "title": "RunEditorialReview",
         "type": "object"
       },
       "RunEval": {
@@ -9907,6 +10190,116 @@
           }
         },
         "summary": "Memory Origin"
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/knowledge/editor-runs": {
+      "post": {
+        "operationId": "editorial_run_api_v1_workspaces__workspace_id__knowledge_editor_runs_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunEditorialReview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIRunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Editorial Run"
       }
     },
     "/api/v1/workspaces/{workspace_id}/knowledge/evaluations/commands": {

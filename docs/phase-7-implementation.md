@@ -13,6 +13,10 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Девятый срез:** [`editor-review.md`](editor-review.md) — testing text-only Editor по exact
+SQL revision/brief/confirmed evidence/policy. Закрытые findings, общая очередь, stale checks,
+MCP/REST и read-only web. Нет content writes, human approval, visual/legal verification.
+
 **Восьмой срез:** [`ai-profile-registry.md`](ai-profile-registry.md) — DB registry, immutable
 версии/решения, Owner testing selection/disable и точная привязка runs. Произвольных capabilities,
 production activation и новых реализованных специалистов нет; paid defaults сохраняются.
@@ -98,14 +102,16 @@ versions/chunks/receipts/decisions/artifacts append-only.
 | Content Planner | Blocked: нужны typed planning workflow и eval |
 | Copywriter | Blocked: нужны brief/facts/policy → draft и eval |
 | Visual Creator | Blocked: нужны media rights/provenance и image pipeline |
-| Editor | Blocked: нужен AI review exact SQL revision и eval |
+| Editor | Testing: exact SQL revision review, без edits/approval; реальные profile evals ещё нужны |
 | Publisher | Blocked: используйте manual package workflow фазы 6 |
 
-Ни один профиль не получает инструменты, Principal или клиент доменных команд. Output закрыт
+Ни один профиль не получает инструменты, Principal или клиент доменных команд. Reference output закрыт
 схемой: statements с citation IDs и source_observation/conflicting, hypotheses, knowledge_gaps.
 Неизвестные поля отвергаются. Все context citations проверяются перед внешним вызовом,
 сохранением и чтением artifact. Archive/replacement/expiry скрывают stale artifact при чтении.
 Существующая ссылка не доказывает смысловую поддержку утверждения: человеческая проверка обязательна.
+Editor отдельно возвращает `EditorialReview`: точные revision/context hashes, IDs SQL records,
+цитаты/locations, findings и рекомендацию. Его evidence — SQL, не RAG; контекст проверяется повторно.
 
 Gateway: Protocol + OpenAI Responses structured text, fake HTTP tests. Нет embeddings/image adapters,
 генерации файлов, post revisions, tool loop, model-directed network или автоактивации памяти.
@@ -147,6 +153,8 @@ REST prefix `/api/v1/workspaces/{wid}/knowledge`:
 - POST `/search`: query, brand_id, limit;
 - GET `/notes`, `/profiles`, `/runs`, `/runs/{rid}`; POST `/runs`: owner testing request.
 - POST `/runs/{rid}/cancel`: exact version/idempotency key; GET `/runs/{rid}/inputs`: private input.
+- POST `/editor-runs`, MCP `ai_review_revision`: exact SQL revision testing request,
+  результат через общие run endpoints; веб показывает замечания без действий approval.
 - GET `/jobs?kind=index|file`, GET `/jobs/{kind}/{job_id}/history`, POST `/jobs/cancel`.
 - POST `/profile-registry/commands`, GET `/profile-registry`, `/profile-registry/{profile}`,
   `/profile-registry/versions/{vid}`; MCP `ai_profile_execute`, `ai_profile_registry`,
@@ -184,7 +192,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0011_profile_registry` требуют privileged migration role,
+Миграции `0005_knowledge`–`0012_editor_review` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -214,7 +222,9 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
    corpus-level parallel reindex/eval switch, сравнение с FTS. Нынешний switch per-document.
 4. DB profile registry/testing selection реализован в восьмом срезе; остались production eval
    activation, typed specialist inputs/outputs/handoff/work items;
-   полный Planner/Copywriter/Editor/Analyst, visual provenance/image gateway, Publisher gates.
+   полный Planner/Copywriter/Analyst, visual provenance/image gateway, Publisher gates.
+   Text-only Editor реализован девятым срезом; остаются model evals, human finding resolution,
+   визуальная/юридическая верификация и production-включение.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
    Седьмой срез добавил memory → отдельно подтверждаемый reference с provenance.
    Остались строгий денежный accounting/budgets/provider reconciliation, memory → SQL facts/rules/

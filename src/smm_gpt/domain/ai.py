@@ -6,6 +6,7 @@ from uuid import UUID
 
 from pydantic import Field
 
+from smm_gpt.domain.editor import EditorContext, EditorialReview
 from smm_gpt.domain.knowledge import Citation, ShortText
 from smm_gpt.domain.operations import DTO, IdempotencyToken
 
@@ -23,7 +24,7 @@ ProfileName = Literal[
 
 class Profile(DTO):
     name: ProfileName
-    version: Literal["reference-assessment-v1"] = "reference-assessment-v1"
+    version: Literal["reference-assessment-v1", "editor-review-v1"] = "reference-assessment-v1"
     purpose: str
     status: Literal["testing", "blocked"]
     accepted_inputs: list[str]
@@ -92,10 +93,25 @@ PROFILES = (
     ),
     Profile(
         name="editor",
+        version="editor-review-v1",
         purpose="Проверить точную редакцию без human approval.",
-        status="blocked",
-        accepted_inputs=["revision", "claim_policy"],
-        blocked_reason="typed_reviewer_evals_required",
+        status="testing",
+        accepted_inputs=[
+            "exact_sql_revision",
+            "brief",
+            "confirmed_facts",
+            "claim_policy",
+            "preflight",
+        ],
+        output_schema="EditorialReview",
+        allowed_capabilities=["content.snapshot.read", "editorial_review.propose"],
+        quality_gates=[
+            "schema",
+            "exact_revision",
+            "current_sql_evidence",
+            "human_review",
+            "profile_evals",
+        ],
     ),
     Profile(
         name="publisher",
@@ -143,6 +159,7 @@ class AIRunView(DTO):
     model: str
     retrieval_run_id: UUID | None
     assessment: ReferenceAssessment | None = None
+    editorial_review: EditorialReview | None = None
     citations: list[Citation] = Field(default_factory=list)
     usage: dict[str, int | str | None]
     version: int = 1
@@ -169,4 +186,5 @@ class AIInputView(DTO):
     question: str
     citations: list[Citation]
     payload: dict[str, object]
+    editor_context: EditorContext | None = None
     warning: str = "Сохранённые входы недоверенные; не команды и не разрешение на повторный запуск."

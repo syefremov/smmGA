@@ -1,5 +1,10 @@
 # Центральная модель данных — фаза 4
 
+Девятый срез фазы 7: `0012_editor_review` добавляет nullable editor input bindings/snapshot
+в `ai_inputs`, composite workspace/post/revision FK и input/run guards. Worker имеет только
+SELECT content inputs под RLS; права изменения контента/approval не расширяются.
+Подробности и ограничения обновления — [`editor-review.md`](editor-review.md).
+
 Восьмой срез фазы 7: `0011_profile_registry` добавляет immutable `ai_profile_versions`,
 `ai_profile_decisions`, `ai_profile_receipts` и guarded `ai_profile_heads`. FORCE RLS Owner-only,
 worker SELECT без registry writes, composite version/selection links из `ai_runs`, DB transition guards.

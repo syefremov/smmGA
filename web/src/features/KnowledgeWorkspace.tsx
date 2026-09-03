@@ -4,6 +4,7 @@ import * as api from "../api/knowledge";
 import { listCatalog, type Workspace } from "../api/operations";
 import { Failure, Paging } from "./content/shared";
 import { time } from "./content/hooks";
+import { EditorialResult } from "./knowledge/EditorialResult";
 import "./knowledge.css";
 
 const RetrievalEvaluations = lazy(() =>
@@ -353,6 +354,7 @@ function Profiles({ workspace: w }: { workspace: Workspace }) {
   });
   const run = useQuery({
     queryKey: [w.id, "ai-run", selected],
+    refetchInterval: 10_000,
     enabled: !!selected,
     queryFn: ({ signal }) => api.run(w.id, selected!, signal),
   });
@@ -411,6 +413,9 @@ function Profiles({ workspace: w }: { workspace: Workspace }) {
           <p>
             {run.data.provider} · {run.data.model || "Модель не выбрана"}
           </p>
+          {run.data.editorial_review && (
+            <EditorialResult review={run.data.editorial_review} />
+          )}
           {run.data.assessment && (
             <>
               <h3>Наблюдения источников</h3>

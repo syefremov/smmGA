@@ -8,6 +8,7 @@ from smm_gpt.core.config import Settings
 from smm_gpt.domain import ai as d
 from smm_gpt.domain.access import Permission, Principal
 from smm_gpt.domain.content import canonical_hash
+from smm_gpt.domain.editor import EditorialReview, RunEditorialReview
 from smm_gpt.domain.knowledge import SearchRequest
 from smm_gpt.domain.operations import OperationError, Page
 from smm_gpt.infrastructure.ai_models import AIArtifact, AICancel, AIInput, AIRun
@@ -15,9 +16,10 @@ from smm_gpt.infrastructure.knowledge_models import RetrievalRun
 from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import AccessService, audit, digest
 from smm_gpt.services.ai_queue import current_input
+from smm_gpt.services.editor import snapshot, validate_review
 from smm_gpt.services.knowledge import brand_exists, eligible_citation, lock, retrieve
 from smm_gpt.services.knowledge_text import safe_text
-from smm_gpt.services.model_gateway import assessment_payload
+from smm_gpt.services.model_gateway import assessment_payload, editorial_payload
 from smm_gpt.services.profiles import assert_registered_run, compatible_profile, selected_version
 
 
@@ -30,9 +32,18 @@ class AIService:
             return list(d.PROFILES)
 
     async def start(
-        self, actor: Principal, wid: UUID, command: d.RunAssessment, request: UUID
+        self,
+        actor: Principal,
+        wid: UUID,
+        command: d.RunAssessment | RunEditorialReview,
+        request: UUID,
     ) -> d.AIRunView:
-        safe_text(command.question)
+        question = (
+            command.question
+            if isinstance(command, d.RunAssessment)
+            else "Review exact stored revision"
+        )
+        safe_text(question)
         profile = next(p for p in d.PROFILES if p.name == command.profile)
         # Nullable registry fields must not change pre-registry idempotency identities.
         fingerprint = canonical_hash(
@@ -58,6 +69,8 @@ class AIService:
                 if (count or 0) >= self.settings.ai_daily_run_limit:
                     raise OperationError("ai_run_quota_exceeded", 429)
                 error = profile.blocked_reason
+                if command.profile == "editor" and isinstance(command, d.RunAssessment):
+                    error = "editor_revision_request_required"
                 selected = None
                 if not error and (
                     self.settings.ai_provider == "disabled"
@@ -82,11 +95,24 @@ class AIService:
                     except OperationError as exc:
                         error = exc.code
                 citations = []
-                if not error:
+                context = None
+                if not error and isinstance(command, RunEditorialReview):
+                    try:
+                        context = await snapshot(
+                            s,
+                            wid,
+                            command.brand_id,
+                            command.post_id,
+                            command.revision_id,
+                            command.content_hash,
+                        )
+                    except OperationError as exc:
+                        error = exc.code
+                if not error and isinstance(command, d.RunAssessment):
                     citations = await retrieve(
                         s,
                         wid,
-                        SearchRequest(query=command.question, brand_id=command.brand_id),
+                        SearchRequest(query=question, brand_id=command.brand_id),
                         at=utcnow(),
                     )
                     if not citations:
@@ -116,13 +142,13 @@ class AIService:
                     },
                     finished_at=utcnow() if error else None,
                 )
-                if not error:
+                if not error and citations:
                     trace = RetrievalRun(
                         id=uuid4(),
                         workspace_id=wid,
                         actor_id=actor.user_id,
                         brand_id=command.brand_id,
-                        query_hash=digest(command.question),
+                        query_hash=digest(question),
                         algorithm="ru-simple-v1",
                         chunk_ids=[str(c.chunk_id) for c in citations],
                     )
@@ -132,8 +158,14 @@ class AIService:
                 s.add(run)
                 await s.flush()
                 if not error:
-                    payload = assessment_payload(
-                        profile, command.question, citations, self.settings.ai_model
+                    payload = (
+                        editorial_payload(
+                            profile, context.model_dump(mode="json"), self.settings.ai_model
+                        )
+                        if context
+                        else assessment_payload(
+                            profile, question, citations, self.settings.ai_model
+                        )
                     )
                     safe_text(str(payload))
                     s.add(
@@ -141,10 +173,13 @@ class AIService:
                             workspace_id=wid,
                             actor_id=actor.user_id,
                             run_id=run.id,
-                            question=command.question,
+                            question=question,
                             citations=[c.model_dump(mode="json") for c in citations],
                             payload=payload,
                             content_hash=canonical_hash(payload),
+                            post_id=context.post_id if context else None,
+                            revision_id=context.revision.id if context else None,
+                            editor_context=context.model_dump(mode="json") if context else None,
                         )
                     )
                 audit(s, actor.user_id, wid, request, "ai.run_reserved", run.state, run.id)
@@ -208,13 +243,15 @@ class AIService:
             run = await s.scalar(select(AIRun).where(AIRun.workspace_id == wid, AIRun.id == rid))
             if not run:
                 raise OperationError("not_found", 404)
-            record, _, citations = await current_input(s, run)
+            await lock(s, wid)
+            record, _, citations, context = await current_input(s, run, require_latest=False)
             return d.AIInputView(
                 run_id=rid,
                 content_hash=record.content_hash,
                 question=record.question,
                 citations=citations,
                 payload=record.payload,
+                editor_context=context,
             )
 
     async def read(self, actor: Principal, wid: UUID, rid: UUID, request: UUID) -> d.AIRunView:
@@ -231,7 +268,16 @@ class AIService:
             )
             if artifact and run.state == "needs_review":
                 try:
+                    await lock(s, wid)
                     await assert_registered_run(s, run)
+                    if run.profile == "editor":
+                        _, _, _, context = await current_input(s, run)
+                        if context is None:
+                            raise OperationError("editor_input_invalid")
+                        review = EditorialReview.model_validate(artifact.body)
+                        validate_review(review, context)
+                        view.editorial_review = review
+                        return view
                     view.citations = [
                         await eligible_citation(s, wid, UUID(cid), run.brand_id)
                         for cid in artifact.citation_ids
@@ -242,6 +288,8 @@ class AIService:
                     view.error_code = (
                         "artifact_profile_stale_or_unavailable"
                         if exc.code.startswith("profile_")
+                        else "artifact_editor_stale_or_unavailable"
+                        if run.profile == "editor"
                         else "artifact_sources_stale_or_unavailable"
                     )
             return view

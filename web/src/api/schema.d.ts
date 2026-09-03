@@ -449,6 +449,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/editor-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Editorial Run */
+        post: operations["editorial_run_api_v1_workspaces__workspace_id__knowledge_editor_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/evaluations/commands": {
         parameters: {
             query?: never;
@@ -990,6 +1007,7 @@ export interface components {
             citations: components["schemas"]["Citation"][];
             /** Content Hash */
             content_hash: string;
+            editor_context?: components["schemas"]["EditorContext"] | null;
             /** Payload */
             payload: {
                 [key: string]: unknown;
@@ -1014,6 +1032,7 @@ export interface components {
             citations?: components["schemas"]["Citation"][];
             /** Created At */
             created_at?: string | null;
+            editorial_review?: components["schemas"]["EditorialReview"] | null;
             /** Error Code */
             error_code: string | null;
             /** Finished At */
@@ -2015,6 +2034,80 @@ export interface components {
             purpose: string;
             /** Reason */
             reason: string;
+        };
+        /** EditorContext */
+        EditorContext: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            brief: components["schemas"]["RecordView"];
+            /**
+             * Contract
+             * @default editor-context-v1
+             * @constant
+             */
+            contract: "editor-context-v1";
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /** Preflight Findings */
+            preflight_findings: components["schemas"]["Finding"][];
+            /** Records */
+            records: components["schemas"]["RecordView"][];
+            revision: components["schemas"]["RevisionView"];
+        };
+        /** EditorialFinding */
+        EditorialFinding: {
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "facts" | "claims" | "tone" | "format" | "accessibility" | "privacy";
+            /** Description */
+            description: string;
+            /**
+             * Location
+             * @enum {string}
+             */
+            location: "revision" | "variant" | "brief" | "evidence";
+            /** Quote */
+            quote: string;
+            /** Record Ids */
+            record_ids: string[];
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "info" | "warning" | "blocking";
+            /** Suggestion */
+            suggestion: string;
+            /** Variant Index */
+            variant_index: number | null;
+        };
+        /** EditorialReview */
+        EditorialReview: {
+            /** Content Hash */
+            content_hash: string;
+            /** Context Hash */
+            context_hash: string;
+            /** Findings */
+            findings: components["schemas"]["EditorialFinding"][];
+            /**
+             * Recommendation
+             * @enum {string}
+             */
+            recommendation: "pass" | "needs_changes" | "needs_human_decision";
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /** Summary */
+            summary: string;
         };
         /** ErrorInfo */
         ErrorInfo: {
@@ -3285,9 +3378,9 @@ export interface components {
             /**
              * Version
              * @default reference-assessment-v1
-             * @constant
+             * @enum {string}
              */
-            version: "reference-assessment-v1";
+            version: "reference-assessment-v1" | "editor-review-v1";
         };
         /** ProfileDecisionView */
         ProfileDecisionView: {
@@ -3717,6 +3810,49 @@ export interface components {
             profile_version_id?: string | null;
             /** Question */
             question: string;
+            /**
+             * Testing Only
+             * @constant
+             */
+            testing_only: true;
+        };
+        /** RunEditorialReview */
+        RunEditorialReview: {
+            /**
+             * Brand Id
+             * Format: uuid
+             */
+            brand_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Post Id
+             * Format: uuid
+             */
+            post_id: string;
+            /**
+             * Profile
+             * @default editor
+             * @constant
+             */
+            profile: "editor";
+            /**
+             * Profile Selection Id
+             * Format: uuid
+             */
+            profile_selection_id: string;
+            /**
+             * Profile Version Id
+             * Format: uuid
+             */
+            profile_version_id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
             /**
              * Testing Only
              * @constant
@@ -6054,6 +6190,95 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MemoryDocumentView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    editorial_run_api_v1_workspaces__workspace_id__knowledge_editor_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunEditorialReview"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunView"];
                 };
             };
             /** @description Unauthorized */

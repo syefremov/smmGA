@@ -13,6 +13,7 @@ from smm_gpt.domain import evaluation as e
 from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
 from smm_gpt.domain import profiles as p
+from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import ErrorResponse, Page, PageSize
 from smm_gpt.infrastructure.file_storage import VolumeFileStore
 from smm_gpt.services.ai import AIService
@@ -247,6 +248,16 @@ async def memory_origin(
 @router.post("/runs")
 async def run(
     workspace_id: UUID, command: a.RunAssessment, actor: Actor, service: AI
+) -> a.AIRunView:
+    return await service.start(actor, workspace_id, command, request_id())
+
+
+@router.post("/editor-runs")
+async def editorial_run(
+    workspace_id: UUID,
+    command: RunEditorialReview,
+    actor: Actor,
+    service: AI,
 ) -> a.AIRunView:
     return await service.start(actor, workspace_id, command, request_id())
 

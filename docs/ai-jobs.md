@@ -10,6 +10,11 @@
 Смена/отключение selection блокирует queued и отбрасывает in-flight output при checkpoint.
 Это не разрешение на расходы. Legacy runs не привязываются к новой версии автоматически.
 
+**Девятый срез:** [`editor-review.md`](editor-review.md) использует ту же очередь для text-only
+Editor. Вход — exact SQL revision/brief/evidence/policy вместо FTS citations. Отдельная команда
+`ai_review_revision`/POST `editor-runs`; profile version `editor-review-v1`, private snapshots,
+recheck до/после dispatch и при чтении. Результат не меняет текст или человеческое одобрение.
+
 ## Для пользователя
 
 После отдельно разрешённого включения провайдера и worker:
