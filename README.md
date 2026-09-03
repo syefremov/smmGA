@@ -35,6 +35,9 @@ API/MCP сразу возвращают `queued`/`blocked`, результат �
 Девятый срез: тестовый AI-редактор проверяет точную сохранённую редакцию по SQL-фактам и правилам,
 возвращает замечания через чат и существующую панель. Не правит и не одобряет пост; stale inputs
 блокируют результат. Контракт — [`docs/editor-review.md`](docs/editor-review.md).
+Десятый срез: человек отмечает замечания AI как требующие правки, отклонённые или возвращённые
+в работу. Exact report/revision/finding bindings, история и защита от конфликтов между машинами;
+посты и approvals не меняются. Контракт — [`docs/editor-triage.md`](docs/editor-triage.md).
 **Фаза 7 пока не завершена:** ввод binary ingestion в эксплуатацию, hybrid/pgvector, полный набор AI workflows,
 реальный утверждённый корпус/evals и server gates ещё впереди. Точная граница —
 [`docs/phase-7-implementation.md`](docs/phase-7-implementation.md).

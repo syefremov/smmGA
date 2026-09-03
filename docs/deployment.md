@@ -2,8 +2,12 @@
 
 ## Статус и границы
 
-Text-only Editor: [`editor-review.md`](editor-review.md), migration `0012_editor_review` — текущий
-schema head deployment guard. Additive nullable inputs и worker SELECT под RLS, без content writes.
+Human editorial triage: [`editor-triage.md`](editor-triage.md), migration `0013_editor_triage` — текущий
+schema head deployment guard. Новая immutable Owner-private таблица, без worker grants/flags.
+Downgrade удаляет историю решений; только отдельный restore-backed план, не отмена triage.
+
+Text-only Editor: [`editor-review.md`](editor-review.md), migration `0012_editor_review`.
+Additive nullable inputs и worker SELECT под RLS, без content writes.
 Перед разрешённым обновлением остановить старые writers, применить migration и согласованный код.
 Старый blocked Editor не активируется; нужны новый draft и отдельный выбор testing version.
 
@@ -14,7 +18,7 @@ Downgrade удаляет registry/provenance; только согласован�
 
 Memory curation: [`memory-curation.md`](memory-curation.md), migration `0010_memory_curation`.
 Owner-only immutable ledger и composite reference constraints; текущий deployment guard ожидает
-более новый `0012_editor_review`. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
+более новый `0013_editor_triage`. Новых flags/dependencies нет, автоматического deploy/включения worker нет.
 Downgrade удаляет provenance и требует отдельно согласованного restore-backed плана.
 
 Ingestion jobs: [`ingestion-jobs.md`](ingestion-jobs.md), migration `0009_ingestion_recovery`.

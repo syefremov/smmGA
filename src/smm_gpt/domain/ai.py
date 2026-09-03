@@ -7,6 +7,7 @@ from uuid import UUID
 from pydantic import Field
 
 from smm_gpt.domain.editor import EditorContext, EditorialReview
+from smm_gpt.domain.editor_triage import EditorialTriageView
 from smm_gpt.domain.knowledge import Citation, ShortText
 from smm_gpt.domain.operations import DTO, IdempotencyToken
 
@@ -160,6 +161,7 @@ class AIRunView(DTO):
     retrieval_run_id: UUID | None
     assessment: ReferenceAssessment | None = None
     editorial_review: EditorialReview | None = None
+    editorial_triage: EditorialTriageView | None = None
     citations: list[Citation] = Field(default_factory=list)
     usage: dict[str, int | str | None]
     version: int = 1

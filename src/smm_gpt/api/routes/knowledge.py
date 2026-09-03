@@ -9,6 +9,7 @@ from smm_gpt.api.routes.identity import service
 from smm_gpt.api.routes.operations import Actor
 from smm_gpt.core.request_context import request_id
 from smm_gpt.domain import ai as a
+from smm_gpt.domain import editor_triage as t
 from smm_gpt.domain import evaluation as e
 from smm_gpt.domain import ingestion as j
 from smm_gpt.domain import knowledge as d
@@ -17,6 +18,7 @@ from smm_gpt.domain.editor import RunEditorialReview
 from smm_gpt.domain.operations import ErrorResponse, Page, PageSize
 from smm_gpt.infrastructure.file_storage import VolumeFileStore
 from smm_gpt.services.ai import AIService
+from smm_gpt.services.editor_triage import EditorTriageService
 from smm_gpt.services.evaluation import EvaluationService
 from smm_gpt.services.ingestion import IngestionService
 from smm_gpt.services.knowledge import KnowledgeService
@@ -61,6 +63,42 @@ def profile_core(request: Request) -> ProfileService:
 
 
 Profiles = Annotated[ProfileService, Depends(profile_core)]
+
+
+def triage_core(request: Request) -> EditorTriageService:
+    return EditorTriageService(service(request).access)
+
+
+Triage = Annotated[EditorTriageService, Depends(triage_core)]
+
+
+@router.get("/runs/{run_id}/editor-triage")
+async def editorial_triage(
+    workspace_id: UUID, run_id: UUID, actor: Actor, service: Triage
+) -> t.EditorialTriageView:
+    return await service.read(actor, workspace_id, run_id, request_id())
+
+
+@router.post("/runs/{run_id}/editor-triage")
+async def editorial_decide(
+    workspace_id: UUID,
+    run_id: UUID,
+    command: t.DecideEditorialFinding,
+    actor: Actor,
+    service: Triage,
+) -> t.EditorialDecisionReceipt:
+    return await service.decide(actor, workspace_id, run_id, command, request_id())
+
+
+@router.get("/runs/{run_id}/editor-triage/history")
+async def editorial_history(
+    workspace_id: UUID,
+    run_id: UUID,
+    actor: Actor,
+    service: Triage,
+    before: t.HistoryCursor | None = None,
+) -> t.EditorialHistory:
+    return await service.history(actor, workspace_id, run_id, request_id(), before)
 
 
 @router.post("/profile-registry/commands")

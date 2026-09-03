@@ -13,6 +13,10 @@ REST/MCP shared, web «Качество поиска» read-only. Подробн
 
 ## Реализованный workflow
 
+**Десятый срез:** [`editor-triage.md`](editor-triage.md) — явные решения Owner по exact findings:
+needs_changes/dismissed/open, optimistic version, идемпотентность и immutable история.
+Общая MCP/REST логика и read-only web; без исправления текста/approval или нового AI-вызова.
+
 **Девятый срез:** [`editor-review.md`](editor-review.md) — testing text-only Editor по exact
 SQL revision/brief/confirmed evidence/policy. Закрытые findings, общая очередь, stale checks,
 MCP/REST и read-only web. Нет content writes, human approval, visual/legal verification.
@@ -155,6 +159,9 @@ REST prefix `/api/v1/workspaces/{wid}/knowledge`:
 - POST `/runs/{rid}/cancel`: exact version/idempotency key; GET `/runs/{rid}/inputs`: private input.
 - POST `/editor-runs`, MCP `ai_review_revision`: exact SQL revision testing request,
   результат через общие run endpoints; веб показывает замечания без действий approval.
+- GET/POST `/runs/{rid}/editor-triage`, GET `/runs/{rid}/editor-triage/history`:
+  human triage и private история; MCP `ai_editor_triage_read`, `ai_editor_finding_decide`,
+  `ai_editor_triage_history`. Новая запись требует актуального отчёта, история — не approval.
 - GET `/jobs?kind=index|file`, GET `/jobs/{kind}/{job_id}/history`, POST `/jobs/cancel`.
 - POST `/profile-registry/commands`, GET `/profile-registry`, `/profile-registry/{profile}`,
   `/profile-registry/versions/{vid}`; MCP `ai_profile_execute`, `ai_profile_registry`,
@@ -192,7 +199,7 @@ Selector показывает первые 25 брендов; остальные
 Текстовый/eval срез не добавлял dependencies. Binary срез фиксирует pypdf 6.16.2,
 defusedxml 0.7.1 и runtime libseccomp2; optional ClamAV image зафиксирован digest.
 `pnpm check`, `pnpm test`, `pnpm build:web`; DB tests только disposable.
-Миграции `0005_knowledge`–`0012_editor_review` требуют privileged migration role,
+Миграции `0005_knowledge`–`0013_editor_triage` требуют privileged migration role,
 runtime остаётся restricted. Новые eval tables append-only, owner-only; worker grants отсутствуют.
 Перед реальной БД: отдельное разрешение, backup/restore rehearsal, остановка writers, проверка копии.
 Deployment guard обновлён, schema fingerprint не обходится. Старые миграции не менялись.
@@ -223,8 +230,8 @@ egress/provider smoke — отдельный rollout. `store=false` не обе�
 4. DB profile registry/testing selection реализован в восьмом срезе; остались production eval
    activation, typed specialist inputs/outputs/handoff/work items;
    полный Planner/Copywriter/Analyst, visual provenance/image gateway, Publisher gates.
-   Text-only Editor реализован девятым срезом; остаются model evals, human finding resolution,
-   визуальная/юридическая верификация и production-включение.
+   Text-only Editor реализован девятым срезом, human triage — десятым. Остаются model evals,
+   доказанное исправление между редакциями, визуальная/юридическая верификация и production-включение.
 5. Async assessment jobs/cancel/reconciliation и input provenance реализованы в четвёртом срезе.
    Седьмой срез добавил memory → отдельно подтверждаемый reference с provenance.
    Остались строгий денежный accounting/budgets/provider reconciliation, memory → SQL facts/rules/

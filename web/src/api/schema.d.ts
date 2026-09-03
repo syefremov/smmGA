@@ -859,6 +859,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/editor-triage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Editorial Triage */
+        get: operations["editorial_triage_api_v1_workspaces__workspace_id__knowledge_runs__run_id__editor_triage_get"];
+        put?: never;
+        /** Editorial Decide */
+        post: operations["editorial_decide_api_v1_workspaces__workspace_id__knowledge_runs__run_id__editor_triage_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/editor-triage/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Editorial History */
+        get: operations["editorial_history_api_v1_workspaces__workspace_id__knowledge_runs__run_id__editor_triage_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspace_id}/knowledge/runs/{run_id}/inputs": {
         parameters: {
             query?: never;
@@ -1033,6 +1068,7 @@ export interface components {
             /** Created At */
             created_at?: string | null;
             editorial_review?: components["schemas"]["EditorialReview"] | null;
+            editorial_triage?: components["schemas"]["EditorialTriageView"] | null;
             /** Error Code */
             error_code: string | null;
             /** Finished At */
@@ -1786,6 +1822,43 @@ export interface components {
             /** Number */
             number: number;
         };
+        /** DecideEditorialFinding */
+        DecideEditorialFinding: {
+            /** Artifact Hash */
+            artifact_hash: string;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Expected Version */
+            expected_version: number;
+            /** Finding Hash */
+            finding_hash: string;
+            /** Finding Index */
+            finding_index: number;
+            /**
+             * Human Confirmed
+             * @constant
+             */
+            human_confirmed: true;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "needs_changes" | "dismissed";
+        };
         /** DecidePost */
         DecidePost: {
             /**
@@ -2060,6 +2133,71 @@ export interface components {
             records: components["schemas"]["RecordView"][];
             revision: components["schemas"]["RevisionView"];
         };
+        /** EditorialDecisionReceipt */
+        EditorialDecisionReceipt: {
+            decision: components["schemas"]["EditorialDecisionView"];
+            /**
+             * Historical Only
+             * @default true
+             * @constant
+             */
+            historical_only: true;
+            /**
+             * Warning
+             * @default Историческая запись, не текущий статус и не одобрение поста. Перечитайте отчёт.
+             */
+            warning: string;
+        };
+        /** EditorialDecisionView */
+        EditorialDecisionView: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Artifact Hash */
+            artifact_hash: string;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Finding Hash */
+            finding_hash: string;
+            /** Finding Index */
+            finding_index: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Sequence */
+            sequence: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "needs_changes" | "dismissed";
+        };
         /** EditorialFinding */
         EditorialFinding: {
             /**
@@ -2088,6 +2226,33 @@ export interface components {
             /** Variant Index */
             variant_index: number | null;
         };
+        /** EditorialFindingState */
+        EditorialFindingState: {
+            /** Finding Hash */
+            finding_hash: string;
+            /** Finding Index */
+            finding_index: number;
+            latest_decision?: components["schemas"]["EditorialDecisionView"] | null;
+            /**
+             * Status
+             * @default open
+             * @enum {string}
+             */
+            status: "open" | "needs_changes" | "dismissed";
+        };
+        /** EditorialHistory */
+        EditorialHistory: {
+            /**
+             * Historical Only
+             * @default true
+             * @constant
+             */
+            historical_only: true;
+            /** Items */
+            items: components["schemas"]["EditorialDecisionView"][];
+            /** Next Before */
+            next_before: number | null;
+        };
         /** EditorialReview */
         EditorialReview: {
             /** Content Hash */
@@ -2108,6 +2273,41 @@ export interface components {
             revision_id: string;
             /** Summary */
             summary: string;
+        };
+        /** EditorialTriageView */
+        EditorialTriageView: {
+            /** Artifact Hash */
+            artifact_hash: string;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Findings */
+            findings: components["schemas"]["EditorialFindingState"][];
+            /** Next Before */
+            next_before: number | null;
+            /** Recent History */
+            recent_history: components["schemas"]["EditorialDecisionView"][];
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Version */
+            version: number;
+            /**
+             * Warning
+             * @default Решения относятся только к замечаниям AI. Они не исправляют и не одобряют пост.
+             */
+            warning: string;
         };
         /** ErrorInfo */
         ErrorInfo: {
@@ -8521,6 +8721,270 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AICancelReceipt"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    editorial_triage_api_v1_workspaces__workspace_id__knowledge_runs__run_id__editor_triage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditorialTriageView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    editorial_decide_api_v1_workspaces__workspace_id__knowledge_runs__run_id__editor_triage_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecideEditorialFinding"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditorialDecisionReceipt"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    editorial_history_api_v1_workspaces__workspace_id__knowledge_runs__run_id__editor_triage_history_get: {
+        parameters: {
+            query?: {
+                before?: number | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditorialHistory"];
                 };
             };
             /** @description Unauthorized */

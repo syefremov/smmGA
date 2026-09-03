@@ -1,5 +1,10 @@
 # Центральная модель данных — фаза 4
 
+Десятый срез фазы 7: `0013_editor_triage` добавляет append-only `editorial_decisions` с
+exact artifact/revision/finding hashes, sequence/version, rationale и actor-private Owner RLS.
+Worker не имеет доступа. Решения не меняют content/approval и не переносятся на новый отчёт.
+Контракт и destructive downgrade — [`editor-triage.md`](editor-triage.md).
+
 Девятый срез фазы 7: `0012_editor_review` добавляет nullable editor input bindings/snapshot
 в `ai_inputs`, composite workspace/post/revision FK и input/run guards. Worker имеет только
 SELECT content inputs под RLS; права изменения контента/approval не расширяются.

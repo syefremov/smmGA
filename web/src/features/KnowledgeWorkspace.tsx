@@ -414,7 +414,11 @@ function Profiles({ workspace: w }: { workspace: Workspace }) {
             {run.data.provider} · {run.data.model || "Модель не выбрана"}
           </p>
           {run.data.editorial_review && (
-            <EditorialResult review={run.data.editorial_review} />
+            <EditorialResult
+              review={run.data.editorial_review}
+              triage={run.data.editorial_triage}
+              timezone={w.timezone}
+            />
           )}
           {run.data.assessment && (
             <>

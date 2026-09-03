@@ -1,6 +1,12 @@
 import type { components } from "../../api/schema";
 
 type Review = components["schemas"]["EditorialReview"];
+type Triage = components["schemas"]["EditorialTriageView"];
+const states = {
+  open: "В работе",
+  needs_changes: "Нужно исправить",
+  dismissed: "Отклонено человеком",
+};
 const labels = {
   facts: "Факты",
   claims: "Утверждения",
@@ -24,7 +30,15 @@ const severities = {
   blocking: "Блокирующее замечание",
 };
 
-export function EditorialResult({ review }: { review: Review }) {
+export function EditorialResult({
+  review,
+  triage,
+  timezone = "UTC",
+}: {
+  review: Review;
+  triage?: Triage | null;
+  timezone?: string;
+}) {
   return (
     <section aria-label="Проверка редактора">
       <h3>{recommendations[review.recommendation]}</h3>
@@ -33,6 +47,7 @@ export function EditorialResult({ review }: { review: Review }) {
         заключение. Изображения не проверялись.
       </p>
       <p>{review.summary}</p>
+      {triage && <p>{triage.warning} Изменение статуса — через чат.</p>}
       <p>
         Редакция: <code>{review.revision_id}</code>
       </p>
@@ -44,6 +59,12 @@ export function EditorialResult({ review }: { review: Review }) {
         <p>
           Входные данные: <code>{review.context_hash}</code>
         </p>
+        {triage && (
+          <p>
+            Отчёт: <code>{triage.artifact_id}</code> · Версия решений:{" "}
+            {triage.version}
+          </p>
+        )}
       </details>
       {!review.findings.length && (
         <p>AI не вернул замечаний. Проверка человеком всё равно обязательна.</p>
@@ -61,12 +82,59 @@ export function EditorialResult({ review }: { review: Review }) {
             {finding.quote && <blockquote>{finding.quote}</blockquote>}
             <p>{finding.description}</p>
             <p>Предложение: {finding.suggestion}</p>
+            {triage?.findings[index] && (
+              <p>
+                Решение человека: {states[triage.findings[index].status]}.
+                {triage.findings[index].latest_decision && (
+                  <>
+                    {" "}
+                    Основание: {triage.findings[index].latest_decision.reason}
+                  </>
+                )}
+              </p>
+            )}
             {!!finding.record_ids.length && (
               <p>Записи-основания: {finding.record_ids.join(", ")}</p>
             )}
           </li>
         ))}
       </ol>
+      {triage && (
+        <details>
+          <summary>История решений по замечаниям</summary>
+          <p>
+            Исторические записи не подтверждают исправление текста или
+            разрешение публикации.
+          </p>
+          <p>Часовой пояс: {timezone}</p>
+          {!triage.recent_history.length && <p>Решений ещё нет.</p>}
+          <ol>
+            {triage.recent_history.map((decision) => (
+              <li key={decision.id}>
+                <p>
+                  № {decision.sequence} · Замечание {decision.finding_index + 1}{" "}
+                  · {states[decision.status]}
+                </p>
+                <p>{decision.reason}</p>
+                <p>
+                  Автор: <code>{decision.actor_id}</code> ·{" "}
+                  <time dateTime={decision.created_at}>
+                    {new Date(decision.created_at).toLocaleString("ru-RU", {
+                      timeZone: timezone,
+                    })}
+                  </time>
+                </p>
+              </li>
+            ))}
+          </ol>
+          {triage.next_before !== null && (
+            <p>
+              Показаны последние 25 решений. Более ранняя история доступна через
+              чат.
+            </p>
+          )}
+        </details>
+      )}
     </section>
   );
 }

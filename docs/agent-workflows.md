@@ -320,7 +320,9 @@ draft/latest и Owner testing selection с точной привязкой runs.
 
 Текстовый testing-срез реализован: [`editor-review.md`](editor-review.md). Exact SQL revision,
 immutable evidence snapshot, закрытые findings и private очередь; без редактирования/approval.
-Визуальная/юридическая верификация, разрешение findings и production quality gates ниже — целевые.
+Human triage реализован отдельно: [`editor-triage.md`](editor-triage.md), immutable решения
+needs_changes/dismissed/open. Статусы не подтверждают исправление и не одобряют пост.
+Визуальная/юридическая верификация, доказанное исправление и production quality gates — целевые.
 
 Назначение: провести независимую проверку конкретной revision.
 

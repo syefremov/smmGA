@@ -70,7 +70,8 @@ Finding: категория, severity, location, индекс варианта, 
 Editor не меняет Post, PostRevision, ContentDecision, ReviewRun, WorkingCopy или PublicationPackage.
 `Preflight.ai_review=not_run` относится к самостоятельному deterministic preflight;
 опциональная AI-проверка читается как отдельный run, не подмешивается в permission/approval gate.
-Статус разрешения замечаний и принятие исправлений пока не реализованы.
+Человеческие статусы замечаний реализованы отдельно: [`editor-triage.md`](editor-triage.md).
+Принятие/доказательство исправлений между редакциями пока не реализовано; triage не меняет текст.
 
 ## Актуальность и расходы
 

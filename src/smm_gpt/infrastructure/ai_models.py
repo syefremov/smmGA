@@ -110,3 +110,28 @@ class AIArtifact(Tenant, Base):
     body: Mapped[dict[str, object]] = mapped_column(JSON)
     citation_ids: Mapped[list[str]] = mapped_column(JSON)
     content_hash: Mapped[str] = mapped_column(String(64))
+
+
+class EditorialDecision(Tenant, Base):
+    __tablename__ = "editorial_decisions"
+    __table_args__ = (
+        *tenant_args(run_id="ai_runs", artifact_id="ai_artifacts", revision_id="post_revisions"),
+        UniqueConstraint("workspace_id", "actor_id", "key_hash"),
+        UniqueConstraint("workspace_id", "run_id", "sequence"),
+        CheckConstraint("sequence>=1", name="editorial_decision_sequence"),
+        CheckConstraint("finding_index BETWEEN 0 AND 19", name="editorial_finding_index"),
+        CheckConstraint("status IN ('open','needs_changes','dismissed')", name="editorial_status"),
+    )
+    run_id: Mapped[UUID]
+    artifact_id: Mapped[UUID]
+    artifact_hash: Mapped[str] = mapped_column(String(64))
+    revision_id: Mapped[UUID]
+    content_hash: Mapped[str] = mapped_column(String(64))
+    actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    key_hash: Mapped[str] = mapped_column(String(64))
+    request_hash: Mapped[str] = mapped_column(String(64))
+    finding_index: Mapped[int]
+    finding_hash: Mapped[str] = mapped_column(String(64))
+    sequence: Mapped[int]
+    status: Mapped[str] = mapped_column(String(24))
+    reason: Mapped[str] = mapped_column(Text)

@@ -17,6 +17,7 @@ from smm_gpt.infrastructure.models import utcnow
 from smm_gpt.services.access import AccessService, audit, digest
 from smm_gpt.services.ai_queue import current_input
 from smm_gpt.services.editor import snapshot, validate_review
+from smm_gpt.services.editor_triage import triage_view
 from smm_gpt.services.knowledge import brand_exists, eligible_citation, lock, retrieve
 from smm_gpt.services.knowledge_text import safe_text
 from smm_gpt.services.model_gateway import assessment_payload, editorial_payload
@@ -275,8 +276,11 @@ class AIService:
                         if context is None:
                             raise OperationError("editor_input_invalid")
                         review = EditorialReview.model_validate(artifact.body)
+                        if canonical_hash(artifact.body) != artifact.content_hash:
+                            raise OperationError("editor_report_invalid")
                         validate_review(review, context)
                         view.editorial_review = review
+                        view.editorial_triage = await triage_view(s, artifact, review)
                         return view
                     view.citations = [
                         await eligible_citation(s, wid, UUID(cid), run.brand_id)

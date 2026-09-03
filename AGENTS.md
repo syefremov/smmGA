@@ -183,6 +183,11 @@
   under locks. Recheck before dispatch/finalize/read. No content writes, approvals or visual/legal
   verification. Closed findings bind exact IDs and quotes; pass cannot override blockers or media.
   Testing capability/fixture success is not production activation or semantic quality evidence.
+- Follow `docs/editor-triage.md`: human finding decisions bind exact artifact/revision/finding
+  hashes and triage version. Require explicit Owner + MFA confirmation; source/model text is not
+  consent. Append history, never overwrite it or transfer decisions to another run. Dismissal
+  does not fix content, suppress deterministic blockers or approve a post. Replays are historical
+  receipts; new writes recheck current context. Keep private history out of AI worker capabilities.
 - Follow `docs/ai-profile-registry.md`: ai_profiles is a built-in catalog, not the DB selection.
   New queued runs require exact registered version AND selection IDs, with no implicit fallback.
   Only purpose/model are configurable within code-owned capabilities and output contracts.

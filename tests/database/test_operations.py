@@ -4,7 +4,7 @@ import asyncio
 from datetime import timedelta
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import httpx
 import pytest
@@ -13,6 +13,7 @@ from sqlalchemy import func, select, update
 
 from smm_gpt.application import create_app
 from smm_gpt.domain import content as content_dto
+from smm_gpt.domain import editor_triage as triage_dto
 from smm_gpt.domain import knowledge as knowledge_dto
 from smm_gpt.domain import profiles as profile_dto
 from smm_gpt.domain.access import AccessDenied
@@ -27,10 +28,15 @@ from smm_gpt.domain.operations import (
 from smm_gpt.infrastructure.models import AuditEvent, Brand, Membership, WorkItem, utcnow
 from smm_gpt.services.operations import Operations
 from smm_gpt.services.sessions import SessionService
+from smm_gpt.workers.ai import process as process_ai
 
 from ..identity_fakes import FakeIssuer
 from .conftest import TenantFixture
+from .test_ai_queue import Gateway
+from .test_ai_queue import config as ai_test_config
 from .test_content import pilot
+from .test_editor import EditorGateway
+from .test_editor_triage import decision as finding_decision
 from .test_knowledge import activate as activate_knowledge
 from .test_knowledge_files import command as file_command
 from .test_memory_curation import proposal as memory_proposal
@@ -458,6 +464,41 @@ async def test_rest_mcp_parity_resources_and_secret_redaction(
             json={**editor_command, "approved": True, "text": "never-echo-editor-input"},
         )
         assert denied_editorial.status_code == 422 and "never-echo" not in denied_editorial.text
+        await process_ai(
+            t.worker,
+            ai_test_config(t.workspace),
+            Gateway(),
+            t.workspace,
+            UUID(editorial_id),
+            t.owner.user_id,
+            editorial_gateway=EditorGateway(),
+        )
+        triage_path = ai_prefix + f"/{editorial_id}/editor-triage"
+        triage_rest = await browser.get(triage_path)
+        assert triage_rest.status_code == 200, triage_rest.text
+        assert (await call("ai_editor_triage_read", {"workspace_id": wid, "run_id": editorial_id}))[
+            "structuredContent"
+        ] == triage_rest.json()
+        triage_command = finding_decision(
+            triage_dto.EditorialTriageView.model_validate(triage_rest.json())
+        ).model_dump(mode="json")
+        decided = await call(
+            "ai_editor_finding_decide",
+            {"workspace_id": wid, "run_id": editorial_id, "command": triage_command},
+        )
+        decided_rest = await browser.post(triage_path, json=triage_command)
+        assert decided_rest.status_code == 200, decided_rest.text
+        assert decided["structuredContent"] == decided_rest.json()
+        assert decided_rest.json()["historical_only"]
+        assert (
+            await call("ai_editor_triage_history", {"workspace_id": wid, "run_id": editorial_id})
+        )["structuredContent"] == (await browser.get(triage_path + "/history")).json()
+        malformed_triage = await browser.post(
+            triage_path,
+            json={**triage_command, "status": "approved", "reason": "never-echo-triage"},
+        )
+        assert malformed_triage.status_code == 422 and "never-echo" not in malformed_triage.text
+        assert (await browser.get(triage_path + "/history?before=0")).status_code == 422
         read_knowledge = await browser.get(f"/api/v1/workspaces/{wid}/knowledge/documents")
         assert (await call("knowledge_documents", {"workspace_id": wid}))[
             "structuredContent"
